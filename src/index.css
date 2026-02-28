@@ -1,0 +1,257 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;900&family=Playfair+Display:ital,wght@0,400;0,900;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-theme-base: var(--theme-base);
+  --color-theme-surface: var(--theme-surface);
+  --color-theme-primary: var(--theme-primary);
+  --color-theme-secondary: var(--theme-secondary);
+  --color-theme-text: var(--theme-text);
+  --color-theme-muted: var(--theme-muted);
+  --color-theme-border: var(--theme-border);
+  --color-theme-accent: var(--theme-accent);
+  --color-theme-shadow: var(--theme-shadow);
+
+  --font-theme-heading: var(--theme-font-heading);
+  --font-theme-body: var(--theme-font-body);
+}
+
+@layer base {
+  :root, [data-theme="midnight-minimalist"] {
+    --theme-base: #000000;
+    --theme-surface: #0a0a0a;
+    --theme-primary: #ffffff;
+    --theme-secondary: #404040;
+    --theme-text: #ffffff;
+    --theme-muted: #737373;
+    --theme-border: rgba(255, 255, 255, 0.1);
+    --theme-accent: #ffffff;
+    --theme-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --theme-font-heading: "Inter", sans-serif;
+    --theme-font-body: "Inter", sans-serif;
+  }
+
+  [data-theme="cyber-command"] {
+    --theme-base: #020617; /* Fallback */
+    --theme-surface: rgba(15, 23, 42, 0.6);
+    --theme-primary: #22c55e;
+    --theme-secondary: #166534;
+    --theme-text: #f0fdf4;
+    --theme-muted: #4ade80;
+    --theme-border: rgba(34, 197, 94, 0.5);
+    --theme-accent: #22c55e;
+    --theme-shadow: 0 0 15px rgba(34, 197, 94, 0.3), inset 0 0 10px rgba(34, 197, 94, 0.1);
+    --theme-font-heading: "JetBrains Mono", monospace;
+    --theme-font-body: "JetBrains Mono", monospace;
+  }
+
+  [data-theme="galactic-glow"] {
+    --theme-base: #0f172a; /* Fallback */
+    --theme-surface: rgba(255, 255, 255, 0.05);
+    --theme-primary: #e879f9;
+    --theme-secondary: #a21caf;
+    --theme-text: #fdf4ff;
+    --theme-muted: #d946ef;
+    --theme-border: rgba(232, 121, 249, 0.3);
+    --theme-accent: #f5d0fe;
+    --theme-shadow: 0 0 30px rgba(232, 121, 249, 0.4);
+    --theme-font-heading: "Outfit", sans-serif;
+    --theme-font-body: "Inter", sans-serif;
+  }
+
+  [data-theme="golden-marquee"] {
+    --theme-base: #450a0a; /* Fallback */
+    --theme-surface: #7f1d1d;
+    --theme-primary: #facc15;
+    --theme-secondary: #a16207;
+    --theme-text: #fefce8;
+    --theme-muted: #eab308;
+    --theme-border: #facc15;
+    --theme-accent: #fbbf24;
+    --theme-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.5);
+    --theme-font-heading: "Playfair Display", serif;
+    --theme-font-body: "Georgia", serif;
+  }
+
+  [data-theme="8-bit-arcade"] {
+    --theme-base: #1e1b4b; /* Fallback */
+    --theme-surface: #312e81;
+    --theme-primary: #fde047;
+    --theme-secondary: #ef4444;
+    --theme-text: #ffffff;
+    --theme-muted: #94a3b8;
+    --theme-border: #ffffff;
+    --theme-accent: #22c55e;
+    --theme-shadow: 4px 4px 0px #000000;
+    --theme-font-heading: "Courier New", monospace;
+    --theme-font-body: "Courier New", monospace;
+  }
+
+  [data-theme="enchanted-library"] {
+    --theme-base: #fef3c7; /* Fallback */
+    --theme-surface: #fde68a;
+    --theme-primary: #78350f;
+    --theme-secondary: #92400e;
+    --theme-text: #451a03;
+    --theme-muted: #b45309;
+    --theme-border: #d97706;
+    --theme-accent: #991b1b;
+    --theme-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    --theme-font-heading: "Cormorant Garamond", serif;
+    --theme-font-body: "Libre Baskerville", serif;
+  }
+
+  body {
+    @apply bg-theme-base text-theme-text font-theme-body transition-colors duration-700 min-h-screen selection:bg-theme-primary selection:text-theme-base;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-theme-heading font-black tracking-tight;
+  }
+}
+
+/* --- Theme Specific Backgrounds & Textures --- */
+
+/* Golden Marquee: Velvet & Gold */
+[data-theme="golden-marquee"] body {
+  background: radial-gradient(circle, #7f1d1d 0%, #450a0a 100%);
+  background-attachment: fixed;
+}
+[data-theme="golden-marquee"] .bg-theme-surface {
+  background: linear-gradient(180deg, #991b1b 0%, #7f1d1d 100%);
+  box-shadow: var(--theme-shadow);
+  border: 2px solid #b45309;
+}
+
+/* Cyber Command: Glass & Scanlines */
+[data-theme="cyber-command"] body {
+  background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
+  background-attachment: fixed;
+}
+[data-theme="cyber-command"] .bg-theme-surface {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--theme-shadow);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+/* 8-Bit Arcade: Plastic & CRT */
+[data-theme="8-bit-arcade"] body {
+  background-color: #1e1b4b;
+  background-image: 
+    linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent),
+    linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent);
+  background-size: 50px 50px;
+}
+[data-theme="8-bit-arcade"] .bg-theme-surface {
+  background: #312e81;
+  border: 4px solid #ffffff;
+  box-shadow: 6px 6px 0px #000000;
+}
+
+/* Galactic Glow: Nebula & Bloom */
+[data-theme="galactic-glow"] body {
+  background: radial-gradient(circle at center, #2e1065 0%, #0f172a 100%);
+  background-attachment: fixed;
+}
+[data-theme="galactic-glow"] .bg-theme-surface {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 30px rgba(232, 121, 249, 0.2);
+}
+
+/* Enchanted Library: Parchment & Ink */
+[data-theme="enchanted-library"] body {
+  background-color: #fef3c7;
+  background-image: url("https://www.transparenttextures.com/patterns/paper-fibers.png");
+}
+[data-theme="enchanted-library"] .bg-theme-surface {
+  background: #fffbeb;
+  border: 1px solid #d97706;
+  box-shadow: 3px 3px 8px rgba(0,0,0,0.1);
+  background-image: url("https://www.transparenttextures.com/patterns/paper-fibers.png");
+}
+
+/* --- Animations --- */
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; filter: blur(2px); transform: scale(1); }
+  50% { opacity: 1; filter: blur(4px); transform: scale(1.2); }
+}
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes scan-line {
+  0% { top: -10%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 110%; opacity: 0; }
+}
+.animate-scan-line {
+  animation: scan-line 3s linear infinite;
+}
+
+@keyframes crt-flicker {
+  0% { opacity: 0.95; }
+  5% { opacity: 0.85; }
+  10% { opacity: 0.95; }
+  15% { opacity: 1; }
+  100% { opacity: 0.95; }
+}
+.animate-crt-flicker {
+  animation: crt-flicker 0.1s infinite;
+}
+
+@keyframes liquid-float {
+  0%, 100% { transform: translateY(0) scale(1); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  50% { transform: translateY(-5px) scale(1.05); border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+}
+.animate-liquid {
+  animation: liquid-float 6s ease-in-out infinite;
+}
+
+/* --- Utility Classes for Skeuomorphism --- */
+
+.ticket-stub {
+  mask-image: radial-gradient(circle at 0 0, transparent 0, transparent 5px, black 6px), 
+              radial-gradient(circle at 100% 0, transparent 0, transparent 5px, black 6px), 
+              radial-gradient(circle at 0 100%, transparent 0, transparent 5px, black 6px), 
+              radial-gradient(circle at 100% 100%, transparent 0, transparent 5px, black 6px);
+  mask-composite: intersect;
+}
+
+.crt-curve {
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+  border-radius: 50% / 10%;
+}
+
+.gold-frame {
+  border: 4px solid #facc15;
+  box-shadow: 
+    0 0 0 2px #a16207,
+    0 0 0 4px #facc15,
+    0 10px 20px rgba(0,0,0,0.5);
+}
+
+.wax-seal {
+  filter: drop-shadow(1px 1px 0px rgba(0,0,0,0.3));
+}
+
+.plastic-btn {
+  background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  box-shadow: 
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    0 4px 0 rgba(0,0,0,0.2);
+  transition: all 0.1s;
+}
+.plastic-btn:active {
+  transform: translateY(4px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    0 0 0 rgba(0,0,0,0.2);
+}
+
+
+
