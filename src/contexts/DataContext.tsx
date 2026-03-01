@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { db, isFirebaseInitialized } from '../services/firebase';
 import { collection, onSnapshot, doc, updateDoc, setDoc, writeBatch, getDoc } from 'firebase/firestore';
 import { seedData } from '../utils/seedData';
+import { useAuth } from './AuthContext';
 
 export type FamilyMember = 'Jack' | 'Simone' | 'Mom' | 'Dad';
 export const TURN_ORDER: FamilyMember[] = ['Jack', 'Simone', 'Mom', 'Dad'];
@@ -46,6 +47,7 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
+  const { user, loading: authLoading } = useAuth();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   const [isLocalMode, setIsLocalMode] = useState(() => {
@@ -88,7 +90,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Firebase mode
+    // Firebase mode - wait for auth
+    if (authLoading) return;
+    if (!user) {
+      console.warn("Firebase initialized but user not authenticated. Waiting...");
+      return;
+    }
+
     const unsubscribeMovies = onSnapshot(collection(db, 'movies'), (snapshot) => {
       const moviesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Movie));
       setMovies(moviesData);
@@ -117,7 +125,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       unsubscribeMovies();
       unsubscribeConfig();
     };
-  }, [isLocalMode]);
+  }, [isLocalMode, user, authLoading]);
 
   const saveLocalMovies = (newMovies: Movie[]) => {
     setMovies(newMovies);

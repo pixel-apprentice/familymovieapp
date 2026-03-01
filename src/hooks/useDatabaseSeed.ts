@@ -2,11 +2,15 @@ import { useEffect } from 'react';
 import { db, isFirebaseInitialized } from '../services/firebase';
 import { doc, getDoc, writeBatch, collection } from 'firebase/firestore';
 import { seedData } from '../utils/seedData';
+import { useAuth } from '../contexts/AuthContext';
 
 export function useDatabaseSeed() {
+  const { user, loading: authLoading } = useAuth();
+
   useEffect(() => {
     async function seedDatabase() {
       if (!isFirebaseInitialized) return;
+      if (authLoading || !user) return;
 
       try {
         const configRef = doc(db, 'metadata', 'config');
@@ -45,5 +49,5 @@ export function useDatabaseSeed() {
     }
 
     seedDatabase();
-  }, []);
+  }, [user, authLoading]);
 }
