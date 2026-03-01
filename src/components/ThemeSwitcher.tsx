@@ -3,12 +3,14 @@ import { useTheme, Theme } from '../contexts/ThemeContext';
 import { ThemeIcon } from './Icons';
 
 const themes: { id: Theme; label: string }[] = [
-  { id: 'midnight-minimalist', label: 'Midnight' },
-  { id: 'cyber-command', label: 'Cyber' },
-  { id: 'galactic-glow', label: 'Galactic' },
-  { id: 'golden-marquee', label: 'Marquee' },
-  { id: '8-bit-arcade', label: 'Arcade' },
-  { id: 'enchanted-library', label: 'Library' }
+  { id: 'modern-pinnacle', label: 'Pinnacle' },
+  { id: 'modern-luminous', label: 'Luminous' },
+  { id: 'midnight-cinema', label: 'Midnight' },
+  { id: 'vintage-ticket', label: 'Vintage' },
+  { id: 'neon-cyberpunk', label: 'Neon' },
+  { id: 'minimalist-studio', label: 'Studio' },
+  { id: 'velvet-theater', label: 'Velvet' },
+  { id: 'sci-fi-hologram', label: 'Sci-Fi' }
 ];
 
 export function ThemeSwitcher() {
@@ -16,11 +18,15 @@ export function ThemeSwitcher() {
 
   return (
     <div className={`flex flex-wrap gap-1 md:gap-2 p-2 md:p-4 bg-theme-surface border-b border-theme-border transition-all duration-500 ${
-      theme === 'golden-marquee' ? 'border-4 border-double border-yellow-600 bg-red-900/50' : ''
+      theme === 'modern-pinnacle' ? 'rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.8)] border border-white/10 m-2 md:m-4 backdrop-blur-xl' : ''
     } ${
-      theme === '8-bit-arcade' ? 'border-4 bg-blue-900' : ''
+      theme === 'modern-luminous' ? 'rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.06)] border border-black/5 m-2 md:m-4 backdrop-blur-xl' : ''
     } ${
-      theme === 'enchanted-library' ? 'rounded-xl shadow-inner' : ''
+      theme === 'velvet-theater' ? 'border-b-4 border-amber-600 bg-rose-950/50' : ''
+    } ${
+      theme === 'neon-cyberpunk' ? 'border-b-2 border-cyan-400 bg-indigo-950/80 shadow-[0_4px_20px_rgba(0,240,255,0.15)]' : ''
+    } ${
+      theme === 'vintage-ticket' ? 'rounded-xl shadow-inner border-b-2 border-amber-900/20' : ''
     }`}>
       {themes.map(t => (
         <button
@@ -31,13 +37,17 @@ export function ThemeSwitcher() {
               ? 'bg-theme-primary text-theme-base font-bold shadow-md scale-105 z-10' 
               : 'text-theme-muted hover:text-theme-text hover:bg-theme-border/20'
           } ${
-            theme === 'golden-marquee' ? 'ticket-stub rounded-none mx-0.5 hover:rotate-1' : ''
+            theme === 'modern-pinnacle' ? 'rounded-xl border border-white/5 hover:border-white/20' : ''
           } ${
-            theme === 'cyber-command' ? 'plastic-btn rounded-sm border border-green-500/30' : ''
+            theme === 'modern-luminous' ? 'rounded-xl border border-black/5 hover:border-black/10' : ''
           } ${
-            theme === 'galactic-glow' ? 'rounded-full hover:shadow-[0_0_15px_currentColor]' : ''
+            theme === 'velvet-theater' ? 'rounded-none mx-0.5 border border-amber-700/30' : ''
           } ${
-            theme === '8-bit-arcade' ? 'rounded-none border-2 border-white shadow-[2px_2px_0_#000] active:translate-y-1 active:shadow-none' : ''
+            theme === 'neon-cyberpunk' ? 'rounded-sm border border-cyan-500/30 hover:shadow-[0_0_10px_rgba(0,240,255,0.4)]' : ''
+          } ${
+            theme === 'sci-fi-hologram' ? 'rounded-full hover:shadow-[0_0_15px_currentColor]' : ''
+          } ${
+            theme === 'vintage-ticket' ? 'ticket-stub rounded-none border border-amber-900/20 shadow-sm' : ''
           }`}
         >
           <div className="relative z-10 flex items-center gap-1 md:gap-2">
@@ -45,8 +55,8 @@ export function ThemeSwitcher() {
             <span className="hidden xs:inline">{t.label}</span>
           </div>
           
-          {theme === 'galactic-glow' && theme === t.id && (
-            <div className="absolute inset-0 bg-white/20 blur-md animate-pulse" />
+          {theme === 'sci-fi-hologram' && theme === t.id && (
+            <div className="absolute inset-0 bg-sky-400/20 blur-md animate-pulse" />
           )}
         </button>
       ))}

@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export type Theme = 
-  | 'midnight-minimalist'
-  | 'cyber-command'
-  | 'galactic-glow'
-  | 'golden-marquee'
-  | '8-bit-arcade'
-  | 'enchanted-library';
+  | 'modern-pinnacle'
+  | 'modern-luminous'
+  | 'midnight-cinema'
+  | 'vintage-ticket'
+  | 'neon-cyberpunk'
+  | 'minimalist-studio'
+  | 'velvet-theater'
+  | 'sci-fi-hologram';
 
 interface ThemeContextType {
   theme: Theme;
@@ -18,7 +20,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem('activeTheme');
-    return (saved as Theme) || 'midnight-minimalist';
+    return (saved as Theme) || 'modern-pinnacle';
   });
 
   useEffect(() => {

@@ -43,17 +43,18 @@ export async function getFamilyRecommendations(history: any[], currentUser: stri
         .filter(([_, r]) => (r as number) > 0)
         .map(([name, r]) => `${name}: ${r}/5`)
         .join(', ');
-      return `- ${h.title} (Picked by: ${h.pickedBy}, Ratings: ${ratings || 'No ratings'})`;
+      return `- ${h.title} (Picked by: ${h.pickedBy}, Ratings: ${ratings || 'No ratings'}${h.summary ? `, Summary: ${h.summary}` : ''})`;
     }).join('\n');
     
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: `We are a family (Jack, Simone, Mom, Dad) having a movie night. It's ${currentUser}'s turn to pick. 
       
-      Here is our watch history and how we rated them:
+      Here is our watch history, including summaries and how we rated them:
       ${historyText}
       
-      Suggest 5 new movies that ${currentUser} would like, but also consider the family's general taste. 
+      Suggest 5 new movies that ${currentUser} would like, but also consider the family's general taste based on their ratings. 
+      Heavily prioritize genres and styles that received high ratings (4/5 or 5/5) and avoid those that were rated poorly.
       Return ONLY a JSON array of 5 movie titles.`,
       config: {
         responseMimeType: "application/json",

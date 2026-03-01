@@ -17,7 +17,7 @@ export function RatingsPanel({ movieId, ratings }: { movieId: string, ratings: R
   };
 
   return (
-    <div className={`mt-4 pt-4 border-t border-theme-border/30 flex flex-col gap-2 ${theme === 'enchanted-library' ? 'bg-[#f4ecd8] p-4 rounded-lg shadow-inner' : ''}`}>
+    <div className={`mt-4 pt-4 border-t border-theme-border/30 flex flex-col gap-2 ${theme === 'vintage-ticket' ? 'bg-amber-50/50 p-4 rounded-lg shadow-inner' : ''}`}>
       {TURN_ORDER.map(member => (
         <div key={member} className="flex items-center justify-between text-sm">
           <span className="font-bold w-16 text-right mr-4 uppercase tracking-wider text-[10px]" style={{ color: FAMILY_COLORS[member] }}>{member}</span>

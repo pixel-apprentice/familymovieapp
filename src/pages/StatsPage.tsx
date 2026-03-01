@@ -6,7 +6,7 @@ import { motion } from 'motion/react';
 import { StarIcon } from '../components/Icons';
 
 export function StatsPage() {
-  const { movies, resetDatabase } = useData();
+  const { movies, resetDatabase, isLocalMode } = useData();
   const { theme } = useTheme();
   const [isResetting, setIsResetting] = useState(false);
 
@@ -48,15 +48,26 @@ export function StatsPage() {
 
   return (
     <div className="flex flex-col gap-12 w-full max-w-7xl mx-auto px-4 py-8">
+      {/* Connection Status */}
+      <div className="flex justify-end">
+        <div className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border-2 ${isLocalMode ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'}`}>
+          {isLocalMode ? '⚠️ Local Mode (No Sync)' : '✅ Firebase Connected'}
+        </div>
+      </div>
+
       {/* Theme Picker Section */}
       <section className="space-y-6">
         <div className="flex items-center gap-4">
-          <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'enchanted-library' ? 'font-serif italic' : ''}`}>
+          <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
             Appearance
           </h2>
           <div className="h-px flex-1 bg-theme-border/30" />
         </div>
-        <div className="bg-theme-surface/30 p-6 rounded-[2.5rem] border-2 border-theme-border shadow-xl">
+        <div className={`bg-theme-surface/30 p-6 rounded-[2.5rem] border-2 border-theme-border shadow-xl ${
+          theme === 'modern-pinnacle' ? 'rounded-3xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl bg-white/[0.02]' : ''
+        } ${
+          theme === 'modern-luminous' ? 'rounded-3xl border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl bg-black/[0.02]' : ''
+        }`}>
           <p className="text-xs font-mono uppercase tracking-widest text-theme-muted mb-6 px-4">Choose your family's vibe</p>
           <ThemeSwitcher />
         </div>
@@ -65,7 +76,7 @@ export function StatsPage() {
       {/* Advanced Stats Section */}
       <section className="space-y-8">
         <div className="flex items-center gap-4">
-          <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'enchanted-library' ? 'font-serif italic' : ''}`}>
+          <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
             Advanced Family Stats
           </h2>
           <div className="h-px flex-1 bg-theme-border/30" />
@@ -83,7 +94,11 @@ export function StatsPage() {
                 key={member} 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-theme-surface/30 border-2 border-theme-border p-6 rounded-[2rem] flex flex-col items-center relative overflow-hidden group shadow-lg hover:border-theme-primary/50 transition-all"
+                className={`bg-theme-surface/30 border-2 border-theme-border p-6 rounded-[2rem] flex flex-col items-center relative overflow-hidden group shadow-lg hover:border-theme-primary/50 transition-all ${
+                  theme === 'modern-pinnacle' ? 'rounded-3xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl bg-white/[0.02]' : ''
+                } ${
+                  theme === 'modern-luminous' ? 'rounded-3xl border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl bg-black/[0.02]' : ''
+                }`}
               >
                 <div className="absolute top-0 left-0 w-full h-2" style={{ backgroundColor: color }} />
                 
@@ -127,7 +142,11 @@ export function StatsPage() {
 
       {/* Fun Facts / Insights */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-theme-surface/30 border-2 border-theme-border p-8 rounded-[2.5rem] shadow-xl">
+        <div className={`lg:col-span-2 bg-theme-surface/30 border-2 border-theme-border p-8 rounded-[2.5rem] shadow-xl ${
+          theme === 'modern-pinnacle' ? 'rounded-3xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl bg-white/[0.02]' : ''
+        } ${
+          theme === 'modern-luminous' ? 'rounded-3xl border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl bg-black/[0.02]' : ''
+        }`}>
           <h3 className="text-lg font-black uppercase tracking-widest text-theme-primary mb-6">Movie Night Insights</h3>
           <div className="space-y-4">
             <div className="flex items-center gap-4 p-4 bg-theme-base/30 rounded-2xl border border-theme-border/20">
@@ -173,13 +192,38 @@ export function StatsPage() {
             <h3 className="text-lg font-black uppercase tracking-widest text-red-500">Danger Zone</h3>
             <p className="text-xs text-theme-muted font-mono uppercase tracking-widest">Reset the database to the master seed list</p>
           </div>
-          <button 
-            onClick={handleReset}
-            disabled={isResetting}
-            className="px-8 py-4 bg-red-500 text-white font-black rounded-2xl hover:bg-red-600 transition-all uppercase text-xs tracking-widest shadow-lg disabled:opacity-50"
-          >
-            {isResetting ? 'Resetting...' : 'Reset Database'}
-          </button>
+          <div className="flex flex-col gap-3 w-full md:w-auto">
+            <button 
+              onClick={handleReset}
+              disabled={isResetting}
+              className="px-8 py-4 bg-red-500 text-white font-black rounded-2xl hover:bg-red-600 transition-all uppercase text-xs tracking-widest shadow-lg disabled:opacity-50"
+            >
+              {isResetting ? 'Resetting...' : 'Reset Database'}
+            </button>
+            {isLocalMode && localStorage.getItem('forceLocal') === 'true' ? (
+              <button 
+                onClick={() => {
+                  localStorage.removeItem('forceLocal');
+                  window.location.reload();
+                }}
+                className="px-8 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 font-black rounded-xl hover:bg-emerald-500/20 transition-all uppercase text-[10px] tracking-widest"
+              >
+                Try Firebase Again
+              </button>
+            ) : !isLocalMode && (
+              <button 
+                onClick={() => {
+                  if (window.confirm("Switch to Local Mode? This will ignore Firebase and use your browser's storage instead.")) {
+                    localStorage.setItem('forceLocal', 'true');
+                    window.location.reload();
+                  }
+                }}
+                className="px-8 py-2 bg-theme-surface border border-theme-border text-theme-muted font-black rounded-xl hover:text-theme-primary transition-all uppercase text-[10px] tracking-widest"
+              >
+                Force Local Mode
+              </button>
+            )}
+          </div>
         </div>
       </section>
     </div>

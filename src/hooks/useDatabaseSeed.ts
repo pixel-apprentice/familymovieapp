@@ -20,7 +20,7 @@ export function useDatabaseSeed() {
             const movieRef = doc(collection(db, 'movies'));
             let picker = movie.picker;
             if (picker.includes('Family')) picker = 'Family';
-            if (picker === 'Lauren') picker = 'Mom';
+            if (picker === 'Lauren' || picker === 'Mom') picker = 'Mom';
             
             batch.set(movieRef, {
               title: movie.title,
@@ -35,8 +35,12 @@ export function useDatabaseSeed() {
           await batch.commit();
           console.log("Database seeded successfully.");
         }
-      } catch (error) {
-        console.error("Error seeding database:", error);
+      } catch (error: any) {
+        if (error.code === 'permission-denied') {
+          console.warn("Permission denied while seeding database. Falling back to local mode.");
+        } else {
+          console.error("Error seeding database:", error);
+        }
       }
     }
 

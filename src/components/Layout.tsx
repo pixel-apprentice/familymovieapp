@@ -12,30 +12,33 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   return (
-    <div className={`min-h-screen flex flex-col relative overflow-hidden transition-colors duration-700 ${
-      theme === 'cyber-command' ? 'cyber-overlay' : ''
-    } ${
-      theme === 'enchanted-library' ? 'paper-texture' : ''
-    } ${
-      theme === '8-bit-arcade' ? 'pixel-grid' : ''
-    }`}>
-      {theme === 'galactic-glow' && (
-        <div className="fixed inset-0 bg-nebula opacity-40 pointer-events-none z-[-1]" />
+    <div className={`min-h-screen flex flex-col relative overflow-hidden transition-colors duration-700`}>
+      {theme === 'modern-pinnacle' && (
+        <div className="fixed inset-0 pointer-events-none z-0">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-violet-500/10 blur-[120px] rounded-full" />
+        </div>
+      )}
+      {theme === 'modern-luminous' && (
+        <div className="fixed inset-0 pointer-events-none z-0">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/5 blur-[120px] rounded-full" />
+        </div>
       )}
       
       {isLocalMode && (
-        <div className="bg-theme-accent text-theme-base text-[10px] font-black uppercase tracking-[0.2em] text-center py-1.5 px-4 shadow-xl z-50 relative">
-          <span className="animate-pulse">Running in Local Mode • Add Firebase Config to Sync</span>
+        <div className="bg-red-500 text-white text-[10px] font-black uppercase tracking-[0.2em] text-center py-2 px-4 shadow-xl z-50 relative animate-pulse">
+          <span>⚠️ Setup Required: Add Firebase Environment Variables to Sync Data</span>
         </div>
       )}
 
       <header className="sticky top-0 z-40 bg-theme-base/60 backdrop-blur-xl border-b border-theme-border/50">
         <div className="max-w-7xl mx-auto flex items-center justify-between p-3 md:p-4">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className={`w-8 h-8 rounded-full bg-theme-primary flex items-center justify-center text-theme-base font-black text-lg shadow-lg group-hover:scale-110 transition-transform ${theme === '8-bit-arcade' ? 'rounded-none' : ''}`}>
+            <div className={`w-8 h-8 rounded-full bg-theme-primary flex items-center justify-center text-theme-base font-black text-lg shadow-lg group-hover:scale-110 transition-transform`}>
               F
             </div>
-            <h1 className={`text-xl md:text-2xl font-black tracking-tighter text-theme-primary ${theme === '8-bit-arcade' ? 'uppercase' : ''}`}>
+            <h1 className={`text-xl md:text-2xl font-black tracking-tighter text-theme-primary`}>
               Family Movie Night
             </h1>
           </Link>

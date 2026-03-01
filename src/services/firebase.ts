@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -11,16 +12,25 @@ const firebaseConfig = {
 };
 
 let db: any = null;
+let auth: any = null;
 let isFirebaseInitialized = false;
 
 try {
-  if (firebaseConfig.apiKey) {
+  if (
+    firebaseConfig.apiKey && 
+    firebaseConfig.projectId && 
+    firebaseConfig.appId &&
+    firebaseConfig.apiKey !== 'undefined'
+  ) {
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
+    auth = getAuth(app);
     isFirebaseInitialized = true;
+  } else {
+    console.warn("Firebase configuration is incomplete. Falling back to local mode.");
   }
 } catch (error) {
   console.error("Firebase initialization error", error);
 }
 
-export { db, isFirebaseInitialized };
+export { db, auth, isFirebaseInitialized };

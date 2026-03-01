@@ -17,15 +17,11 @@ export function CurrentTurn() {
   const daysAgo = lastWatched?.date ? Math.floor((new Date().getTime() - new Date(lastWatched.date).getTime()) / (1000 * 3600 * 24)) : null;
 
   const commonStyles = `${
-    theme === 'galactic-glow' ? 'bg-nebula shadow-[0_0_30px_rgba(232,121,249,0.2)] backdrop-blur-3xl border-white/10' : ''
+    theme === 'modern-pinnacle' ? 'rounded-3xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl bg-white/[0.02]' : ''
   } ${
-    theme === 'golden-marquee' ? 'gold-frame bg-red-900 shadow-[0_10px_30px_rgba(0,0,0,0.8)]' : ''
+    theme === 'modern-luminous' ? 'rounded-3xl border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl bg-black/[0.02]' : ''
   } ${
-    theme === '8-bit-arcade' ? 'rounded-none border-4 shadow-[4px_4px_0_#000]' : ''
-  } ${
-    theme === 'enchanted-library' ? 'paper-texture border-double border-4 border-amber-700/50 shadow-inner' : ''
-  } ${
-    theme === 'cyber-command' ? 'cyber-overlay border-green-500/30 bg-slate-900/80' : ''
+    theme === 'vintage-ticket' ? 'rounded-xl border-amber-900/20 shadow-sm bg-amber-50/50' : ''
   }`;
 
   return (
@@ -36,19 +32,15 @@ export function CurrentTurn() {
         className={`flex items-center justify-between p-2 pl-4 md:pl-6 pr-2 rounded-[2rem] bg-theme-surface border-2 border-theme-border shadow-xl ${commonStyles}`}
       >
         <div className="flex flex-col min-w-0 pr-2">
-          <span className={`text-[8px] md:text-[10px] uppercase tracking-widest text-theme-muted font-black opacity-80 ${theme === 'enchanted-library' ? 'font-serif italic tracking-widest' : ''}`}>
-            {theme === 'cyber-command' ? 'ACTIVE_USER' : 'Up Next'}
+          <span className={`text-[8px] md:text-[10px] uppercase tracking-widest text-theme-muted font-black opacity-80 ${theme === 'vintage-ticket' ? 'font-serif italic tracking-widest' : ''}`}>
+            {theme === 'neon-cyberpunk' ? 'ACTIVE_USER' : 'Up Next'}
           </span>
           <h1 className={`text-xl md:text-3xl font-black text-theme-primary truncate ${
-            theme === 'golden-marquee' ? 'font-serif italic drop-shadow-[0_2px_0_#713f12] text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-600' : ''
+            theme === 'velvet-theater' ? 'font-serif italic drop-shadow-[0_2px_0_#713f12] text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-600' : ''
           } ${
-            theme === '8-bit-arcade' ? 'uppercase tracking-tighter drop-shadow-[2px_2px_0_#ef4444]' : ''
+            theme === 'neon-cyberpunk' ? 'drop-shadow-[0_0_5px_rgba(0,240,255,0.8)]' : ''
           } ${
-            theme === 'galactic-glow' ? 'animate-twinkle drop-shadow-[0_0_10px_rgba(232,121,249,0.8)]' : ''
-          } ${
-            theme === 'cyber-command' ? 'drop-shadow-[0_0_5px_rgba(34,197,94,0.8)]' : ''
-          } ${
-            theme === 'enchanted-library' ? 'font-serif text-amber-900' : ''
+            theme === 'vintage-ticket' ? 'font-serif text-amber-900' : ''
           }`}>
             {currentPicker}
           </h1>
@@ -60,11 +52,11 @@ export function CurrentTurn() {
               key={member}
               onClick={() => setTurn(index)}
               className={`relative w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-[10px] md:text-xs font-black transition-all ${
-                theme === '8-bit-arcade' ? 'rounded-none border-2 shadow-[2px_2px_0_#000] active:translate-y-1 active:shadow-none' : ''
+                theme === 'modern-pinnacle' ? 'border border-white/10' : ''
               } ${
-                theme === 'cyber-command' ? 'plastic-btn rounded-lg border border-green-500/30' : ''
+                theme === 'modern-luminous' ? 'border border-black/5' : ''
               } ${
-                theme === 'golden-marquee' ? 'ticket-stub rounded-none bg-yellow-100 text-red-900 border-none shadow-sm' : ''
+                theme === 'vintage-ticket' ? 'ticket-stub rounded-none bg-amber-100 text-amber-900 border-none shadow-sm' : ''
               } ${
                 index === currentTurnIndex 
                   ? 'bg-theme-primary text-theme-base scale-110 shadow-[0_0_10px_rgba(var(--theme-primary-rgb),0.3)] z-10' 
@@ -76,9 +68,9 @@ export function CurrentTurn() {
                 <motion.div 
                   layoutId="active-turn-pill"
                   className={`absolute inset-0 bg-theme-primary opacity-100 z-0 ${
-                    theme === 'galactic-glow' ? 'rounded-full blur-sm' : 'rounded-full'
+                    theme === 'neon-cyberpunk' ? 'rounded-full blur-sm' : 'rounded-full'
                   }`}
-                  style={{ borderRadius: theme === '8-bit-arcade' ? '0' : undefined }}
+                  style={{ borderRadius: theme === 'vintage-ticket' ? '0' : undefined }}
                 />
               )}
             </button>

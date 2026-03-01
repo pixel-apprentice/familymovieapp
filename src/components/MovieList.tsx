@@ -4,9 +4,11 @@ import { MovieCard } from './MovieCard';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTheme } from '../contexts/ThemeContext';
 import { StarIcon } from './Icons';
+import { Link } from 'react-router-dom';
+import { Trash2 } from 'lucide-react';
 
 export function MovieList() {
-  const { movies } = useData();
+  const { movies, removeMovie } = useData();
   const { theme } = useTheme();
   const [randomMovie, setRandomMovie] = useState<Movie | null>(null);
 
@@ -31,13 +33,21 @@ export function MovieList() {
     setTimeout(() => setRandomMovie(null), 5000);
   };
 
+  const handleDeleteWatched = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this movie from history?')) {
+      removeMovie(id);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-10 w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4">
       {/* Up Next Section */}
       <section className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4 flex-1">
-            <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'enchanted-library' ? 'font-serif italic' : ''}`}>
+            <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
               Up Next
             </h2>
             <div className="h-px flex-1 bg-theme-border/30" />
@@ -95,19 +105,23 @@ export function MovieList() {
       {/* History Section - Compact List */}
       <section className="space-y-6">
         <div className="flex items-center gap-4">
-          <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'enchanted-library' ? 'font-serif italic' : ''}`}>
+          <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
             History
           </h2>
           <div className="h-px flex-1 bg-theme-border/30" />
         </div>
 
-        <div className={`flex flex-col gap-3 ${theme === '8-bit-arcade' ? 'rounded-none' : ''}`}>
+        <div className={`flex flex-col gap-3`}>
           {watchedMovies.map(movie => {
             const avg = calculateAverageRating(movie.ratings);
             return (
-              <div key={movie.id} className="flex items-center justify-between p-4 rounded-2xl border border-theme-border/50 bg-theme-surface/30 backdrop-blur-sm hover:border-theme-primary/50 transition-colors group">
+              <Link to={`/movie/${movie.id}`} key={movie.id} className={`flex items-center justify-between p-4 rounded-2xl border border-theme-border/50 bg-theme-surface/30 backdrop-blur-sm hover:border-theme-primary/50 transition-colors group ${
+                theme === 'modern-pinnacle' ? 'rounded-3xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl bg-white/[0.02]' : ''
+              } ${
+                theme === 'modern-luminous' ? 'rounded-3xl border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl bg-black/[0.02]' : ''
+              }`}>
                 <div className="flex flex-col min-w-0 pr-4">
-                  <span className={`text-base md:text-lg font-black text-theme-text truncate group-hover:text-theme-primary transition-colors ${theme === 'enchanted-library' ? 'font-serif italic' : ''}`}>
+                  <span className={`text-base md:text-lg font-black text-theme-text truncate group-hover:text-theme-primary transition-colors ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
                     {movie.title}
                   </span>
                   <div className="flex items-center gap-2 mt-1">
@@ -120,11 +134,20 @@ export function MovieList() {
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0 bg-theme-base/50 px-3 py-1.5 rounded-xl border border-theme-border/30">
-                  <span className="text-base font-black text-theme-primary">{avg > 0 ? avg.toFixed(1) : '—'}</span>
-                  {avg > 0 && <StarIcon filled className="w-4 h-4 text-theme-primary" />}
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-1 bg-theme-base/50 px-3 py-1.5 rounded-xl border border-theme-border/30">
+                    <span className="text-base font-black text-theme-primary">{avg > 0 ? avg.toFixed(1) : '—'}</span>
+                    {avg > 0 && <StarIcon filled className="w-4 h-4 text-theme-primary" />}
+                  </div>
+                  <button
+                    onClick={(e) => handleDeleteWatched(e, movie.id)}
+                    className="p-2 text-theme-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-colors"
+                    title="Delete from history"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
-              </div>
+              </Link>
             );
           })}
           {watchedMovies.length === 0 && (

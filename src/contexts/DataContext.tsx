@@ -17,8 +17,9 @@ export interface Movie {
   id: string;
   title: string;
   poster_url?: string;
+  summary?: string;
   status: 'wishlist' | 'watched';
-  pickedBy: FamilyMember | 'Lauren' | 'Family' | 'Not specified';
+  pickedBy: FamilyMember | 'Family' | 'Not specified';
   date?: string;
   genres?: string[];
   ratings: {
@@ -47,12 +48,15 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
-  const [isLocalMode, setIsLocalMode] = useState(!isFirebaseInitialized);
+  const [isLocalMode, setIsLocalMode] = useState(() => {
+    const forced = localStorage.getItem('forceLocal') === 'true';
+    return forced || !isFirebaseInitialized;
+  });
 
   useEffect(() => {
-    if (!isFirebaseInitialized) {
+    if (isLocalMode) {
       // Local fallback mode
-      console.log("Running in local fallback mode");
+      console.log("Running in local mode");
       const localMovies = localStorage.getItem('localMovies');
       const localTurn = localStorage.getItem('localTurn');
       
@@ -60,14 +64,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         setMovies(JSON.parse(localMovies));
       } else {
         // Seed local data
-        const seededMovies = seedData.map((m, i) => ({
-          id: `local-${i}`,
-          title: m.title,
-          status: 'watched' as const,
-          pickedBy: m.picker === 'Lauren' ? 'Mom' : m.picker as any,
-          date: m.date,
-          ratings: { Jack: 0, Simone: 0, Mom: 0, Dad: 0 }
-        }));
+        const seededMovies = seedData.map((m, i) => {
+          let picker = m.picker;
+          if (picker.includes('Family')) picker = 'Family';
+          if (picker === 'Lauren' || picker === 'Mom') picker = 'Mom';
+          
+          return {
+            id: `local-${i}`,
+            title: m.title,
+            status: 'watched' as const,
+            pickedBy: picker as any,
+            date: m.date,
+            ratings: { Jack: 0, Simone: 0, Mom: 0, Dad: 0 }
+          };
+        });
         setMovies(seededMovies);
         localStorage.setItem('localMovies', JSON.stringify(seededMovies));
       }
@@ -82,6 +92,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const unsubscribeMovies = onSnapshot(collection(db, 'movies'), (snapshot) => {
       const moviesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Movie));
       setMovies(moviesData);
+    }, (error: any) => {
+      console.error("Error fetching movies:", error);
+      if (error.code === 'permission-denied') {
+        setIsLocalMode(true);
+      }
     });
 
     const unsubscribeConfig = onSnapshot(doc(db, 'metadata', 'config'), (docSnap) => {
@@ -91,13 +106,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           setCurrentTurnIndex(data.currentTurnIndex);
         }
       }
+    }, (error: any) => {
+      console.error("Error fetching config:", error);
+      if (error.code === 'permission-denied') {
+        setIsLocalMode(true);
+      }
     });
 
     return () => {
       unsubscribeMovies();
       unsubscribeConfig();
     };
-  }, []);
+  }, [isLocalMode]);
 
   const saveLocalMovies = (newMovies: Movie[]) => {
     setMovies(newMovies);
@@ -172,18 +192,23 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resetDatabase = async () => {
-    if (isLocalMode) {
-      localStorage.removeItem('localMovies');
-      localStorage.removeItem('localTurn');
-      window.location.reload();
-    } else {
-      const { getDocs, deleteDoc } = await import('firebase/firestore');
-      const moviesSnap = await getDocs(collection(db, 'movies'));
-      const batch = writeBatch(db);
-      moviesSnap.docs.forEach(d => batch.delete(d.ref));
-      batch.set(doc(db, 'metadata', 'config'), { isSeeded: false, currentTurnIndex: 0 }, { merge: true });
-      await batch.commit();
-      window.location.reload();
+    try {
+      if (isLocalMode) {
+        localStorage.removeItem('localMovies');
+        localStorage.removeItem('localTurn');
+        window.location.reload();
+      } else {
+        const { getDocs, deleteDoc, collection, doc, writeBatch } = await import('firebase/firestore');
+        const moviesSnap = await getDocs(collection(db, 'movies'));
+        const batch = writeBatch(db);
+        moviesSnap.docs.forEach(d => batch.delete(d.ref));
+        batch.set(doc(db, 'metadata', 'config'), { isSeeded: false, currentTurnIndex: 0 }, { merge: true });
+        await batch.commit();
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Reset failed:", error);
+      alert("Reset failed. If you're using Firebase, check your API keys and permissions. Error: " + (error as Error).message);
     }
   };
 

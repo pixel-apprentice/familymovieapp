@@ -4,12 +4,14 @@ import { getVibeSearchTerms, getFamilyRecommendations } from '../services/gemini
 import { useData, TURN_ORDER } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { motion, AnimatePresence } from 'motion/react';
+import { AddMovieModal } from './AddMovieModal';
 
 export function SearchPanel() {
   const [query, setQuery] = useState('');
   const [vibe, setVibe] = useState('');
   const [results, setResults] = useState<TMDBMovie[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
   const { addMovie, currentTurnIndex, movies } = useData();
   const { theme } = useTheme();
 
@@ -52,23 +54,24 @@ export function SearchPanel() {
     setLoading(false);
   };
 
-  const handleAdd = async (movie: TMDBMovie) => {
-    await addMovie({
-      title: movie.title,
-      poster_url: movie.poster_path || undefined,
-      status: 'wishlist',
-      pickedBy: TURN_ORDER[currentTurnIndex],
-      genres: movie.genre_ids?.map(id => GENRE_MAP[id]).filter(Boolean),
-      ratings: { Jack: 0, Simone: 0, Mom: 0, Dad: 0 }
-    });
-    setResults(results.filter(r => r.id !== movie.id));
+  const handleAdd = (movie: TMDBMovie) => {
+    setSelectedMovie(movie);
+  };
+
+  const handleMovieAdded = () => {
+    if (selectedMovie) {
+      setResults(results.filter(r => r.id !== selectedMovie.id));
+      setSelectedMovie(null);
+    }
   };
 
   return (
     <div className={`w-full max-w-4xl mx-auto p-8 bg-theme-surface rounded-[2.5rem] border-2 border-theme-border shadow-2xl relative overflow-hidden ${
-      theme === '8-bit-arcade' ? 'rounded-none border-4' : ''
+      theme === 'modern-pinnacle' ? 'rounded-3xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl bg-white/[0.02]' : ''
+    } ${
+      theme === 'modern-luminous' ? 'rounded-3xl border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl bg-black/[0.02]' : ''
     }`}>
-      {theme === 'cyber-command' && (
+      {theme === 'neon-cyberpunk' && (
         <>
           <div className="absolute top-0 left-0 w-full h-1 bg-theme-primary animate-pulse" />
           <div className="absolute bottom-0 right-0 w-1 h-full bg-theme-primary opacity-20" />
@@ -77,11 +80,11 @@ export function SearchPanel() {
       
       <div className="flex flex-col gap-8">
         <div className="space-y-2">
-          <h2 className={`text-2xl font-black text-theme-primary uppercase tracking-tighter ${theme === 'enchanted-library' ? 'font-serif italic' : ''}`}>
-            {theme === 'cyber-command' ? 'Acquisition Protocol' : 'Find Movies'}
+          <h2 className={`text-2xl font-black text-theme-primary uppercase tracking-tighter ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
+            {theme === 'neon-cyberpunk' ? 'Acquisition Protocol' : 'Find Movies'}
           </h2>
           <p className="text-xs text-theme-muted font-mono uppercase tracking-widest">
-            {theme === 'cyber-command' ? 'Search or describe your desired cinematic experience' : 'Search, describe a vibe, or get AI recommendations'}
+            {theme === 'neon-cyberpunk' ? 'Search or describe your desired cinematic experience' : 'Search, describe a vibe, or get AI recommendations'}
           </p>
         </div>
 
@@ -104,7 +107,7 @@ export function SearchPanel() {
 
           <form onSubmit={handleVibeSearch} className="space-y-3">
             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-theme-muted flex items-center gap-2">
-              <span className="text-theme-accent animate-twinkle">✨</span> {theme === 'cyber-command' ? 'Neural Vibe Analysis' : 'Vibe Search'}
+              <span className="text-theme-accent animate-twinkle">✨</span> {theme === 'neon-cyberpunk' ? 'Neural Vibe Analysis' : 'Vibe Search'}
             </label>
             <div className="flex gap-2">
               <input 
@@ -190,6 +193,14 @@ export function SearchPanel() {
           )}
         </AnimatePresence>
       </div>
+
+      {selectedMovie && (
+        <AddMovieModal
+          movie={selectedMovie}
+          onClose={() => setSelectedMovie(null)}
+          onAdded={handleMovieAdded}
+        />
+      )}
     </div>
   );
 }
