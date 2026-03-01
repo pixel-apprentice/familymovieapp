@@ -4,7 +4,8 @@ import { useData, FAMILY_COLORS, FamilyMember, Movie } from '../contexts/DataCon
 import { useTheme } from '../contexts/ThemeContext';
 import { useModal } from '../contexts/ModalContext';
 import { motion } from 'motion/react';
-import { ChevronLeft, Star, Youtube, Info } from 'lucide-react';
+import { ChevronLeft, Star, Youtube, Info, Mail } from 'lucide-react';
+import { sendRequestEmail } from '../services/emailService';
 
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +13,7 @@ export function MovieDetailPage() {
   const { movies, updateMovie, markWatched, removeMovie } = useData();
   const { theme } = useTheme();
   const { showModal } = useModal();
+  const [isSending, setIsSending] = useState(false);
   
   const movie = movies.find(m => m.id === id);
 
@@ -46,6 +48,28 @@ export function MovieDetailPage() {
     if (confirmed) {
       await removeMovie(movie.id);
       navigate('/');
+    }
+  };
+
+  const handlePlexRequest = async () => {
+    setIsSending(true);
+    const success = await sendRequestEmail('movie', `Please add "${movie.title}" to Plex!`);
+    setIsSending(false);
+
+    if (success) {
+      showModal({
+        type: 'alert',
+        title: 'Request Sent!',
+        message: `Dad has been asked to add "${movie.title}" to Plex. 🍿`,
+        confirmText: 'Awesome'
+      });
+    } else {
+      showModal({
+        type: 'alert',
+        title: 'Oops',
+        message: 'Failed to send the request. Maybe tell him in person?',
+        confirmText: 'Okay'
+      });
     }
   };
 
@@ -92,6 +116,17 @@ export function MovieDetailPage() {
             <Youtube size={20} />
             Watch Trailer
           </a>
+
+          {movie.status === 'wishlist' && (
+            <button 
+              onClick={handlePlexRequest}
+              disabled={isSending}
+              className="flex items-center justify-center gap-3 w-full py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-indigo-700 transition-all shadow-lg disabled:opacity-50"
+            >
+              <Mail size={20} />
+              {isSending ? 'Sending...' : 'Ask Dad to put this on Plex'}
+            </button>
+          )}
 
           {movie.status === 'wishlist' && (
             <button 

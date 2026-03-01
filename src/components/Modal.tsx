@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useModal } from '../contexts/ModalContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { motion, AnimatePresence } from 'motion/react';
@@ -7,20 +7,36 @@ import { X, Check } from 'lucide-react';
 export function Modal() {
   const { modalState, hideModal } = useModal();
   const { theme } = useTheme();
+  const [inputValue, setInputValue] = useState('');
+
+  useEffect(() => {
+    if (modalState?.type === 'prompt') {
+      setInputValue(modalState.defaultValue || '');
+    }
+  }, [modalState]);
 
   if (!modalState) return null;
 
   const handleConfirm = () => {
-    modalState.resolve(true);
+    if (modalState.type === 'prompt') {
+      modalState.resolve(inputValue);
+    } else {
+      modalState.resolve(true);
+    }
     hideModal();
   };
 
   const handleCancel = () => {
-    modalState.resolve(false);
+    if (modalState.type === 'prompt') {
+      modalState.resolve(null);
+    } else {
+      modalState.resolve(false);
+    }
     hideModal();
   };
 
   const isConfirm = modalState.type === 'confirm';
+  const isPrompt = modalState.type === 'prompt';
 
   return (
     <AnimatePresence>
@@ -30,7 +46,7 @@ export function Modal() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          onClick={isConfirm ? handleCancel : handleConfirm}
+          onClick={(isConfirm || isPrompt) ? handleCancel : handleConfirm}
         />
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -59,8 +75,23 @@ export function Modal() {
               {modalState.message}
             </p>
 
+            {isPrompt && (
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder={modalState.placeholder || 'Type here...'}
+                className="w-full bg-theme-base border-2 border-theme-border rounded-xl px-4 py-3 text-sm font-medium text-theme-text focus:outline-none focus:border-theme-primary transition-colors"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleConfirm();
+                  if (e.key === 'Escape') handleCancel();
+                }}
+              />
+            )}
+
             <div className="flex gap-3 mt-4">
-              {isConfirm && (
+              {(isConfirm || isPrompt) && (
                 <button
                   onClick={handleCancel}
                   className="flex-1 py-3 px-4 rounded-xl bg-theme-surface border border-theme-border text-theme-muted font-black uppercase text-[10px] tracking-widest hover:bg-theme-border/10 transition-colors"

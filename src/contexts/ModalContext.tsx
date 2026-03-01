@@ -5,17 +5,19 @@ interface ModalOptions {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  type?: 'alert' | 'confirm';
+  type?: 'alert' | 'confirm' | 'prompt';
+  defaultValue?: string;
+  placeholder?: string;
 }
 
 interface ModalContextType {
-  showModal: (options: ModalOptions) => Promise<boolean>;
+  showModal: (options: ModalOptions) => Promise<any>;
   hideModal: () => void;
   modalState: ModalState | null;
 }
 
 interface ModalState extends ModalOptions {
-  resolve: (value: boolean) => void;
+  resolve: (value: any) => void;
 }
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
@@ -24,7 +26,7 @@ export function ModalProvider({ children }: { children: React.ReactNode }) {
   const [modalState, setModalState] = useState<ModalState | null>(null);
 
   const showModal = useCallback((options: ModalOptions) => {
-    return new Promise<boolean>((resolve) => {
+    return new Promise<any>((resolve) => {
       setModalState({
         ...options,
         resolve,
