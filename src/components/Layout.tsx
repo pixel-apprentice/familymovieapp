@@ -4,7 +4,7 @@ import { CurrentTurn } from './CurrentTurn';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { motion } from 'motion/react';
-import { Home, BarChart2 } from 'lucide-react';
+import { Home, Settings } from 'lucide-react';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { isLocalMode } = useData();
@@ -63,8 +63,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   : 'text-theme-muted hover:text-theme-primary hover:bg-theme-primary/10'
               }`}
             >
-              <BarChart2 size={14} />
-              <span className="hidden sm:inline">Stats</span>
+              <Settings size={14} />
+              <span className="hidden sm:inline">Settings</span>
             </Link>
           </nav>
         </div>

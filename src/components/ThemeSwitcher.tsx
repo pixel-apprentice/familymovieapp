@@ -50,6 +50,9 @@ export function ThemeSwitcher() {
             theme === 'vintage-ticket' ? 'ticket-stub rounded-none border border-amber-900/20 shadow-sm' : ''
           }`}
         >
+          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-theme-text text-theme-base text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+            {t.label}
+          </div>
           <div className="relative z-10 flex items-center gap-1 md:gap-2">
             <ThemeIcon themeName={t.id} />
             <span className="hidden xs:inline">{t.label}</span>

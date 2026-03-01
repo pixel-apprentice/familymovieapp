@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { DataProvider } from './contexts/DataContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { ModalProvider } from './contexts/ModalContext';
+import { Modal } from './components/Modal';
 import { Layout } from './components/Layout';
 import { HomePage } from './pages/HomePage';
 import { StatsPage } from './pages/StatsPage';
@@ -19,6 +21,7 @@ function AppContent() {
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/movie/:id" element={<MovieDetailPage />} />
       </Routes>
+      <Modal />
     </Layout>
   );
 }
@@ -27,11 +30,13 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <DataProvider>
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </DataProvider>
+        <ModalProvider>
+          <DataProvider>
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </DataProvider>
+        </ModalProvider>
       </AuthProvider>
     </ThemeProvider>
   );

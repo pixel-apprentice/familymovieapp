@@ -90,7 +90,7 @@ export function SearchPanel() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <form onSubmit={handleSearch} className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-theme-muted">Direct Query</label>
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-theme-muted">Direct Search</label>
             <div className="flex gap-2">
               <input 
                 type="text" 
@@ -114,7 +114,7 @@ export function SearchPanel() {
                 type="text" 
                 value={vibe} 
                 onChange={e => setVibe(e.target.value)} 
-                placeholder="Describe a mood..."
+                placeholder="Describe a mood or genre"
                 className="flex-1 min-w-0 bg-theme-base border border-theme-border rounded-2xl px-4 py-3 text-sm text-theme-text focus:outline-none focus:border-theme-accent focus:ring-1 focus:ring-theme-accent transition-all shadow-inner"
               />
               <button type="submit" disabled={loading} className="px-4 py-3 bg-theme-accent text-theme-base font-black rounded-2xl hover:scale-105 transition-transform disabled:opacity-50 shadow-lg uppercase text-[10px] tracking-widest shrink-0">
@@ -130,9 +130,9 @@ export function SearchPanel() {
             <button 
               onClick={handleRecommend} 
               disabled={loading} 
-              className="w-full py-3 px-4 bg-theme-surface border-2 border-theme-primary text-theme-primary font-black rounded-2xl hover:bg-theme-primary hover:text-theme-base transition-all disabled:opacity-50 shadow-lg uppercase text-xs tracking-widest flex items-center justify-center gap-2"
+              className="w-full py-4 px-6 bg-theme-primary text-theme-base font-black rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 shadow-xl uppercase text-xs tracking-widest flex items-center justify-center gap-3"
             >
-              For {TURN_ORDER[currentTurnIndex]}
+              <span className="text-lg animate-pulse">✨</span> Magic Suggestions for {TURN_ORDER[currentTurnIndex]}
             </button>
           </div>
         </div>

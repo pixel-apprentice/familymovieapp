@@ -3,6 +3,7 @@ import { db, isFirebaseInitialized } from '../services/firebase';
 import { collection, onSnapshot, doc, updateDoc, setDoc, writeBatch, getDoc } from 'firebase/firestore';
 import { seedData } from '../utils/seedData';
 import { useAuth } from './AuthContext';
+import { useModal } from './ModalContext';
 
 export type FamilyMember = 'Jack' | 'Simone' | 'Mom' | 'Dad';
 export const TURN_ORDER: FamilyMember[] = ['Jack', 'Simone', 'Mom', 'Dad'];
@@ -48,6 +49,7 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
+  const { showModal } = useModal();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   const [isLocalMode, setIsLocalMode] = useState(() => {
@@ -216,7 +218,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error("Reset failed:", error);
-      alert("Reset failed. If you're using Firebase, check your API keys and permissions. Error: " + (error as Error).message);
+      await showModal({
+        type: 'alert',
+        title: 'Reset Failed',
+        message: "Reset failed. If you're using Firebase, check your API keys and permissions. Error: " + (error as Error).message,
+        confirmText: 'OK'
+      });
     }
   };
 

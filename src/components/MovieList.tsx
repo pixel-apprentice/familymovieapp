@@ -3,6 +3,7 @@ import { useData, Movie, FamilyMember, TURN_ORDER, FAMILY_COLORS } from '../cont
 import { MovieCard } from './MovieCard';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useModal } from '../contexts/ModalContext';
 import { StarIcon } from './Icons';
 import { Link } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
@@ -10,6 +11,7 @@ import { Trash2 } from 'lucide-react';
 export function MovieList() {
   const { movies, removeMovie } = useData();
   const { theme } = useTheme();
+  const { showModal } = useModal();
   const [randomMovie, setRandomMovie] = useState<Movie | null>(null);
 
   const wishlistMovies = useMemo(() => movies.filter(m => m.status === 'wishlist'), [movies]);
@@ -33,10 +35,18 @@ export function MovieList() {
     setTimeout(() => setRandomMovie(null), 5000);
   };
 
-  const handleDeleteWatched = (e: React.MouseEvent, id: string) => {
+  const handleDeleteWatched = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this movie from history?')) {
+    const confirmed = await showModal({
+      type: 'confirm',
+      title: 'Delete from History',
+      message: 'Are you sure you want to delete this movie from history?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel'
+    });
+
+    if (confirmed) {
       removeMovie(id);
     }
   };

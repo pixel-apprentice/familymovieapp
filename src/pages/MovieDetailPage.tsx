@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData, FAMILY_COLORS, FamilyMember, Movie } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useModal } from '../contexts/ModalContext';
 import { motion } from 'motion/react';
 import { ChevronLeft, Star, Youtube, Info } from 'lucide-react';
 
@@ -10,6 +11,7 @@ export function MovieDetailPage() {
   const navigate = useNavigate();
   const { movies, updateMovie, markWatched, removeMovie } = useData();
   const { theme } = useTheme();
+  const { showModal } = useModal();
   
   const movie = movies.find(m => m.id === id);
 
@@ -33,7 +35,15 @@ export function MovieDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this movie?')) {
+    const confirmed = await showModal({
+      type: 'confirm',
+      title: 'Delete Movie',
+      message: 'Are you sure you want to delete this movie?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel'
+    });
+
+    if (confirmed) {
       await removeMovie(movie.id);
       navigate('/');
     }
