@@ -42,6 +42,7 @@ interface DataContextType {
   skipTurn: () => Promise<void>;
   setTurn: (index: number) => Promise<void>;
   resetDatabase: () => Promise<void>;
+  updateProfiles: (profiles: FamilyProfile[]) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -50,7 +51,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const { showModal } = useModal();
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [profiles, setProfiles] = useState<FamilyProfile[]>(DEFAULT_PROFILES);
+  const [profiles, setProfiles] = useState<FamilyProfile[]>(() => {
+    const localProfiles = localStorage.getItem('localProfiles');
+    return localProfiles ? JSON.parse(localProfiles) : DEFAULT_PROFILES;
+  });
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   const [isLocalMode, setIsLocalMode] = useState(() => {
     const forced = localStorage.getItem('forceLocal') === 'true';
@@ -137,6 +141,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('localMovies', JSON.stringify(newMovies));
   };
 
+  const saveLocalProfiles = (newProfiles: FamilyProfile[]) => {
+    setProfiles(newProfiles);
+    localStorage.setItem('localProfiles', JSON.stringify(newProfiles));
+  };
+
   const saveLocalTurn = (newTurn: number) => {
     setCurrentTurnIndex(newTurn);
     localStorage.setItem('localTurn', newTurn.toString());
@@ -201,6 +210,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       saveLocalTurn(index);
     } else {
       await setDoc(doc(db, 'metadata', 'config'), { currentTurnIndex: index }, { merge: true });
+    }
+  };
+
+  const updateProfiles = async (newProfiles: FamilyProfile[]) => {
+    if (isLocalMode) {
+      saveLocalProfiles(newProfiles);
+    } else {
+      await setDoc(doc(db, 'metadata', 'config'), { profiles: newProfiles }, { merge: true });
     }
   };
 
