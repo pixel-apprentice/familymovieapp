@@ -188,8 +188,8 @@ export function SearchPanel() {
 
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <div className="w-12 h-12 border-4 border-theme-border border-t-theme-primary rounded-full animate-spin" />
             <span className="text-[10px] font-mono text-theme-primary animate-pulse uppercase tracking-[0.5em] text-center px-4">{loadingMessage}</span>
+            <div className="w-12 h-12 border-4 border-theme-border border-t-theme-primary rounded-full animate-spin" />
           </div>
         )}
 

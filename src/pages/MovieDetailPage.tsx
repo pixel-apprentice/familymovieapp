@@ -89,7 +89,7 @@ export function MovieDetailPage() {
         <span className="text-xs font-black uppercase tracking-widest">Back</span>
       </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-[100px_1fr] gap-8">
         {/* Poster Section */}
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
@@ -110,43 +110,6 @@ export function MovieDetailPage() {
               </div>
             )}
           </div>
-
-          <a 
-            href={trailerUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-3 w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-700 transition-all shadow-lg"
-          >
-            <Youtube size={20} />
-            Watch Trailer
-          </a>
-
-          {movie.status === 'wishlist' && (
-            <button 
-              onClick={handlePlexRequest}
-              disabled={isSending}
-              className="flex items-center justify-center gap-3 w-full py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-indigo-700 transition-all shadow-lg disabled:opacity-50"
-            >
-              <Mail size={20} />
-              {isSending ? 'Sending...' : 'Ask Dad to put this on Plex'}
-            </button>
-          )}
-
-          {movie.status === 'wishlist' && (
-            <button 
-              onClick={() => markWatched(movie.id)}
-              className="w-full py-4 bg-theme-primary text-theme-base rounded-2xl font-black uppercase text-xs tracking-widest hover:opacity-90 transition-all shadow-lg"
-            >
-              Mark as Watched
-            </button>
-          )}
-
-          <button 
-            onClick={handleDelete}
-            className="w-full py-4 bg-red-600/10 text-red-500 border-2 border-red-500/20 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-lg"
-          >
-            Delete Movie
-          </button>
         </motion.div>
 
         {/* Content Section */}
@@ -172,6 +135,46 @@ export function MovieDetailPage() {
                 {movie.status}
               </span>
             </div>
+          </div>
+
+          {/* Actions */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <a 
+              href={trailerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-3 w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-700 transition-all shadow-lg"
+            >
+              <Youtube size={20} />
+              Watch Trailer
+            </a>
+
+            {movie.status === 'wishlist' && (
+              <button 
+                onClick={handlePlexRequest}
+                disabled={isSending}
+                className="flex items-center justify-center gap-3 w-full py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-indigo-700 transition-all shadow-lg disabled:opacity-50"
+              >
+                <Mail size={20} />
+                {isSending ? 'Sending...' : 'Ask Dad to put this on Plex'}
+              </button>
+            )}
+
+            {movie.status === 'wishlist' && (
+              <button 
+                onClick={() => markWatched(movie.id)}
+                className="w-full py-4 bg-theme-primary text-theme-base rounded-2xl font-black uppercase text-xs tracking-widest hover:opacity-90 transition-all shadow-lg"
+              >
+                Mark as Watched
+              </button>
+            )}
+
+            <button 
+              onClick={handleDelete}
+              className="w-full py-4 bg-red-600/10 text-red-500 border-2 border-red-500/20 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-lg"
+            >
+              Delete Movie
+            </button>
           </div>
 
           {/* Family Rankings Section */}
