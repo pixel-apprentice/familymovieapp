@@ -5,6 +5,9 @@ import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { useModal } from '../contexts/ModalContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { StarIcon } from '../components/Icons';
+import { isGeminiConfigured, getVibeSearchTerms } from '../services/gemini';
+import { isTMDBConfigured } from '../services/tmdb';
+import { toast } from 'sonner';
 
 export function StatsPage() {
   const { movies, resetDatabase, isLocalMode, profiles } = useData();
@@ -12,6 +15,7 @@ export function StatsPage() {
   const { showModal } = useModal();
   const [isResetting, setIsResetting] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
+  const [testingGemini, setTestingGemini] = useState(false);
 
   const handleReset = async () => {
     const confirmed = await showModal({
@@ -64,6 +68,78 @@ export function StatsPage() {
           {isLocalMode ? '⚠️ Local Mode (No Sync)' : '✅ Firebase Connected'}
         </div>
       </div>
+
+      {/* System Health */}
+      <section className="space-y-6">
+        <div className="flex items-center gap-4">
+          <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
+            System Health
+          </h2>
+          <div className="h-px flex-1 bg-theme-border/30" />
+        </div>
+        <div className={`bg-theme-surface/30 p-6 rounded-[2.5rem] border-2 border-theme-border shadow-xl space-y-4 ${
+          theme === 'modern-pinnacle' ? 'rounded-3xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl bg-white/[0.02]' : ''
+        } ${
+          theme === 'modern-luminous' ? 'rounded-3xl border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl bg-black/[0.02]' : ''
+        }`}>
+          
+          <div className="flex items-center justify-between p-4 bg-theme-base/30 rounded-2xl border border-theme-border/20">
+            <div>
+              <p className="text-sm font-black text-theme-text">Gemini AI</p>
+              <p className="text-xs text-theme-muted font-mono">{isGeminiConfigured() ? 'Configured' : 'Missing API Key'}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`text-xl ${isGeminiConfigured() ? 'text-emerald-500' : 'text-red-500'}`}>
+                {isGeminiConfigured() ? '●' : '○'}
+              </span>
+              {isGeminiConfigured() && (
+                <button
+                  onClick={async () => {
+                    setTestingGemini(true);
+                    try {
+                      const result = await getVibeSearchTerms("test");
+                      if (result.length > 0 && result[0] !== "Space Adventure") {
+                        toast.success("Gemini is working perfectly!");
+                      } else {
+                        toast.warning("Gemini returned fallback data. Check quota or key.");
+                      }
+                    } catch (e) {
+                      toast.error("Gemini test failed.");
+                    } finally {
+                      setTestingGemini(false);
+                    }
+                  }}
+                  disabled={testingGemini}
+                  className="px-3 py-1 bg-theme-primary/10 text-theme-primary text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-theme-primary/20 transition-colors disabled:opacity-50"
+                >
+                  {testingGemini ? 'Testing...' : 'Test'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-theme-base/30 rounded-2xl border border-theme-border/20">
+            <div>
+              <p className="text-sm font-black text-theme-text">TMDB (Movies)</p>
+              <p className="text-xs text-theme-muted font-mono">{isTMDBConfigured() ? 'Configured' : 'Missing API Key'}</p>
+            </div>
+            <span className={`text-xl ${isTMDBConfigured() ? 'text-emerald-500' : 'text-red-500'}`}>
+              {isTMDBConfigured() ? '●' : '○'}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-theme-base/30 rounded-2xl border border-theme-border/20">
+            <div>
+              <p className="text-sm font-black text-theme-text">Firebase (Sync)</p>
+              <p className="text-xs text-theme-muted font-mono">{!isLocalMode ? 'Connected' : 'Local Mode'}</p>
+            </div>
+            <span className={`text-xl ${!isLocalMode ? 'text-emerald-500' : 'text-amber-500'}`}>
+              {!isLocalMode ? '●' : '○'}
+            </span>
+          </div>
+
+        </div>
+      </section>
 
       {/* Theme Picker Section */}
       <section className="space-y-6">
