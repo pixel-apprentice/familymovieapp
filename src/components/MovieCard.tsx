@@ -16,6 +16,8 @@ export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
   const pickerColor = profile ? profile.color : 'currentColor';
   const pickerName = profile ? profile.name : movie.pickedBy;
 
+  const [imageError, setImageError] = React.useState(false);
+
   return (
     <motion.div 
       layout
@@ -32,13 +34,14 @@ export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
       }`}
     >
       <Link to={`/movie/${movie.id}`} className="block relative group/poster">
-        {movie.poster_url ? (
+        {movie.poster_url && !imageError ? (
           <div className={`relative aspect-[2/3] w-full overflow-hidden bg-theme-base`}>
             <img 
               src={`https://image.tmdb.org/t/p/w500${movie.poster_url}`} 
               alt={movie.title} 
               className={`w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110`}
               referrerPolicy="no-referrer"
+              onError={() => setImageError(true)}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-theme-surface via-transparent to-transparent opacity-80" />
             

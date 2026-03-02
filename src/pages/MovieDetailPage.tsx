@@ -211,24 +211,28 @@ export function MovieDetailPage() {
             </div>
             <div className="flex flex-wrap gap-3 items-center">
               {isEditing ? (
-                <div className="flex items-center gap-2 bg-theme-base/50 p-2 rounded-xl border border-theme-border/50">
+                <div className="flex flex-wrap items-center gap-2 bg-theme-base/50 p-2 rounded-xl border border-theme-border/50">
                   <input 
                     type="date" 
                     value={editForm.date} 
                     onChange={e => setEditForm({...editForm, date: e.target.value})}
-                    className="bg-theme-surface border border-theme-border rounded px-2 py-1 text-xs font-mono text-theme-text"
+                    className="bg-theme-surface border border-theme-border rounded-lg px-3 py-1.5 text-xs font-mono text-theme-text focus:outline-none focus:border-theme-primary/50"
                   />
                   <select
                     value={editForm.status}
                     onChange={e => setEditForm({...editForm, status: e.target.value as any})}
-                    className="bg-theme-surface border border-theme-border rounded px-2 py-1 text-xs font-black uppercase text-theme-text"
+                    className="bg-theme-surface border border-theme-border rounded-lg px-3 py-1.5 text-xs font-black uppercase text-theme-text focus:outline-none focus:border-theme-primary/50"
                   >
                     <option value="wishlist">Wishlist</option>
                     <option value="watched">Watched</option>
                   </select>
                   <div className="flex gap-1">
-                    <button onClick={handleSave} className="p-1 text-emerald-500 hover:bg-emerald-500/10 rounded transition-colors"><Check size={16} /></button>
-                    <button onClick={() => setIsEditing(false)} className="p-1 text-red-500 hover:bg-red-500/10 rounded transition-colors"><X size={16} /></button>
+                    <button onClick={handleSave} className="p-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-lg transition-colors" title="Save">
+                      <Check size={16} />
+                    </button>
+                    <button onClick={() => setIsEditing(false)} className="p-1.5 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors" title="Cancel">
+                      <X size={16} />
+                    </button>
                   </div>
                 </div>
               ) : (

@@ -5,8 +5,9 @@ import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { useModal } from '../contexts/ModalContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { StarIcon } from '../components/Icons';
-import { isGeminiConfigured, getVibeSearchTerms } from '../services/gemini';
+import { isGeminiConfigured, testGeminiConnection } from '../services/gemini';
 import { isTMDBConfigured } from '../services/tmdb';
+import { isEmailConfigured } from '../services/emailService';
 import { toast } from 'sonner';
 
 export function StatsPage() {
@@ -97,14 +98,14 @@ export function StatsPage() {
                   onClick={async () => {
                     setTestingGemini(true);
                     try {
-                      const result = await getVibeSearchTerms("test");
-                      if (result.length > 0 && result[0] !== "Space Adventure") {
-                        toast.success("Gemini is working perfectly!");
+                      const result = await testGeminiConnection();
+                      if (result.success) {
+                        toast.success(result.message);
                       } else {
-                        toast.warning("Gemini returned fallback data. Check quota or key.");
+                        toast.error(result.message);
                       }
                     } catch (e) {
-                      toast.error("Gemini test failed.");
+                      toast.error("Gemini test failed unexpectedly.");
                     } finally {
                       setTestingGemini(false);
                     }
@@ -125,6 +126,16 @@ export function StatsPage() {
             </div>
             <span className={`text-xl ${isTMDBConfigured() ? 'text-emerald-500' : 'text-red-500'}`}>
               {isTMDBConfigured() ? '●' : '○'}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-theme-base/30 rounded-2xl border border-theme-border/20">
+            <div>
+              <p className="text-sm font-black text-theme-text">Email Service</p>
+              <p className="text-xs text-theme-muted font-mono">{isEmailConfigured() ? 'Configured' : 'Missing Config'}</p>
+            </div>
+            <span className={`text-xl ${isEmailConfigured() ? 'text-emerald-500' : 'text-red-500'}`}>
+              {isEmailConfigured() ? '●' : '○'}
             </span>
           </div>
 

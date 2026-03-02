@@ -5,6 +5,31 @@ const ai = GEMINI_API_KEY ? new GoogleGenAI({ apiKey: GEMINI_API_KEY }) : null;
 
 export const isGeminiConfigured = () => !!ai;
 
+export async function testGeminiConnection(): Promise<{ success: boolean; message: string }> {
+  if (!ai) {
+    return { success: false, message: "Gemini API Key is missing or invalid." };
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: "Test connection. Reply with 'OK'.",
+    });
+    
+    if (response.text) {
+      return { success: true, message: "Gemini is connected and responding!" };
+    } else {
+      return { success: false, message: "Gemini connected but returned no text." };
+    }
+  } catch (error: any) {
+    console.error("Gemini Test Error:", error);
+    return { 
+      success: false, 
+      message: `Connection failed: ${error.message || "Unknown error"}`
+    };
+  }
+}
+
 export async function getVibeSearchTerms(vibe: string): Promise<string[]> {
   if (!ai) {
     console.warn("No Gemini API key found, returning dummy search terms.");

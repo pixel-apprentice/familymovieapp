@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { db, isFirebaseInitialized } from '../services/firebase';
-import { collection, onSnapshot, doc, updateDoc, setDoc, writeBatch, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, setDoc, writeBatch, getDoc, getDocs, deleteDoc } from 'firebase/firestore';
 import { seedData } from '../utils/seedData';
 import { useAuth } from './AuthContext';
 import { useModal } from './ModalContext';
@@ -99,7 +99,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     // Firebase mode - wait for auth
     if (authLoading) return;
     if (!user) {
-      console.warn("Firebase initialized but user not authenticated. Waiting...");
+      console.warn("Firebase initialized but user not authenticated. Switching to local mode.");
+      setIsLocalMode(true);
       return;
     }
 
@@ -228,12 +229,67 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('localTurn');
         window.location.reload();
       } else {
-        const { getDocs, deleteDoc, collection, doc, writeBatch } = await import('firebase/firestore');
+        if (!user) {
+          throw new Error("User not authenticated. Please wait for connection or switch to local mode.");
+        }
+
         const moviesSnap = await getDocs(collection(db, 'movies'));
-        const batch = writeBatch(db);
-        moviesSnap.docs.forEach(d => batch.delete(d.ref));
-        batch.set(doc(db, 'metadata', 'config'), { isSeeded: false, currentTurnIndex: 0 }, { merge: true });
-        await batch.commit();
+        
+        // 1. Delete existing movies
+        // Try batch delete first for performance
+        try {
+          const batchSize = 400;
+          const chunks = [];
+          for (let i = 0; i < moviesSnap.docs.length; i += batchSize) {
+            chunks.push(moviesSnap.docs.slice(i, i + batchSize));
+          }
+
+          for (const chunk of chunks) {
+            const batch = writeBatch(db);
+            chunk.forEach(d => batch.delete(d.ref));
+            await batch.commit();
+          }
+        } catch (batchError) {
+          console.warn("Batch delete failed, attempting individual deletes...", batchError);
+          // Fallback: Delete one by one (best effort)
+          const deletePromises = moviesSnap.docs.map(d => 
+            deleteDoc(d.ref).catch(e => console.warn(`Failed to delete doc ${d.id}:`, e))
+          );
+          await Promise.all(deletePromises);
+        }
+
+        // 2. Re-seed data
+        try {
+          const seedBatch = writeBatch(db);
+          seedData.forEach((m) => {
+            let picker = m.picker;
+            if (picker.includes('Family')) picker = 'Family';
+            if (picker === 'Lauren' || picker === 'Mom') picker = 'Mom';
+
+            const newDocRef = doc(collection(db, 'movies'));
+            seedBatch.set(newDocRef, {
+              title: m.title,
+              status: 'watched',
+              pickedBy: picker,
+              date: m.date,
+              ratings: {}
+            });
+          });
+          await seedBatch.commit();
+        } catch (seedError) {
+          console.error("Seeding failed:", seedError);
+          throw new Error("Failed to re-seed database. " + (seedError as Error).message);
+        }
+
+        // 3. Reset config
+        try {
+          const configBatch = writeBatch(db);
+          configBatch.set(doc(db, 'metadata', 'config'), { isSeeded: false, currentTurnIndex: 0 }, { merge: true });
+          await configBatch.commit();
+        } catch (configError) {
+          console.warn("Config reset failed (non-critical):", configError);
+        }
+        
         window.location.reload();
       }
     } catch (error) {
@@ -241,7 +297,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       await showModal({
         type: 'alert',
         title: 'Reset Failed',
-        message: "Reset failed. If you're using Firebase, check your API keys and permissions. Error: " + (error as Error).message,
+        message: "Reset failed. " + (error as Error).message,
         confirmText: 'OK'
       });
     }

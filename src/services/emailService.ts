@@ -6,10 +6,16 @@ const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
+export const isEmailConfigured = () => !!(SERVICE_ID && TEMPLATE_ID && PUBLIC_KEY);
+
 export async function sendRequestEmail(type: 'movie' | 'pizza', details: string, subject?: string): Promise<boolean> {
   try {
     if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
-      console.error('[Email Service] Missing EmailJS environment variables.');
+      console.error('[Email Service] Missing EmailJS environment variables:', {
+        SERVICE_ID: !!SERVICE_ID,
+        TEMPLATE_ID: !!TEMPLATE_ID,
+        PUBLIC_KEY: !!PUBLIC_KEY
+      });
       return false;
     }
 

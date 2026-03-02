@@ -57,6 +57,15 @@ export async function searchMovies(query: string, year?: string): Promise<TMDBMo
       url += `&primary_release_year=${year}`;
     }
     const response = await fetch(url);
+    
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        console.warn("TMDB API key invalid or unauthorized.");
+        return dummyMovies;
+      }
+      throw new Error(`TMDB API error: ${response.status}`);
+    }
+
     const data = await response.json();
     const results = data.results || [];
 
@@ -100,6 +109,13 @@ export async function getMovieDetails(id: number): Promise<TMDBMovie | null> {
 
   try {
     const response = await fetch(`${BASE_URL}/movie/${id}?api_key=${TMDB_API_KEY}`);
+    if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+            console.warn("TMDB API key invalid or unauthorized.");
+            return dummyMovies.find(m => m.id === id) || null;
+        }
+        throw new Error(`TMDB API error: ${response.status}`);
+    }
     return await response.json();
   } catch (error) {
     console.error("TMDB details error:", error);
