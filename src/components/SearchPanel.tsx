@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { searchMovies, TMDBMovie, GENRE_MAP } from '../services/tmdb';
-import { getVibeSearchTerms, getFamilyRecommendations } from '../services/gemini';
+import { getVibeSearchTerms, getFamilyRecommendations, isGeminiConfigured } from '../services/gemini';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { AddMovieModal } from './AddMovieModal';
 import { hapticFeedback } from '../utils/haptics';
+import { toast } from 'sonner';
 
 export function SearchPanel() {
   const [query, setQuery] = useState('');
@@ -52,6 +53,11 @@ export function SearchPanel() {
   const handleVibeSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!vibe.trim()) return;
+    
+    if (!isGeminiConfigured()) {
+      toast.error("Gemini API key is missing. Using offline fallback.");
+    }
+
     setLoading(true);
     const titles = await getVibeSearchTerms(vibe);
     if (titles.length > 0) {
@@ -70,6 +76,10 @@ export function SearchPanel() {
   };
 
   const handleRecommend = async () => {
+    if (!isGeminiConfigured()) {
+      toast.error("Gemini API key is missing. Using offline fallback.");
+    }
+
     setLoading(true);
     const currentUser = profiles[currentTurnIndex]?.id || 'Family';
     const profileNames = profiles.map(p => p.name);

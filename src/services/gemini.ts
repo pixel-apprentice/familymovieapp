@@ -1,7 +1,9 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
 const ai = GEMINI_API_KEY ? new GoogleGenAI({ apiKey: GEMINI_API_KEY }) : null;
+
+export const isGeminiConfigured = () => !!ai;
 
 export async function getVibeSearchTerms(vibe: string): Promise<string[]> {
   if (!ai) {
