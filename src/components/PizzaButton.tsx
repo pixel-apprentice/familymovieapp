@@ -21,7 +21,11 @@ export function PizzaButton() {
     if (!details) return;
 
     setIsSending(true);
-    const success = await sendRequestEmail('pizza', details);
+    const success = await sendRequestEmail(
+      'pizza', 
+      details,
+      'Pizza request from Family Movie App'
+    );
     setIsSending(false);
 
     if (success) {

@@ -34,10 +34,10 @@ export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
       }`}
     >
       <Link to={`/movie/${movie.id}`} className="block relative group/poster">
-        {movie.poster_url && !imageError ? (
+        {movie.poster_url && movie.poster_url.trim() !== '' && !imageError ? (
           <div className={`relative aspect-[2/3] w-full overflow-hidden bg-theme-base`}>
             <img 
-              src={`https://image.tmdb.org/t/p/w500${movie.poster_url}`} 
+              src={movie.poster_url.startsWith('http') ? movie.poster_url : `https://image.tmdb.org/t/p/w500${movie.poster_url}`} 
               alt={movie.title} 
               className={`w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110`}
               referrerPolicy="no-referrer"

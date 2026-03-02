@@ -11,12 +11,13 @@ import { isEmailConfigured } from '../services/emailService';
 import { toast } from 'sonner';
 
 export function StatsPage() {
-  const { movies, resetDatabase, isLocalMode, profiles } = useData();
+  const { movies, resetDatabase, isLocalMode, profiles, refreshMetadata } = useData();
   const { theme } = useTheme();
   const { showModal } = useModal();
   const [isResetting, setIsResetting] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
   const [testingGemini, setTestingGemini] = useState(false);
+  const [refreshingPosters, setRefreshingPosters] = useState(false);
 
   const handleReset = async () => {
     const confirmed = await showModal({
@@ -124,9 +125,27 @@ export function StatsPage() {
               <p className="text-sm font-black text-theme-text">TMDB (Movies)</p>
               <p className="text-xs text-theme-muted font-mono">{isTMDBConfigured() ? 'Configured' : 'Missing API Key'}</p>
             </div>
-            <span className={`text-xl ${isTMDBConfigured() ? 'text-emerald-500' : 'text-red-500'}`}>
-              {isTMDBConfigured() ? '●' : '○'}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className={`text-xl ${isTMDBConfigured() ? 'text-emerald-500' : 'text-red-500'}`}>
+                {isTMDBConfigured() ? '●' : '○'}
+              </span>
+              {isTMDBConfigured() && (
+                <button
+                  onClick={async () => {
+                    setRefreshingPosters(true);
+                    try {
+                      await refreshMetadata();
+                    } finally {
+                      setRefreshingPosters(false);
+                    }
+                  }}
+                  disabled={refreshingPosters}
+                  className="px-3 py-1 bg-theme-primary/10 text-theme-primary text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-theme-primary/20 transition-colors disabled:opacity-50"
+                >
+                  {refreshingPosters ? 'Fetching...' : 'Refresh Posters'}
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center justify-between p-4 bg-theme-base/30 rounded-2xl border border-theme-border/20">

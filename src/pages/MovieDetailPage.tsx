@@ -17,9 +17,14 @@ export function MovieDetailPage() {
   const [isSending, setIsSending] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
   const [editForm, setEditForm] = useState({ date: '', status: 'wishlist' as 'wishlist' | 'watched' });
   
   const movie = movies.find(m => m.id === id);
+
+  React.useEffect(() => {
+    setHasAttemptedFetch(false);
+  }, [id]);
 
   React.useEffect(() => {
     if (movie) {
@@ -27,18 +32,21 @@ export function MovieDetailPage() {
         date: movie.date || '',
         status: movie.status
       });
-      
-      // Auto-fetch metadata if missing
-      if (!movie.poster_url && !isRefreshing) {
-        handleRefreshMetadata();
-      }
     }
   }, [movie, isEditing]);
+
+  useEffect(() => {
+      // Auto-fetch metadata if missing
+      if (movie && (!movie.poster_url || movie.poster_url.trim() === '') && !isRefreshing && !hasAttemptedFetch) {
+        handleRefreshMetadata();
+      }
+  }, [movie?.id, movie?.poster_url, isRefreshing, hasAttemptedFetch]);
 
   const handleRefreshMetadata = async () => {
     if (!movie || isRefreshing) return;
     
     setIsRefreshing(true);
+    setHasAttemptedFetch(true);
     try {
       // Extract year only if it looks like a year (4 digits)
       let year = undefined;

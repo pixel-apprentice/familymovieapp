@@ -30,7 +30,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       
       {isLocalMode && (
         <div className="bg-red-500 text-white text-[10px] font-black uppercase tracking-[0.2em] text-center py-2 px-4 shadow-xl z-50 relative animate-pulse">
-          <span>⚠️ Setup Required: Add Firebase Environment Variables to Sync Data</span>
+          <span>⚠️ Local Mode: Check Firebase Keys & Enable Anonymous Auth</span>
         </div>
       )}
 

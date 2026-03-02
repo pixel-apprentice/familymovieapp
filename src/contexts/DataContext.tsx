@@ -5,6 +5,8 @@ import { seedData } from '../utils/seedData';
 import { useAuth } from './AuthContext';
 import { useModal } from './ModalContext';
 
+import { searchMovies, GENRE_MAP } from '../services/tmdb';
+
 export interface FamilyProfile {
   id: string;
   name: string;
@@ -43,6 +45,7 @@ interface DataContextType {
   setTurn: (index: number) => Promise<void>;
   resetDatabase: () => Promise<void>;
   updateProfiles: (profiles: FamilyProfile[]) => Promise<void>;
+  refreshMetadata: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -60,6 +63,53 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const forced = localStorage.getItem('forceLocal') === 'true';
     return forced || !isFirebaseInitialized;
   });
+
+  // Metadata Enrichment Logic
+  const refreshMetadata = async () => {
+    const missingPosters = movies.filter(m => !m.poster_url && m.title);
+    
+    if (missingPosters.length === 0) {
+      console.log("[Metadata] All movies have posters.");
+      return;
+    }
+
+    console.log(`[Metadata] Found ${missingPosters.length} movies missing posters. Starting enrichment...`);
+
+    // Process one by one with delay to avoid rate limits
+    for (const movie of missingPosters) {
+      try {
+        // Extract year from date if available
+        const year = movie.date ? movie.date.split('-')[0] : undefined;
+        const results = await searchMovies(movie.title, year);
+        
+        if (results && results.length > 0) {
+          // Find best match (exact title match preferred)
+          const bestMatch = results.find(r => r.title.toLowerCase() === movie.title.toLowerCase()) || results[0];
+          
+          if (bestMatch.poster_path) {
+            console.log(`[Metadata] Found poster for "${movie.title}"`);
+            await updateMovie(movie.id, { 
+              poster_url: bestMatch.poster_path,
+              summary: bestMatch.overview,
+              genres: bestMatch.genre_ids?.map(id => GENRE_MAP[id]).filter(Boolean) as string[] | undefined
+            });
+          }
+        }
+        // Small delay between requests
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (e) {
+        console.warn(`[Metadata] Failed to enrich "${movie.title}":`, e);
+      }
+    }
+  };
+
+  // Auto-run enrichment on load/change
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+        refreshMetadata();
+    }, 2000);
+    return () => clearTimeout(timeoutId);
+  }, [movies.length, isLocalMode]);
 
   useEffect(() => {
     if (isLocalMode) {
@@ -314,7 +364,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     markWatched,
     skipTurn,
     setTurn,
-    resetDatabase
+    resetDatabase,
+    updateProfiles,
+    refreshMetadata
   }), [movies, profiles, currentTurnIndex, isLocalMode]);
 
   return (

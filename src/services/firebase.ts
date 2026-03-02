@@ -22,12 +22,20 @@ try {
     firebaseConfig.appId &&
     firebaseConfig.apiKey !== 'undefined'
   ) {
+    console.log("[Firebase] Configuration found, initializing...");
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
     auth = getAuth(app);
     isFirebaseInitialized = true;
+    console.log("[Firebase] Initialized successfully.");
   } else {
-    console.warn("Firebase configuration is incomplete. Falling back to local mode.");
+    console.warn("[Firebase] Configuration incomplete or missing. Keys present:", {
+      apiKey: !!firebaseConfig.apiKey,
+      authDomain: !!firebaseConfig.authDomain,
+      projectId: !!firebaseConfig.projectId,
+      appId: !!firebaseConfig.appId
+    });
+    console.warn("Falling back to local mode.");
   }
 } catch (error) {
   console.error("Firebase initialization error", error);
