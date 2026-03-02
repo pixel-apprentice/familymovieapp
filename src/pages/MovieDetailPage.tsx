@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData, Movie } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useModal } from '../contexts/ModalContext';
 import { motion } from 'motion/react';
-import { ChevronLeft, Star, Youtube, Info, Mail } from 'lucide-react';
+import { ChevronLeft, Star, Youtube, Info, Mail, Edit2, Check, X, RefreshCw } from 'lucide-react';
 import { sendRequestEmail } from '../services/emailService';
+import { searchMovies, GENRE_MAP } from '../services/tmdb';
 
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -14,8 +15,62 @@ export function MovieDetailPage() {
   const { theme } = useTheme();
   const { showModal } = useModal();
   const [isSending, setIsSending] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [editForm, setEditForm] = useState({ date: '', status: 'wishlist' as 'wishlist' | 'watched' });
   
   const movie = movies.find(m => m.id === id);
+
+  React.useEffect(() => {
+    if (movie) {
+      setEditForm({
+        date: movie.date || '',
+        status: movie.status
+      });
+      
+      // Auto-fetch metadata if missing
+      if (!movie.poster_url && !isRefreshing) {
+        handleRefreshMetadata();
+      }
+    }
+  }, [movie, isEditing]);
+
+  const handleRefreshMetadata = async () => {
+    if (!movie || isRefreshing) return;
+    
+    setIsRefreshing(true);
+    try {
+      // Extract year only if it looks like a year (4 digits)
+      let year = undefined;
+      if (movie.date && /^\d{4}/.test(movie.date)) {
+        year = movie.date.split('-')[0];
+      }
+      
+      console.log(`Fetching metadata for ${movie.title} (${year})...`);
+      const results = await searchMovies(movie.title, year);
+      
+      if (results && results.length > 0) {
+        const bestMatch = results[0];
+        console.log("Found match:", bestMatch);
+        await updateMovie(movie.id, {
+          poster_url: bestMatch.poster_path || undefined,
+          summary: bestMatch.overview,
+          genres: bestMatch.genre_ids?.map(id => GENRE_MAP[id]).filter(Boolean)
+        });
+      } else {
+        console.warn("No results found for", movie.title);
+      }
+    } catch (error) {
+      console.error("Failed to refresh metadata:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const getPosterSrc = (url: string) => {
+    if (url.startsWith('http')) return url;
+    return `https://image.tmdb.org/t/p/w500${url}`;
+  };
 
   if (!movie) {
     return (
@@ -30,6 +85,14 @@ export function MovieDetailPage() {
       </div>
     );
   }
+
+  const handleSave = async () => {
+    await updateMovie(movie.id, {
+      date: editForm.date || undefined,
+      status: editForm.status
+    });
+    setIsEditing(false);
+  };
 
   const handleRatingChange = async (memberId: string, rating: number) => {
     const newRatings = { ...movie.ratings, [memberId]: rating };
@@ -89,26 +152,40 @@ export function MovieDetailPage() {
         <span className="text-xs font-black uppercase tracking-widest">Back</span>
       </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-[100px_1fr] gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8">
         {/* Poster Section */}
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="space-y-6"
+          className="space-y-6 flex flex-col items-center md:items-start"
         >
-          <div className={`aspect-[2/3] rounded-2xl overflow-hidden border border-theme-border shadow-xl`}>
+          <div className={`aspect-[2/3] w-[40%] md:w-full rounded-2xl overflow-hidden border border-theme-border shadow-xl relative group`}>
             {movie.poster_url ? (
               <img 
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_url}`} 
+                src={getPosterSrc(movie.poster_url)} 
                 alt={movie.title}
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
+                onError={(e) => {
+                  // Fallback if image fails to load
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
               />
-            ) : (
-              <div className="w-full h-full bg-theme-surface flex items-center justify-center">
-                <span className="text-theme-muted font-black text-center px-4 uppercase tracking-widest opacity-20">{movie.title}</span>
-              </div>
-            )}
+            ) : null}
+            
+            {/* Fallback / Placeholder (shown if no URL or if load fails) */}
+            <div className={`w-full h-full bg-theme-surface flex flex-col items-center justify-center p-4 text-center ${movie.poster_url ? 'hidden' : ''}`}>
+              <span className="text-theme-muted font-black uppercase tracking-widest opacity-20 text-sm">{movie.title}</span>
+              <button 
+                onClick={handleRefreshMetadata}
+                disabled={isRefreshing}
+                className="mt-4 p-2 text-theme-primary hover:bg-theme-primary/10 rounded-full transition-colors"
+                title="Retry loading poster"
+              >
+                <RefreshCw size={20} className={isRefreshing ? 'animate-spin' : ''} />
+              </button>
+            </div>
           </div>
         </motion.div>
 
@@ -119,21 +196,59 @@ export function MovieDetailPage() {
           className="space-y-8"
         >
           <div className="space-y-2">
-            <h1 className={`text-4xl md:text-6xl font-black leading-none text-theme-text ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
-              {movie.title}
-            </h1>
+            <div className="flex items-start justify-between gap-4">
+              <h1 className={`text-4xl md:text-6xl font-black leading-none text-theme-text ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
+                {movie.title}
+              </h1>
+              <button 
+                onClick={handleRefreshMetadata}
+                disabled={isRefreshing}
+                className="p-2 text-theme-muted hover:text-theme-primary transition-colors opacity-50 hover:opacity-100"
+                title="Refresh Metadata"
+              >
+                <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+              </button>
+            </div>
             <div className="flex flex-wrap gap-3 items-center">
-              {movie.date && (
-                <span className="text-xs font-mono text-theme-muted uppercase tracking-widest">{movie.date}</span>
+              {isEditing ? (
+                <div className="flex items-center gap-2 bg-theme-base/50 p-2 rounded-xl border border-theme-border/50">
+                  <input 
+                    type="date" 
+                    value={editForm.date} 
+                    onChange={e => setEditForm({...editForm, date: e.target.value})}
+                    className="bg-theme-surface border border-theme-border rounded px-2 py-1 text-xs font-mono text-theme-text"
+                  />
+                  <select
+                    value={editForm.status}
+                    onChange={e => setEditForm({...editForm, status: e.target.value as any})}
+                    className="bg-theme-surface border border-theme-border rounded px-2 py-1 text-xs font-black uppercase text-theme-text"
+                  >
+                    <option value="wishlist">Wishlist</option>
+                    <option value="watched">Watched</option>
+                  </select>
+                  <div className="flex gap-1">
+                    <button onClick={handleSave} className="p-1 text-emerald-500 hover:bg-emerald-500/10 rounded transition-colors"><Check size={16} /></button>
+                    <button onClick={() => setIsEditing(false)} className="p-1 text-red-500 hover:bg-red-500/10 rounded transition-colors"><X size={16} /></button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {movie.date && (
+                    <span className="text-xs font-mono text-theme-muted uppercase tracking-widest">{movie.date}</span>
+                  )}
+                  <span className="w-1 h-1 rounded-full bg-theme-border" />
+                  <span className="text-xs font-black uppercase tracking-widest" style={{ color: profiles.find(p => p.id === movie.pickedBy)?.color || 'inherit' }}>
+                    Picked by {profiles.find(p => p.id === movie.pickedBy)?.name || movie.pickedBy}
+                  </span>
+                  <span className="w-1 h-1 rounded-full bg-theme-border" />
+                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${movie.status === 'watched' ? 'border-emerald-500/30 text-emerald-500 bg-emerald-500/10' : 'border-amber-500/30 text-amber-500 bg-amber-500/10'}`}>
+                    {movie.status}
+                  </span>
+                  <button onClick={() => setIsEditing(true)} className="ml-2 text-theme-muted hover:text-theme-primary transition-colors opacity-50 hover:opacity-100">
+                    <Edit2 size={14} />
+                  </button>
+                </>
               )}
-              <span className="w-1 h-1 rounded-full bg-theme-border" />
-              <span className="text-xs font-black uppercase tracking-widest" style={{ color: profiles.find(p => p.id === movie.pickedBy)?.color || 'inherit' }}>
-                Picked by {profiles.find(p => p.id === movie.pickedBy)?.name || movie.pickedBy}
-              </span>
-              <span className="w-1 h-1 rounded-full bg-theme-border" />
-              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${movie.status === 'watched' ? 'border-emerald-500/30 text-emerald-500 bg-emerald-500/10' : 'border-amber-500/30 text-amber-500 bg-amber-500/10'}`}>
-                {movie.status}
-              </span>
             </div>
           </div>
 
