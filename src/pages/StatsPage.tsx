@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useData, FamilyMember, TURN_ORDER, FAMILY_COLORS } from '../contexts/DataContext';
+import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { useModal } from '../contexts/ModalContext';
@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { StarIcon } from '../components/Icons';
 
 export function StatsPage() {
-  const { movies, resetDatabase, isLocalMode } = useData();
+  const { movies, resetDatabase, isLocalMode, profiles } = useData();
   const { theme } = useTheme();
   const { showModal } = useModal();
   const [isResetting, setIsResetting] = useState(false);
@@ -31,31 +31,30 @@ export function StatsPage() {
   const watchedMovies = useMemo(() => movies.filter(m => m.status === 'watched'), [movies]);
 
   const stats = useMemo(() => {
-    const stats: Record<FamilyMember, { totalPicked: number, totalRating: number, ratingCount: number, genres: Record<string, number> }> = {
-      Jack: { totalPicked: 0, totalRating: 0, ratingCount: 0, genres: {} },
-      Simone: { totalPicked: 0, totalRating: 0, ratingCount: 0, genres: {} },
-      Mom: { totalPicked: 0, totalRating: 0, ratingCount: 0, genres: {} },
-      Dad: { totalPicked: 0, totalRating: 0, ratingCount: 0, genres: {} }
-    };
+    const stats: Record<string, { totalPicked: number, totalRating: number, ratingCount: number, genres: Record<string, number> }> = {};
+    
+    profiles.forEach(p => {
+      stats[p.id] = { totalPicked: 0, totalRating: 0, ratingCount: 0, genres: {} };
+    });
 
     watchedMovies.forEach(m => {
       if (m.pickedBy in stats) {
-        stats[m.pickedBy as FamilyMember].totalPicked++;
+        stats[m.pickedBy].totalPicked++;
         m.genres?.forEach(g => {
-          stats[m.pickedBy as FamilyMember].genres[g] = (stats[m.pickedBy as FamilyMember].genres[g] || 0) + 1;
+          stats[m.pickedBy].genres[g] = (stats[m.pickedBy].genres[g] || 0) + 1;
         });
       }
       Object.entries(m.ratings).forEach(([member, rating]) => {
         const r = rating as number;
         if (r > 0 && member in stats) {
-          stats[member as FamilyMember].totalRating += r;
-          stats[member as FamilyMember].ratingCount++;
+          stats[member].totalRating += r;
+          stats[member].ratingCount++;
         }
       });
     });
 
     return stats;
-  }, [watchedMovies]);
+  }, [watchedMovies, profiles]);
 
   return (
     <div className="flex flex-col gap-12 w-full max-w-7xl mx-auto px-4 py-8">
@@ -94,11 +93,12 @@ export function StatsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {TURN_ORDER.map(member => {
+          {profiles.map(profile => {
+            const member = profile.id;
             const s = stats[member];
             const avg = s.ratingCount > 0 ? (Number(s.totalRating) / Number(s.ratingCount)).toFixed(1) : '—';
             const topGenre = Object.entries(s.genres).sort((a, b) => (b[1] as number) - (a[1] as number))[0]?.[0] || '—';
-            const color = FAMILY_COLORS[member];
+            const color = profile.color;
 
             return (
               <motion.div 
@@ -266,7 +266,7 @@ export function StatsPage() {
       </section>
 
       {/* Footer Version */}
-      <div className="text-center py-8 opacity-30 border-t border-theme-border/10 mt-8">
+      <div className="text-center py-4 opacity-30 border-t border-theme-border/10">
         <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-theme-muted">Family Movie Night v0.5</p>
       </div>
 

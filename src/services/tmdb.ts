@@ -8,6 +8,7 @@ export interface TMDBMovie {
   release_date: string;
   overview: string;
   genre_ids?: number[];
+  reason?: string;
 }
 
 export const GENRE_MAP: Record<number, string> = {
@@ -49,13 +50,41 @@ export async function searchMovies(query: string, year?: string): Promise<TMDBMo
   }
 
   try {
-    let url = `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`;
+    let url = `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&include_adult=false`;
     if (year) {
       url += `&primary_release_year=${year}`;
     }
     const response = await fetch(url);
     const data = await response.json();
-    return data.results || [];
+    const results = data.results || [];
+
+    // Filter out R-rated movies by checking US certification
+    const topResults = results.slice(0, 15);
+    const filteredResults: TMDBMovie[] = [];
+    
+    await Promise.all(topResults.map(async (movie: TMDBMovie) => {
+      try {
+        const releaseDatesRes = await fetch(`${BASE_URL}/movie/${movie.id}/release_dates?api_key=${TMDB_API_KEY}`);
+        const releaseDatesData = await releaseDatesRes.json();
+        const usRelease = releaseDatesData.results?.find((r: any) => r.iso_3166_1 === 'US');
+        const certification = usRelease?.release_dates?.[0]?.certification || '';
+        
+        if (!['R', 'NC-17'].includes(certification)) {
+          filteredResults.push(movie);
+        }
+      } catch (e) {
+        filteredResults.push(movie); // Keep if fetch fails
+      }
+    }));
+
+    // Sort to maintain original search relevance order
+    filteredResults.sort((a, b) => {
+      const indexA = topResults.findIndex((r: TMDBMovie) => r.id === a.id);
+      const indexB = topResults.findIndex((r: TMDBMovie) => r.id === b.id);
+      return indexA - indexB;
+    });
+
+    return filteredResults;
   } catch (error) {
     console.error("TMDB search error:", error);
     return dummyMovies;

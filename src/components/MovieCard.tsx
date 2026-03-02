@@ -1,17 +1,20 @@
 import React from 'react';
-import { Movie, useData, FAMILY_COLORS } from '../contexts/DataContext';
+import { Movie, useData } from '../contexts/DataContext';
 import { RatingsPanel } from './RatingsPanel';
 import { useTheme } from '../contexts/ThemeContext';
 import { motion } from 'motion/react';
 import { Trash2, Youtube, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { hapticFeedback } from '../utils/haptics';
 
 export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
-  const { markWatched, removeMovie } = useData();
+  const { markWatched, removeMovie, profiles } = useData();
   const { theme } = useTheme();
 
   const trailerUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' movie trailer')}`;
-  const pickerColor = movie.pickedBy in FAMILY_COLORS ? FAMILY_COLORS[movie.pickedBy as keyof typeof FAMILY_COLORS] : 'currentColor';
+  const profile = profiles.find(p => p.id === movie.pickedBy);
+  const pickerColor = profile ? profile.color : 'currentColor';
+  const pickerName = profile ? profile.name : movie.pickedBy;
 
   return (
     <motion.div 
@@ -49,7 +52,7 @@ export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
             {movie.status === 'wishlist' && (
               <div className="absolute top-4 right-4 z-40 flex gap-2">
                 <button 
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeMovie(movie.id); }}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); hapticFeedback.medium(); removeMovie(movie.id); }}
                   className="p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-full transition-colors shadow-lg"
                   title="Remove from Wishlist"
                 >
@@ -103,26 +106,28 @@ export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
           </div>
           <div className={`flex flex-col items-end gap-0.5`}>
             <span className="text-[8px] font-black uppercase tracking-widest opacity-50">Picker</span>
-            <span className="text-[10px] md:text-xs font-black" style={{ color: pickerColor }}>{movie.pickedBy}</span>
+            <span className="text-[10px] md:text-xs font-black" style={{ color: pickerColor }}>{pickerName}</span>
           </div>
         </div>
 
         <div className="flex gap-2 mb-4">
-          <a 
+          <motion.a 
+            whileTap={{ scale: 0.95 }}
             href={trailerUrl} 
             target="_blank" 
             rel="noopener noreferrer"
+            onClick={() => hapticFeedback.light()}
             className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-theme-surface border border-theme-border text-[10px] font-black uppercase tracking-widest hover:bg-theme-base transition-all"
           >
             <Youtube size={14} className="text-red-600" />
             Trailer
-          </a>
+          </motion.a>
         </div>
 
         {movie.status === 'wishlist' && (
           <motion.button 
             whileTap={{ scale: 0.95 }}
-            onClick={() => markWatched(movie.id)}
+            onClick={() => { hapticFeedback.success(); markWatched(movie.id); }}
             className={`mt-auto w-full py-2 md:py-4 rounded-xl md:rounded-2xl bg-theme-primary text-theme-base font-black uppercase tracking-[0.1em] md:tracking-[0.2em] text-[10px] transition-all hover:shadow-[0_0_20px_rgba(var(--theme-primary-rgb),0.4)] relative overflow-hidden group/btn ${
               theme === 'modern-pinnacle' ? 'rounded-xl shadow-[0_4px_12px_rgba(255,255,255,0.2)]' : ''
             } ${

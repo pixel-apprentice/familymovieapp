@@ -45,6 +45,48 @@
     --theme-font-body: "Inter", sans-serif;
   }
 
+  [data-theme="cinematic-glass"] {
+    --theme-base: #020617;
+    --theme-surface: rgba(15, 23, 42, 0.4);
+    --theme-primary: #38bdf8;
+    --theme-secondary: #0ea5e9;
+    --theme-text: #f8fafc;
+    --theme-muted: #94a3b8;
+    --theme-border: rgba(56, 189, 248, 0.2);
+    --theme-accent: #818cf8;
+    --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --theme-font-heading: "Outfit", sans-serif;
+    --theme-font-body: "Inter", sans-serif;
+  }
+
+  [data-theme="film-noir"] {
+    --theme-base: #000000;
+    --theme-surface: #111111;
+    --theme-primary: #ffffff;
+    --theme-secondary: #666666;
+    --theme-text: #e5e5e5;
+    --theme-muted: #888888;
+    --theme-border: #333333;
+    --theme-accent: #cccccc;
+    --theme-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+    --theme-font-heading: "Playfair Display", serif;
+    --theme-font-body: "Inter", sans-serif;
+  }
+
+  [data-theme="matinee-popcorn"] {
+    --theme-base: #fef2f2;
+    --theme-surface: #ffffff;
+    --theme-primary: #ef4444;
+    --theme-secondary: #fca5a5;
+    --theme-text: #1c1917;
+    --theme-muted: #78716c;
+    --theme-border: #fecaca;
+    --theme-accent: #f59e0b;
+    --theme-shadow: 0 8px 32px rgba(239, 68, 68, 0.15);
+    --theme-font-heading: "Outfit", sans-serif;
+    --theme-font-body: "Inter", sans-serif;
+  }
+
   [data-theme="midnight-cinema"] {
     --theme-base: #09090b;
     --theme-surface: #18181b;
@@ -166,6 +208,54 @@
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(0, 0, 0, 0.03);
   box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Cinematic Glass: Apple-style blur with neon accents */
+[data-theme="cinematic-glass"] body {
+  background-color: #020617;
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 85% 30%, rgba(129, 140, 248, 0.15) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+[data-theme="cinematic-glass"] .bg-theme-surface {
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Film Noir: High contrast, monochrome */
+[data-theme="film-noir"] body {
+  background-color: #000000;
+  background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
+  background-attachment: fixed;
+}
+[data-theme="film-noir"] .bg-theme-surface {
+  background: #111111;
+  border: 1px solid #333333;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+  background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
+}
+
+/* Matinee Popcorn: Red and white stripes, playful */
+[data-theme="matinee-popcorn"] body {
+  background-color: #fef2f2;
+  background-image: repeating-linear-gradient(
+    45deg,
+    #fef2f2,
+    #fef2f2 20px,
+    #fee2e2 20px,
+    #fee2e2 40px
+  );
+  background-attachment: fixed;
+}
+[data-theme="matinee-popcorn"] .bg-theme-surface {
+  background: #ffffff;
+  border: 4px solid #ef4444;
+  border-radius: 2rem;
+  box-shadow: 8px 8px 0px rgba(239, 68, 68, 0.2);
 }
 
 /* Midnight Cinema: Deep shadows */

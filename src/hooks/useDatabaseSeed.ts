@@ -31,11 +31,20 @@ export function useDatabaseSeed() {
               date: movie.date,
               pickedBy: picker,
               status: 'watched',
-              ratings: { Jack: 0, Simone: 0, Mom: 0, Dad: 0 }
+              ratings: {}
             });
           });
 
-          batch.set(configRef, { isSeeded: true, currentTurnIndex: 0 }, { merge: true });
+          batch.set(configRef, { 
+            isSeeded: true, 
+            currentTurnIndex: 0,
+            profiles: [
+              { id: 'Jack', name: 'Jack', color: '#60a5fa' },
+              { id: 'Simone', name: 'Simone', color: '#f472b6' },
+              { id: 'Mom', name: 'Mom', color: '#34d399' },
+              { id: 'Dad', name: 'Dad', color: '#fbbf24' }
+            ]
+          }, { merge: true });
           await batch.commit();
           console.log("Database seeded successfully.");
         }

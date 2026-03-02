@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { DataProvider } from './contexts/DataContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -22,6 +23,7 @@ function AppContent() {
         <Route path="/movie/:id" element={<MovieDetailPage />} />
       </Routes>
       <Modal />
+      <Toaster position="top-center" richColors />
     </Layout>
   );
 }

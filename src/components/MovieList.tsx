@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useData, Movie, FamilyMember, TURN_ORDER, FAMILY_COLORS } from '../contexts/DataContext';
+import { useData, Movie } from '../contexts/DataContext';
 import { MovieCard } from './MovieCard';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTheme } from '../contexts/ThemeContext';
@@ -7,19 +7,23 @@ import { useModal } from '../contexts/ModalContext';
 import { StarIcon } from './Icons';
 import { Link } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
+import { hapticFeedback } from '../utils/haptics';
 
 export function MovieList() {
-  const { movies, removeMovie } = useData();
+  const { movies, removeMovie, loading, profiles } = useData();
   const { theme } = useTheme();
   const { showModal } = useModal();
   const [randomMovie, setRandomMovie] = useState<Movie | null>(null);
 
   const wishlistMovies = useMemo(() => movies.filter(m => m.status === 'wishlist'), [movies]);
   const watchedMovies = useMemo(() => movies.filter(m => m.status === 'watched').sort((a, b) => {
-    if (a.date && b.date) {
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
-    }
-    return 0;
+    const aDate = a.date === 'Unknown' ? null : a.date;
+    const bDate = b.date === 'Unknown' ? null : b.date;
+    
+    if (!aDate && !bDate) return 0;
+    if (!aDate) return 1; // Put movies without dates at the bottom
+    if (!bDate) return -1;
+    return new Date(bDate).getTime() - new Date(aDate).getTime();
   }), [movies]);
 
   const calculateAverageRating = (ratings: Movie['ratings']) => {
@@ -30,6 +34,7 @@ export function MovieList() {
 
   const pickRandom = () => {
     if (wishlistMovies.length === 0) return;
+    hapticFeedback.medium();
     const randomIndex = Math.floor(Math.random() * wishlistMovies.length);
     setRandomMovie(wishlistMovies[randomIndex]);
     setTimeout(() => setRandomMovie(null), 5000);
@@ -63,12 +68,13 @@ export function MovieList() {
             <div className="h-px flex-1 bg-theme-border/30" />
           </div>
           {wishlistMovies.length > 1 && (
-            <button 
+            <motion.button 
+              whileTap={{ scale: 0.95 }}
               onClick={pickRandom}
               className="ml-4 px-4 py-2 bg-theme-primary text-theme-base text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-transform shadow-lg"
             >
               🎲 Random Pick
-            </button>
+            </motion.button>
           )}
         </div>
 
@@ -86,12 +92,13 @@ export function MovieList() {
                   <p className="text-xs text-theme-muted font-mono uppercase tracking-widest">Fate has decided</p>
                 </div>
                 <MovieCard movie={randomMovie} />
-                <button 
-                  onClick={() => setRandomMovie(null)}
+                <motion.button 
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => { hapticFeedback.light(); setRandomMovie(null); }}
                   className="mt-8 w-full py-4 bg-theme-surface border-2 border-theme-primary text-theme-primary font-black rounded-2xl hover:bg-theme-primary hover:text-theme-base transition-all uppercase text-xs tracking-widest"
                 >
                   Close
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           )}
@@ -99,13 +106,26 @@ export function MovieList() {
         
         <motion.div layout className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
           <AnimatePresence>
-            {wishlistMovies.map(movie => (
-              <MovieCard key={movie.id} movie={movie} />
-            ))}
+            {loading ? (
+              // Skeleton Loaders
+              Array.from({ length: 4 }).map((_, i) => (
+                <motion.div 
+                  key={`skeleton-${i}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="aspect-[2/3] rounded-2xl bg-theme-border/20 animate-pulse border-2 border-theme-border/10"
+                />
+              ))
+            ) : (
+              wishlistMovies.map(movie => (
+                <MovieCard key={movie.id} movie={movie} />
+              ))
+            )}
           </AnimatePresence>
         </motion.div>
 
-        {wishlistMovies.length === 0 && (
+        {!loading && wishlistMovies.length === 0 && (
           <div className="text-center py-12 text-theme-muted font-mono uppercase tracking-widest opacity-50 text-xs">
             No movies in wishlist
           </div>
@@ -122,45 +142,51 @@ export function MovieList() {
         </div>
 
         <div className={`flex flex-col gap-3`}>
-          {watchedMovies.map(movie => {
-            const avg = calculateAverageRating(movie.ratings);
-            return (
-              <Link to={`/movie/${movie.id}`} key={movie.id} className={`flex items-center justify-between p-4 rounded-2xl border border-theme-border/50 bg-theme-surface/30 backdrop-blur-sm hover:border-theme-primary/50 transition-colors group ${
-                theme === 'modern-pinnacle' ? 'rounded-3xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl bg-white/[0.02]' : ''
-              } ${
-                theme === 'modern-luminous' ? 'rounded-3xl border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl bg-black/[0.02]' : ''
-              }`}>
-                <div className="flex flex-col min-w-0 pr-4">
-                  <span className={`text-base md:text-lg font-black text-theme-text truncate group-hover:text-theme-primary transition-colors ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
-                    {movie.title}
-                  </span>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs font-black uppercase tracking-widest text-theme-primary/80">
-                      {movie.pickedBy}
-                    </span>
-                    <span className="text-theme-border/50">•</span>
-                    <span className="text-xs font-mono text-theme-muted">
-                      {movie.date}
-                    </span>
-                  </div>
+          {loading ? (
+            // Skeleton Loaders for History
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={`history-skeleton-${i}`} className="flex items-center justify-between p-4 rounded-2xl border border-theme-border/20 bg-theme-surface/10 animate-pulse">
+                <div className="flex flex-col gap-2 w-1/2">
+                  <div className="h-5 bg-theme-border/20 rounded w-full" />
+                  <div className="h-3 bg-theme-border/20 rounded w-1/2" />
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="flex items-center gap-1 bg-theme-base/50 px-3 py-1.5 rounded-xl border border-theme-border/30">
-                    <span className="text-base font-black text-theme-primary">{avg > 0 ? avg.toFixed(1) : '—'}</span>
-                    {avg > 0 && <StarIcon filled className="w-4 h-4 text-theme-primary" />}
+                <div className="h-8 w-16 bg-theme-border/20 rounded-xl" />
+              </div>
+            ))
+          ) : (
+            watchedMovies.map(movie => {
+              const avg = calculateAverageRating(movie.ratings);
+              return (
+                <Link to={`/movie/${movie.id}`} key={movie.id} onClick={() => hapticFeedback.light()} className={`flex items-center justify-between p-4 rounded-2xl border border-theme-border/50 bg-theme-surface/30 backdrop-blur-sm hover:border-theme-primary/50 transition-colors group ${
+                  theme === 'modern-pinnacle' ? 'rounded-3xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl bg-white/[0.02]' : ''
+                } ${
+                  theme === 'modern-luminous' ? 'rounded-3xl border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl bg-black/[0.02]' : ''
+                }`}>
+                  <div className="flex flex-col min-w-0 pr-4">
+                    <span className={`text-base md:text-lg font-black text-theme-text truncate group-hover:text-theme-primary transition-colors ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
+                      {movie.title}
+                    </span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs font-black uppercase tracking-widest text-theme-primary/80">
+                        {profiles.find(p => p.id === movie.pickedBy)?.name || movie.pickedBy}
+                      </span>
+                      <span className="text-theme-border/50">•</span>
+                      <span className="text-xs font-mono text-theme-muted">
+                        {movie.date}
+                      </span>
+                    </div>
                   </div>
-                  <button
-                    onClick={(e) => handleDeleteWatched(e, movie.id)}
-                    className="p-2 text-theme-muted hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-colors"
-                    title="Delete from history"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </Link>
-            );
-          })}
-          {watchedMovies.length === 0 && (
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-1 bg-theme-base/50 px-3 py-1.5 rounded-xl border border-theme-border/30">
+                      <span className="text-base font-black text-theme-primary">{avg > 0 ? avg.toFixed(1) : 'Not Rated'}</span>
+                      {avg > 0 && <StarIcon filled className="w-4 h-4 text-theme-primary" />}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })
+          )}
+          {!loading && watchedMovies.length === 0 && (
             <div className="text-center py-12 text-theme-muted font-mono uppercase tracking-widest opacity-50 text-xs border border-theme-border/50 rounded-2xl bg-theme-surface/30">
               No watched movies yet
             </div>

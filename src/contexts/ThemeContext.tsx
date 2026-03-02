@@ -3,6 +3,9 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 export type Theme = 
   | 'modern-pinnacle'
   | 'modern-luminous'
+  | 'cinematic-glass'
+  | 'film-noir'
+  | 'matinee-popcorn'
   | 'midnight-cinema'
   | 'vintage-ticket'
   | 'neon-cyberpunk'

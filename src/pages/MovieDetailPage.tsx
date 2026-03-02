@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useData, FAMILY_COLORS, FamilyMember, Movie } from '../contexts/DataContext';
+import { useData, Movie } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useModal } from '../contexts/ModalContext';
 import { motion } from 'motion/react';
@@ -10,7 +10,7 @@ import { sendRequestEmail } from '../services/emailService';
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { movies, updateMovie, markWatched, removeMovie } = useData();
+  const { movies, updateMovie, markWatched, removeMovie, profiles } = useData();
   const { theme } = useTheme();
   const { showModal } = useModal();
   const [isSending, setIsSending] = useState(false);
@@ -31,8 +31,8 @@ export function MovieDetailPage() {
     );
   }
 
-  const handleRatingChange = async (member: FamilyMember, rating: number) => {
-    const newRatings = { ...movie.ratings, [member]: rating };
+  const handleRatingChange = async (memberId: string, rating: number) => {
+    const newRatings = { ...movie.ratings, [memberId]: rating };
     await updateMovie(movie.id, { ratings: newRatings });
   };
 
@@ -53,7 +53,11 @@ export function MovieDetailPage() {
 
   const handlePlexRequest = async () => {
     setIsSending(true);
-    const success = await sendRequestEmail('movie', `Please add "${movie.title}" to Plex!`);
+    const success = await sendRequestEmail(
+      'movie', 
+      movie.title, 
+      'Plex request from Family Movie App'
+    );
     setIsSending(false);
 
     if (success) {
@@ -85,14 +89,14 @@ export function MovieDetailPage() {
         <span className="text-xs font-black uppercase tracking-widest">Back</span>
       </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8">
         {/* Poster Section */}
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="space-y-6"
         >
-          <div className={`aspect-[2/3] rounded-[2rem] overflow-hidden border border-theme-border shadow-2xl`}>
+          <div className={`aspect-[2/3] rounded-2xl overflow-hidden border border-theme-border shadow-xl`}>
             {movie.poster_url ? (
               <img 
                 src={`https://image.tmdb.org/t/p/w500${movie.poster_url}`} 
@@ -160,8 +164,8 @@ export function MovieDetailPage() {
                 <span className="text-xs font-mono text-theme-muted uppercase tracking-widest">{movie.date}</span>
               )}
               <span className="w-1 h-1 rounded-full bg-theme-border" />
-              <span className="text-xs font-black uppercase tracking-widest" style={{ color: FAMILY_COLORS[movie.pickedBy as FamilyMember] || 'inherit' }}>
-                Picked by {movie.pickedBy}
+              <span className="text-xs font-black uppercase tracking-widest" style={{ color: profiles.find(p => p.id === movie.pickedBy)?.color || 'inherit' }}>
+                Picked by {profiles.find(p => p.id === movie.pickedBy)?.name || movie.pickedBy}
               </span>
               <span className="w-1 h-1 rounded-full bg-theme-border" />
               <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${movie.status === 'watched' ? 'border-emerald-500/30 text-emerald-500 bg-emerald-500/10' : 'border-amber-500/30 text-amber-500 bg-amber-500/10'}`}>
@@ -178,31 +182,31 @@ export function MovieDetailPage() {
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {(Object.keys(FAMILY_COLORS) as FamilyMember[]).map((member) => (
+              {profiles.map((profile) => (
                 <div 
-                  key={member}
+                  key={profile.id}
                   className="bg-theme-surface border border-theme-border rounded-2xl p-4 flex flex-col gap-3"
                 >
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: FAMILY_COLORS[member] }}>
-                      {member}
+                    <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: profile.color }}>
+                      {profile.name}
                     </span>
                     <span className="text-xs font-mono text-theme-muted">
-                      {movie.ratings[member] > 0 ? `${movie.ratings[member]}/5` : 'Not rated'}
+                      {movie.ratings[profile.id] > 0 ? `${movie.ratings[profile.id]}/5` : 'Not rated'}
                     </span>
                   </div>
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
-                        onClick={() => handleRatingChange(member, star)}
+                        onClick={() => handleRatingChange(profile.id, star)}
                         className={`p-1 transition-all hover:scale-125 ${
-                          star <= movie.ratings[member] 
+                          star <= (movie.ratings[profile.id] || 0) 
                             ? 'text-theme-primary' 
                             : 'text-theme-muted opacity-20'
                         }`}
                       >
-                        <Star size={20} fill={star <= movie.ratings[member] ? 'currentColor' : 'none'} />
+                        <Star size={20} fill={star <= (movie.ratings[profile.id] || 0) ? 'currentColor' : 'none'} />
                       </button>
                     ))}
                   </div>

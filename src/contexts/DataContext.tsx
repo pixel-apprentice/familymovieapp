@@ -5,15 +5,18 @@ import { seedData } from '../utils/seedData';
 import { useAuth } from './AuthContext';
 import { useModal } from './ModalContext';
 
-export type FamilyMember = 'Jack' | 'Simone' | 'Mom' | 'Dad';
-export const TURN_ORDER: FamilyMember[] = ['Jack', 'Simone', 'Mom', 'Dad'];
+export interface FamilyProfile {
+  id: string;
+  name: string;
+  color: string;
+}
 
-export const FAMILY_COLORS: Record<FamilyMember, string> = {
-  Jack: '#60a5fa', // Blue
-  Simone: '#f472b6', // Pink
-  Mom: '#34d399', // Emerald
-  Dad: '#fbbf24'  // Amber
-};
+export const DEFAULT_PROFILES: FamilyProfile[] = [
+  { id: 'Jack', name: 'Jack', color: '#60a5fa' },
+  { id: 'Simone', name: 'Simone', color: '#f472b6' },
+  { id: 'Mom', name: 'Mom', color: '#34d399' },
+  { id: 'Dad', name: 'Dad', color: '#fbbf24' }
+];
 
 export interface Movie {
   id: string;
@@ -21,19 +24,15 @@ export interface Movie {
   poster_url?: string;
   summary?: string;
   status: 'wishlist' | 'watched';
-  pickedBy: FamilyMember | 'Family' | 'Not specified';
+  pickedBy: string;
   date?: string;
   genres?: string[];
-  ratings: {
-    Jack: number;
-    Simone: number;
-    Mom: number;
-    Dad: number;
-  };
+  ratings: Record<string, number>;
 }
 
 interface DataContextType {
   movies: Movie[];
+  profiles: FamilyProfile[];
   currentTurnIndex: number;
   isLocalMode: boolean;
   addMovie: (movie: Omit<Movie, 'id'>) => Promise<void>;
@@ -51,6 +50,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const { showModal } = useModal();
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [profiles, setProfiles] = useState<FamilyProfile[]>(DEFAULT_PROFILES);
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   const [isLocalMode, setIsLocalMode] = useState(() => {
     const forced = localStorage.getItem('forceLocal') === 'true';
@@ -77,9 +77,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             id: `local-${i}`,
             title: m.title,
             status: 'watched' as const,
-            pickedBy: picker as any,
+            pickedBy: picker,
             date: m.date,
-            ratings: { Jack: 0, Simone: 0, Mom: 0, Dad: 0 }
+            ratings: {}
           };
         });
         setMovies(seededMovies);
@@ -114,6 +114,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const data = docSnap.data();
         if (data.currentTurnIndex !== undefined) {
           setCurrentTurnIndex(data.currentTurnIndex);
+        }
+        if (data.profiles && Array.isArray(data.profiles)) {
+          setProfiles(data.profiles);
         }
       }
     }, (error: any) => {
@@ -169,7 +172,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const markWatched = async (id: string) => {
-    const nextTurn = (currentTurnIndex + 1) % 4;
+    const nextTurn = (currentTurnIndex + 1) % profiles.length;
     const today = new Date().toISOString().split('T')[0];
     
     if (isLocalMode) {
@@ -185,7 +188,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const skipTurn = async () => {
-    const nextTurn = (currentTurnIndex + 1) % 4;
+    const nextTurn = (currentTurnIndex + 1) % profiles.length;
     if (isLocalMode) {
       saveLocalTurn(nextTurn);
     } else {
@@ -229,6 +232,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const value = React.useMemo(() => ({
     movies,
+    profiles,
     currentTurnIndex,
     isLocalMode,
     addMovie,
@@ -238,7 +242,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     skipTurn,
     setTurn,
     resetDatabase
-  }), [movies, currentTurnIndex, isLocalMode]);
+  }), [movies, profiles, currentTurnIndex, isLocalMode]);
 
   return (
     <DataContext.Provider value={value}>

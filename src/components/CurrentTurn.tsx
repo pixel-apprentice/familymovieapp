@@ -1,13 +1,14 @@
 import React from 'react';
-import { useData, TURN_ORDER } from '../contexts/DataContext';
+import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { motion } from 'motion/react';
+import { hapticFeedback } from '../utils/haptics';
 
 export function CurrentTurn() {
-  const { currentTurnIndex, skipTurn, setTurn, movies } = useData();
+  const { currentTurnIndex, skipTurn, setTurn, movies, profiles } = useData();
   const { theme } = useTheme();
   
-  const currentPicker = TURN_ORDER[currentTurnIndex];
+  const currentPicker = profiles[currentTurnIndex]?.name || 'Family';
 
   // Find the last watched movie
   const lastWatched = [...movies]
@@ -47,10 +48,11 @@ export function CurrentTurn() {
         </div>
         
         <div className="flex gap-1 md:gap-2 shrink-0">
-          {TURN_ORDER.map((member, index) => (
-            <button
-              key={member}
-              onClick={() => setTurn(index)}
+          {profiles.map((profile, index) => (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              key={profile.id}
+              onClick={() => { hapticFeedback.light(); setTurn(index); }}
               className={`relative w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-[10px] md:text-xs font-black transition-all ${
                 theme === 'modern-pinnacle' ? 'border border-white/10' : ''
               } ${
@@ -63,7 +65,7 @@ export function CurrentTurn() {
                   : 'bg-theme-base/50 text-theme-muted hover:bg-theme-border/20 border border-theme-border'
               }`}
             >
-              <span className="relative z-10">{member[0]}</span>
+              <span className="relative z-10">{profile.name[0]}</span>
               {index === currentTurnIndex && (
                 <motion.div 
                   layoutId="active-turn-pill"
@@ -73,7 +75,7 @@ export function CurrentTurn() {
                   style={{ borderRadius: theme === 'vintage-ticket' ? '0' : undefined }}
                 />
               )}
-            </button>
+            </motion.button>
           ))}
         </div>
       </motion.div>
@@ -81,13 +83,13 @@ export function CurrentTurn() {
       <div className="flex items-center justify-between px-4">
         {lastWatched ? (
           <p className="text-[9px] md:text-[10px] text-theme-muted font-mono uppercase tracking-wider">
-            Last: <span className="text-theme-primary font-bold">{lastWatched.pickedBy}</span> • {daysAgo === 0 ? 'Today' : `${daysAgo}d ago`}
+            Last: <span className="text-theme-primary font-bold">{profiles.find(p => p.id === lastWatched.pickedBy)?.name || lastWatched.pickedBy}</span> • {daysAgo === 0 ? 'Today' : `${daysAgo}d ago`}
           </p>
         ) : (
           <div />
         )}
         <button 
-          onClick={skipTurn}
+          onClick={() => { hapticFeedback.medium(); skipTurn(); }}
           className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-theme-muted hover:text-theme-primary transition-colors"
         >
           Skip Turn

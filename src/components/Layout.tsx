@@ -5,6 +5,8 @@ import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { motion } from 'motion/react';
 import { Home, Settings } from 'lucide-react';
+import { PizzaButton } from './PizzaButton';
+import { hapticFeedback } from '../utils/haptics';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { isLocalMode } = useData();
@@ -43,9 +45,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </h1>
           </Link>
           
-          <nav className="flex items-center gap-2 md:gap-4">
+          <nav className="flex items-center gap-1 md:gap-2">
             <Link 
               to="/" 
+              onClick={() => hapticFeedback.light()}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                 location.pathname === '/' 
                   ? 'bg-theme-primary text-theme-base shadow-lg' 
@@ -55,8 +58,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Home size={14} />
               <span className="hidden sm:inline">Home</span>
             </Link>
+            <PizzaButton />
             <Link 
               to="/stats" 
+              onClick={() => hapticFeedback.light()}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                 location.pathname === '/stats' 
                   ? 'bg-theme-primary text-theme-base shadow-lg' 
