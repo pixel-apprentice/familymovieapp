@@ -217,10 +217,10 @@ async function startServer() {
   app.post("/api/email/send", async (req, res) => {
     const { type, details, subject } = req.body;
 
-    const SERVICE_ID = process.env.EMAILJS_SERVICE_ID;
-    const TEMPLATE_ID = process.env.EMAILJS_TEMPLATE_ID;
-    const PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY;
-    const PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY;
+    const SERVICE_ID = process.env.EMAILJS_SERVICE_ID || process.env.VITE_EMAILJS_SERVICE_ID;
+    const TEMPLATE_ID = process.env.EMAILJS_TEMPLATE_ID || process.env.VITE_EMAILJS_TEMPLATE_ID;
+    const PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY || process.env.VITE_EMAILJS_PUBLIC_KEY;
+    const PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY || process.env.VITE_EMAILJS_PRIVATE_KEY;
 
     if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY || !PRIVATE_KEY) {
       return res.status(500).json({ error: "EmailJS credentials not fully configured on server" });
