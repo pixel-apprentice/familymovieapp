@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = 3001;
 
   // Middleware to parse JSON bodies
   app.use(express.json());
@@ -30,7 +30,7 @@ async function startServer() {
         model: "gemini-3-flash-preview",
         contents: "Test connection. Reply with 'OK'.",
       });
-      
+
       if (response.text) {
         res.json({ success: true, message: "Gemini is connected and responding!" });
       } else {
@@ -92,7 +92,7 @@ async function startServer() {
 
     try {
       const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-      
+
       const historyText = history.map((h: any) => {
         const ratings = Object.entries(h.ratings || {})
           .filter(([_, r]) => (r as number) > 0)
@@ -100,7 +100,7 @@ async function startServer() {
           .join(', ');
         return `- ${h.title} (Picked by: ${h.pickedBy}, Ratings: ${ratings || 'No ratings'}${h.summary ? `, Summary: ${h.summary}` : ''})`;
       }).join('\n');
-      
+
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: `We are a family (${profileNames.join(', ')}) having a movie night. It's ${currentUser}'s turn to pick. 
@@ -156,15 +156,15 @@ async function startServer() {
       if (year) {
         url += `&primary_release_year=${year}`;
       }
-      
+
       const response = await fetch(url);
       if (!response.ok) throw new Error(`TMDB API error: ${response.status}`);
       const data = await response.json();
-      
+
       const results = data.results || [];
       const topResults = results.slice(0, 15);
       const filteredResults = [];
-      
+
       // Filter out R-rated movies
       await Promise.all(topResults.map(async (movie: any) => {
         try {
@@ -172,7 +172,7 @@ async function startServer() {
           const releaseDatesData = await releaseDatesRes.json();
           const usRelease = releaseDatesData.results?.find((r: any) => r.iso_3166_1 === 'US');
           const certification = usRelease?.release_dates?.[0]?.certification || '';
-          
+
           if (!['R', 'NC-17'].includes(certification)) {
             filteredResults.push(movie);
           }
@@ -216,7 +216,7 @@ async function startServer() {
   // --- EmailJS Route ---
   app.post("/api/email/send", async (req, res) => {
     const { type, details, subject } = req.body;
-    
+
     const SERVICE_ID = process.env.EMAILJS_SERVICE_ID;
     const TEMPLATE_ID = process.env.EMAILJS_TEMPLATE_ID;
     const PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY;
@@ -271,7 +271,7 @@ async function startServer() {
   } else {
     // Production: Serve static files from dist
     app.use(express.static(path.resolve(__dirname, "dist")));
-    
+
     // SPA fallback for production
     app.get("*", (req, res) => {
       res.sendFile(path.resolve(__dirname, "dist", "index.html"));
