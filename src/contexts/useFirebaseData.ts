@@ -22,7 +22,7 @@ export function useFirebaseData() {
     }
 
     setIsLocalMode(false);
-    
+
     const unsubscribeMovies = onSnapshot(collection(db, 'movies'), (snapshot) => {
       const moviesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Movie));
       setMovies(moviesData);
@@ -62,7 +62,11 @@ export function useFirebaseData() {
       saveLocalMovies(movies.map(m => m.id === id ? { ...m, ...updates } : m));
       return;
     }
-    await updateDoc(doc(db, 'movies', id), updates);
+    // Strip undefined values — Firestore rejects them
+    const sanitized = Object.fromEntries(
+      Object.entries(updates).filter(([_, v]) => v !== undefined)
+    );
+    await updateDoc(doc(db, 'movies', id), sanitized);
   };
 
   const removeMovie = async (id: string) => {

@@ -22,12 +22,12 @@ export function MovieDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
-  const [editForm, setEditForm] = useState({ 
-    date: '', 
+  const [editForm, setEditForm] = useState({
+    date: '',
     status: 'wishlist' as 'wishlist' | 'watched',
     pickedBy: ''
   });
-  
+
   const movie = movies.find(m => m.id === id);
 
   React.useEffect(() => {
@@ -57,15 +57,15 @@ export function MovieDetailPage() {
   }, [movie?.id]);
 
   useEffect(() => {
-      // Auto-fetch metadata if missing
-      if (movie && (!movie.poster_url || movie.poster_url.trim() === '') && !isRefreshing && !hasAttemptedFetch) {
-        handleRefreshMetadata();
-      }
+    // Auto-fetch metadata if missing
+    if (movie && (!movie.poster_url || movie.poster_url.trim() === '') && !isRefreshing && !hasAttemptedFetch) {
+      handleRefreshMetadata();
+    }
   }, [movie?.id, movie?.poster_url, isRefreshing, hasAttemptedFetch]);
 
   const handleRefreshMetadata = async () => {
     if (!movie || isRefreshing) return;
-    
+
     setIsRefreshing(true);
     setHasAttemptedFetch(true);
     try {
@@ -74,15 +74,15 @@ export function MovieDetailPage() {
       if (movie.date && /^\d{4}/.test(movie.date)) {
         year = movie.date.split('-')[0];
       }
-      
+
       console.log(`Fetching metadata for ${movie.title} (${year})...`);
       const results = await searchMovies(movie.title, year);
-      
+
       if (results && results.length > 0) {
         const bestMatch = results[0];
         console.log("Found match:", bestMatch);
         await updateMovie(movie.id, {
-          poster_url: bestMatch.poster_path || undefined,
+          poster_url: bestMatch.poster_path || '',
           summary: bestMatch.overview,
           genres: bestMatch.genre_ids?.map(id => GENRE_MAP[id]).filter(Boolean)
         });
@@ -105,7 +105,7 @@ export function MovieDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <h2 className="text-2xl font-black uppercase tracking-widest text-theme-muted">Movie not found</h2>
-        <button 
+        <button
           onClick={() => navigate('/')}
           className="px-6 py-3 bg-theme-primary text-theme-base font-black rounded-xl uppercase text-xs tracking-widest"
         >
@@ -161,8 +161,8 @@ export function MovieDetailPage() {
     setIsSending(true);
     try {
       const success = await sendRequestEmail(
-        'movie', 
-        movie.title, 
+        'movie',
+        movie.title,
         'Plex request from Family Movie App'
       );
 
@@ -187,7 +187,7 @@ export function MovieDetailPage() {
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8">
-      <button 
+      <button
         onClick={() => navigate(-1)}
         className="flex items-center gap-2 text-theme-muted hover:text-theme-primary transition-colors mb-8 group"
       >
@@ -197,15 +197,15 @@ export function MovieDetailPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8">
         {/* Poster Section */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="space-y-6 flex flex-col items-center md:items-start"
         >
           <div className={`aspect-[2/3] w-[40%] md:w-full rounded-2xl overflow-hidden border border-theme-border shadow-xl relative group`}>
             {movie.poster_url ? (
-              <img 
-                src={getPosterSrc(movie.poster_url)} 
+              <img
+                src={getPosterSrc(movie.poster_url)}
                 alt={movie.title}
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
@@ -216,11 +216,11 @@ export function MovieDetailPage() {
                 }}
               />
             ) : null}
-            
+
             {/* Fallback / Placeholder (shown if no URL or if load fails) */}
             <div className={`w-full h-full bg-theme-surface flex flex-col items-center justify-center p-4 text-center ${movie.poster_url ? 'hidden' : ''}`}>
               <span className="text-theme-muted font-black uppercase tracking-widest opacity-20 text-sm">{movie.title}</span>
-              <button 
+              <button
                 onClick={handleRefreshMetadata}
                 disabled={isRefreshing}
                 className="mt-4 p-2 text-theme-primary hover:bg-theme-primary/10 rounded-full transition-colors"
@@ -233,7 +233,7 @@ export function MovieDetailPage() {
         </motion.div>
 
         {/* Content Section */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="space-y-8"
@@ -243,7 +243,7 @@ export function MovieDetailPage() {
               <h1 className={`text-4xl md:text-6xl font-black leading-none text-theme-text ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
                 {movie.title}
               </h1>
-              <button 
+              <button
                 onClick={handleRefreshMetadata}
                 disabled={isRefreshing}
                 className="p-2 text-theme-muted hover:text-theme-primary transition-colors opacity-50 hover:opacity-100"
@@ -254,12 +254,12 @@ export function MovieDetailPage() {
             </div>
             <div className="flex flex-wrap gap-3 items-center">
               {isEditing ? (
-                <MovieEditForm 
-                  editForm={editForm} 
-                  setEditForm={setEditForm} 
-                  profiles={profiles} 
-                  handleSave={handleSave} 
-                  setIsEditing={setIsEditing} 
+                <MovieEditForm
+                  editForm={editForm}
+                  setEditForm={setEditForm}
+                  profiles={profiles}
+                  handleSave={handleSave}
+                  setIsEditing={setIsEditing}
                 />
               ) : (
                 <>
@@ -283,13 +283,13 @@ export function MovieDetailPage() {
           </div>
 
           {/* Actions */}
-          <MovieActions 
-            movie={movie} 
-            trailerUrl={trailerUrl} 
-            isSending={isSending} 
-            handlePlexRequest={handlePlexRequest} 
-            markWatched={markWatched} 
-            handleDelete={handleDelete} 
+          <MovieActions
+            movie={movie}
+            trailerUrl={trailerUrl}
+            isSending={isSending}
+            handlePlexRequest={handlePlexRequest}
+            markWatched={markWatched}
+            handleDelete={handleDelete}
           />
 
           {/* Family Rankings Section */}
@@ -298,10 +298,10 @@ export function MovieDetailPage() {
               <Star size={18} />
               <h2 className="text-sm font-black uppercase tracking-widest">Family Rankings</h2>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {profiles.map((profile) => (
-                <div 
+                <div
                   key={profile.id}
                   className="bg-theme-surface border border-theme-border rounded-2xl p-4 flex flex-col gap-3"
                 >
@@ -318,11 +318,10 @@ export function MovieDetailPage() {
                       <button
                         key={star}
                         onClick={() => handleRatingChange(profile.id, star)}
-                        className={`p-1 transition-all hover:scale-125 ${
-                          star <= (movie.ratings[profile.id] || 0) 
-                            ? 'text-theme-primary' 
+                        className={`p-1 transition-all hover:scale-125 ${star <= (movie.ratings[profile.id] || 0)
+                            ? 'text-theme-primary'
                             : 'text-theme-muted opacity-20'
-                        }`}
+                          }`}
                       >
                         <Star size={20} fill={star <= (movie.ratings[profile.id] || 0) ? 'currentColor' : 'none'} />
                       </button>
