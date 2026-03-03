@@ -70,7 +70,7 @@ export function AddMovieModal({ movie, onClose, onAdded }: AddMovieModalProps) {
     }
 
     // Input Sanitization: Check for duplicates
-    const isDuplicate = movies.some(m => m.id.toString() === movie.id.toString());
+    const isDuplicate = movies.some(m => m.id.toString() === movie.id.toString() || m.tmdbId?.toString() === movie.id.toString());
     if (isDuplicate) {
       hapticFeedback.error();
       toast.error(`"${movie.title}" is already in your list!`);
@@ -83,6 +83,7 @@ export function AddMovieModal({ movie, onClose, onAdded }: AddMovieModalProps) {
     try {
       await addMovie({
         id: movie.id.toString(), // Ensure we save the TMDB ID
+        tmdbId: movie.id.toString(),
         title: movie.title,
         poster_url: movie.poster_path || undefined,
         status,

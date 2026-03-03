@@ -22,6 +22,7 @@ export const DEFAULT_PROFILES: FamilyProfile[] = [
 
 export interface Movie {
   id: string;
+  tmdbId?: string;
   title: string;
   poster_url?: string;
   summary?: string;
@@ -37,7 +38,7 @@ interface DataContextType {
   profiles: FamilyProfile[];
   currentTurnIndex: number;
   isLocalMode: boolean;
-  addMovie: (movie: Omit<Movie, 'id'>) => Promise<void>;
+  addMovie: (movie: Omit<Movie, 'id'> & { id?: string }) => Promise<void>;
   updateMovie: (id: string, updates: Partial<Movie>) => Promise<void>;
   removeMovie: (id: string) => Promise<void>;
   markWatched: (id: string) => Promise<void>;
@@ -155,7 +156,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
 
     const unsubscribeMovies = onSnapshot(collection(db, 'movies'), (snapshot) => {
-      const moviesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Movie));
+      const moviesData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return { ...data, id: doc.id, tmdbId: data.id || data.tmdbId || doc.id } as Movie;
+      });
       setMovies(moviesData);
     }, (error: any) => {
       console.error("Error fetching movies:", error);
@@ -202,22 +206,31 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('localTurn', newTurn.toString());
   };
 
-  const addMovie = async (movie: Omit<Movie, 'id'>) => {
+  const addMovie = async (movie: Omit<Movie, 'id'> & { id?: string }) => {
     if (isLocalMode) {
-      const newMovie = { ...movie, id: `local-${Date.now()}` };
+      const newMovie = { ...movie, id: movie.id || `local-${Date.now()}` } as Movie;
       saveLocalMovies([...movies, newMovie]);
     } else {
-      const newDocRef = doc(collection(db, 'movies'));
-      await setDoc(newDocRef, movie);
+      const newDocRef = movie.id ? doc(db, 'movies', movie.id) : doc(collection(db, 'movies'));
+      
+      // Strip undefined values and 'id' to prevent Firebase errors and duplication
+      const safeMovie = Object.entries(movie).reduce((acc: any, [key, value]) => {
+        if (value !== undefined && key !== 'id') {
+          acc[key] = value;
+        }
+        return acc;
+      }, {});
+      
+      await setDoc(newDocRef, safeMovie);
     }
   };
 
   const updateMovie = async (id: string, updates: Partial<Movie>) => {
     console.log(`[DataContext] Updating movie ${id}:`, updates);
     
-    // Strip undefined values to prevent Firebase errors
+    // Strip undefined values and 'id' to prevent Firebase errors
     const safeUpdates = Object.entries(updates).reduce((acc: any, [key, value]) => {
-      if (value !== undefined) {
+      if (value !== undefined && key !== 'id') {
         acc[key] = value;
       }
       return acc;

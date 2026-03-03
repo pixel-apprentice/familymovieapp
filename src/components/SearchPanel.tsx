@@ -16,7 +16,7 @@ export function SearchPanel() {
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Processing...');
   const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
-  const { addMovie, currentTurnIndex, movies, profiles } = useData();
+  const { currentTurnIndex, movies, profiles } = useData();
   const { theme } = useTheme();
 
   React.useEffect(() => {
@@ -47,7 +47,7 @@ export function SearchPanel() {
     setLoading(true);
     try {
       const res = await searchMovies(query);
-      const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.id));
+      const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.tmdbId?.toString() || m.id.toString()));
       setResults(res.filter(m => !watchedIds.has(m.id.toString())));
     } catch (error) {
       handleError(error, 'Failed to search movies');
@@ -74,7 +74,7 @@ export function SearchPanel() {
             return res[0]; // Take best match
           })
         );
-        const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.id));
+        const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.tmdbId?.toString() || m.id.toString()));
         setResults(tmdbResults.filter(Boolean).filter(m => !watchedIds.has(m!.id.toString())) as TMDBMovie[]);
       } else {
         setResults([]);
@@ -109,7 +109,7 @@ export function SearchPanel() {
             return null;
           })
         );
-        const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.id));
+        const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.tmdbId?.toString() || m.id.toString()));
         setResults(tmdbResults.filter(Boolean).filter(m => !watchedIds.has(m!.id.toString())) as TMDBMovie[]);
       } else {
         setResults([]);
