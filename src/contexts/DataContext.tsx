@@ -214,15 +214,24 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const updateMovie = async (id: string, updates: Partial<Movie>) => {
     console.log(`[DataContext] Updating movie ${id}:`, updates);
+    
+    // Strip undefined values to prevent Firebase errors
+    const safeUpdates = Object.entries(updates).reduce((acc: any, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as Partial<Movie>);
+
     if (isLocalMode) {
       setMovies(prev => {
-        const newMovies = prev.map(m => m.id === id ? { ...m, ...updates } : m);
+        const newMovies = prev.map(m => m.id === id ? { ...m, ...safeUpdates } : m);
         localStorage.setItem('localMovies', JSON.stringify(newMovies));
         return newMovies;
       });
     } else {
       try {
-        await updateDoc(doc(db, 'movies', id), updates);
+        await updateDoc(doc(db, 'movies', id), safeUpdates);
         console.log(`[DataContext] Firebase update successful for ${id}`);
       } catch (error) {
         console.error(`[DataContext] Firebase update failed for ${id}:`, error);

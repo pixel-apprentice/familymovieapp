@@ -37,7 +37,7 @@ export function MovieDetailPage() {
     if (isEditing && movie) {
       setEditForm({
         date: movie.date || '',
-        status: movie.status,
+        status: movie.status || 'wishlist',
         pickedBy: movie.pickedBy || ''
       });
     }
@@ -48,7 +48,7 @@ export function MovieDetailPage() {
     if (movie && !isEditing) {
       setEditForm({
         date: movie.date || '',
-        status: movie.status,
+        status: movie.status || 'wishlist',
         pickedBy: movie.pickedBy || ''
       });
     }
@@ -117,7 +117,7 @@ export function MovieDetailPage() {
     try {
       await updateMovie(movie.id, {
         date: editForm.date || '',
-        status: editForm.status,
+        status: editForm.status || 'wishlist',
         pickedBy: editForm.pickedBy || 'Family'
       });
       setIsEditing(false);
@@ -292,7 +292,7 @@ export function MovieDetailPage() {
                     </div>
                   </div>
 
-                  <div className="flex gap-3 w-full mt-4 pt-4 border-t border-theme-border/50">
+                  <div className="flex flex-col sm:flex-row gap-3 w-full mt-4 pt-4 border-t border-theme-border/50">
                     <button onClick={handleSave} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-emerald-500 text-white hover:bg-emerald-600 rounded-xl transition-all font-black uppercase text-sm tracking-widest shadow-lg hover:scale-[1.02] active:scale-[0.98]" title="Save Changes">
                       <Check size={20} /> Save Changes
                     </button>

@@ -71,7 +71,7 @@ export function Modal() {
               </h3>
             )}
             
-            <p className="text-sm text-theme-muted font-medium leading-relaxed">
+            <p className="text-sm text-theme-muted font-medium leading-relaxed break-words">
               {modalState.message}
             </p>
 
@@ -90,7 +90,7 @@ export function Modal() {
               />
             )}
 
-            <div className="flex gap-3 mt-4">
+            <div className="flex flex-col sm:flex-row gap-3 mt-4">
               {(isConfirm || isPrompt) && (
                 <button
                   onClick={handleCancel}
