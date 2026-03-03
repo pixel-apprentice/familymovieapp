@@ -1,136 +1,31 @@
-import React, { useState } from 'react';
-import { searchMovies, TMDBMovie, GENRE_MAP } from '../services/tmdb';
-import { getVibeSearchTerms, getFamilyRecommendations, isGeminiConfigured } from '../services/gemini';
-import { useData } from '../contexts/DataContext';
+import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
-import { motion, AnimatePresence } from 'motion/react';
 import { AddMovieModal } from './AddMovieModal';
-import { hapticFeedback } from '../utils/haptics';
-import { toast } from 'sonner';
-import { handleError } from '../utils/errorHandler';
+
+import { useSearch } from './search/useSearch';
+import { SearchForms } from './search/SearchForms';
+import { SearchResults } from './search/SearchResults';
 
 export function SearchPanel() {
-  const [query, setQuery] = useState('');
-  const [vibe, setVibe] = useState('');
-  const [results, setResults] = useState<TMDBMovie[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState('Processing...');
-  const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
-  const { currentTurnIndex, movies, profiles } = useData();
   const { theme } = useTheme();
-
-  React.useEffect(() => {
-    if (!loading) return;
-    
-    const messages = [
-      "Analyzing family favorites...",
-      "Consulting the movie critics...",
-      "Popping the popcorn...",
-      "Finding hidden gems...",
-      "Checking the archives...",
-      "Almost there..."
-    ];
-    let i = 0;
-    
-    setLoadingMessage(messages[0]);
-    const interval = setInterval(() => {
-      i = (i + 1) % messages.length;
-      setLoadingMessage(messages[i]);
-    }, 3000);
-    
-    return () => clearInterval(interval);
-  }, [loading]);
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-    setLoading(true);
-    try {
-      const res = await searchMovies(query);
-      const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.tmdbId?.toString() || m.id.toString()));
-      setResults(res.filter(m => !watchedIds.has(m.id.toString())));
-    } catch (error) {
-      handleError(error, 'Failed to search movies');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVibeSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!vibe.trim()) return;
-    
-    if (!isGeminiConfigured()) {
-      toast.error("Gemini API key is missing. Using offline fallback.");
-    }
-
-    setLoading(true);
-    try {
-      const titles = await getVibeSearchTerms(vibe);
-      if (titles.length > 0) {
-        const tmdbResults = await Promise.all(
-          titles.map(async (title) => {
-            const res = await searchMovies(title);
-            return res[0]; // Take best match
-          })
-        );
-        const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.tmdbId?.toString() || m.id.toString()));
-        setResults(tmdbResults.filter(Boolean).filter(m => !watchedIds.has(m!.id.toString())) as TMDBMovie[]);
-      } else {
-        setResults([]);
-      }
-    } catch (error) {
-      handleError(error, 'Failed to perform vibe search');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRecommend = async () => {
-    if (!isGeminiConfigured()) {
-      toast.error("Gemini API key is missing. Using offline fallback.");
-    }
-
-    setLoading(true);
-    try {
-      const currentUser = profiles[currentTurnIndex]?.id || 'Family';
-      const profileNames = profiles.map(p => p.name);
-      const history = movies.filter(m => m.status === 'watched' && m.ratings);
-      const recommendations = await getFamilyRecommendations(history, currentUser, profileNames);
-      
-      if (recommendations.length > 0) {
-        const tmdbResults = await Promise.all(
-          recommendations.map(async (rec) => {
-            const res = await searchMovies(rec.title);
-            if (res[0]) {
-              res[0].reason = rec.reason;
-              return res[0];
-            }
-            return null;
-          })
-        );
-        const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.tmdbId?.toString() || m.id.toString()));
-        setResults(tmdbResults.filter(Boolean).filter(m => !watchedIds.has(m!.id.toString())) as TMDBMovie[]);
-      } else {
-        setResults([]);
-      }
-    } catch (error) {
-      handleError(error, 'Failed to get recommendations');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAdd = (movie: TMDBMovie) => {
-    setSelectedMovie(movie);
-  };
-
-  const handleMovieAdded = () => {
-    if (selectedMovie) {
-      setResults(results.filter(r => r.id !== selectedMovie.id));
-      setSelectedMovie(null);
-    }
-  };
+  
+  const {
+    query,
+    setQuery,
+    vibe,
+    setVibe,
+    results,
+    setResults,
+    loading,
+    loadingMessage,
+    selectedMovie,
+    setSelectedMovie,
+    handleSearch,
+    handleVibeSearch,
+    handleRecommend,
+    handleAdd,
+    handleMovieAdded
+  } = useSearch();
 
   return (
     <div className={`w-full max-w-4xl mx-auto p-8 bg-theme-surface rounded-[2.5rem] border-2 border-theme-border shadow-2xl relative overflow-hidden ${
@@ -155,52 +50,16 @@ export function SearchPanel() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onSubmit={handleSearch} className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-theme-muted">Direct Search</label>
-            <div className="flex gap-2">
-              <input 
-                type="text" 
-                value={query} 
-                onChange={e => setQuery(e.target.value)} 
-                placeholder="Title, Actor..."
-                className="flex-1 min-w-0 bg-theme-base border border-theme-border rounded-2xl px-4 py-3 text-sm text-theme-text focus:outline-none focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all shadow-inner"
-              />
-              <motion.button whileTap={{ scale: 0.95 }} type="submit" disabled={loading} onClick={() => hapticFeedback.light()} className="px-4 py-3 bg-theme-primary text-theme-base font-black rounded-2xl hover:scale-105 transition-transform disabled:opacity-50 shadow-lg uppercase text-[10px] tracking-widest shrink-0">
-                Search
-              </motion.button>
-            </div>
-          </form>
-
-          <form onSubmit={handleVibeSearch} className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-theme-muted flex items-center gap-2">
-              <span className="text-theme-accent animate-twinkle">✨</span> {theme === 'neon-cyberpunk' ? 'Neural Vibe Analysis' : 'Vibe Search'}
-            </label>
-            <div className="flex gap-2">
-              <input 
-                type="text" 
-                value={vibe} 
-                onChange={e => setVibe(e.target.value)} 
-                placeholder="Describe a mood or genre"
-                className="flex-1 min-w-0 bg-theme-base border border-theme-border rounded-2xl px-4 py-3 text-sm text-theme-text focus:outline-none focus:border-theme-accent focus:ring-1 focus:ring-theme-accent transition-all shadow-inner"
-              />
-              <motion.button whileTap={{ scale: 0.95 }} type="submit" disabled={loading} onClick={() => hapticFeedback.light()} className="px-4 py-3 bg-theme-accent text-theme-base font-black rounded-2xl hover:scale-105 transition-transform disabled:opacity-50 shadow-lg uppercase text-[10px] tracking-widest shrink-0">
-                Analyze
-              </motion.button>
-            </div>
-          </form>
-
-          <div className="space-y-3 flex flex-col justify-end">
-            <motion.button 
-              whileTap={{ scale: 0.95 }}
-              onClick={() => { hapticFeedback.medium(); handleRecommend(); }} 
-              disabled={loading} 
-              className="w-full py-4 px-6 bg-theme-primary text-theme-base font-black rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 shadow-xl uppercase text-xs tracking-widest flex items-center justify-center gap-3"
-            >
-              <span className="text-lg animate-pulse">✨</span> Surprise me!
-            </motion.button>
-          </div>
-        </div>
+        <SearchForms
+          query={query}
+          setQuery={setQuery}
+          vibe={vibe}
+          setVibe={setVibe}
+          loading={loading}
+          handleSearch={handleSearch}
+          handleVibeSearch={handleVibeSearch}
+          handleRecommend={handleRecommend}
+        />
 
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -209,55 +68,11 @@ export function SearchPanel() {
           </div>
         )}
 
-        <AnimatePresence mode="popLayout">
-          {results.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase tracking-widest text-theme-muted">{results.length} Results Found</span>
-                <button 
-                  onClick={() => { hapticFeedback.light(); setResults([]); }}
-                  className="text-[10px] font-black uppercase tracking-widest text-theme-primary hover:text-theme-accent transition-colors"
-                >
-                  Clear Results
-                </button>
-              </div>
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto pr-4 custom-scrollbar"
-              >
-                {results.map((movie, idx) => (
-                <motion.div 
-                  key={movie.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: idx * 0.05 }}
-                  onClick={() => { hapticFeedback.light(); handleAdd(movie); }}
-                  className="flex gap-4 p-4 bg-theme-base rounded-2xl border border-theme-border/50 hover:border-theme-primary transition-all group relative cursor-pointer"
-                >
-                  {movie.poster_path ? (
-                    <img src={`https://image.tmdb.org/t/p/w200${movie.poster_path}`} alt={movie.title} className="w-16 h-24 object-cover rounded-xl shadow-lg group-hover:scale-105 transition-transform shrink-0" referrerPolicy="no-referrer" />
-                  ) : (
-                    <div className="w-16 h-24 bg-theme-surface rounded-xl flex items-center justify-center border border-theme-border shrink-0">
-                      <span className="text-[8px] text-theme-muted uppercase font-black">No Data</span>
-                    </div>
-                  )}
-                  <div className="flex-1 flex flex-col py-1 min-w-0">
-                    <h4 className="font-black text-sm leading-tight mb-1 line-clamp-2 text-theme-text group-hover:text-theme-primary transition-colors">{movie.title}</h4>
-                    <span className="text-[10px] text-theme-muted font-mono mb-2">{movie.release_date?.split('-')[0]}</span>
-                    {movie.reason && (
-                      <p className="text-[10px] text-theme-muted italic line-clamp-3 leading-snug mb-2">{movie.reason}</p>
-                    )}
-                    <div className="mt-auto self-start text-[10px] font-black uppercase tracking-widest text-theme-primary hover:text-theme-accent transition-colors py-1 border-b border-transparent hover:border-theme-accent">
-                      + Add Movie
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-          )}
-        </AnimatePresence>
+        <SearchResults 
+          results={results} 
+          setResults={setResults} 
+          handleAdd={handleAdd} 
+        />
       </div>
 
       {selectedMovie && (
