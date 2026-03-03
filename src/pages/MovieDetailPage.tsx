@@ -7,6 +7,7 @@ import { motion } from 'motion/react';
 import { ChevronLeft, Star, Youtube, Info, Mail, Edit2, Check, X, RefreshCw } from 'lucide-react';
 import { sendRequestEmail } from '../services/emailService';
 import { searchMovies, GENRE_MAP } from '../services/tmdb';
+import { handleError } from '../utils/errorHandler';
 
 import { toast } from 'sonner';
 
@@ -88,7 +89,7 @@ export function MovieDetailPage() {
         console.warn("No results found for", movie.title);
       }
     } catch (error) {
-      console.error("Failed to refresh metadata:", error);
+      handleError(error, "Failed to refresh metadata");
     } finally {
       setIsRefreshing(false);
     }
@@ -123,60 +124,61 @@ export function MovieDetailPage() {
       setIsEditing(false);
       toast.success('Movie details updated successfully!');
     } catch (error: any) {
-      console.error("Save failed:", error);
-      toast.error(error.message || 'Failed to save changes.');
-      showModal({
-        type: 'alert',
-        title: 'Save Failed',
-        message: error.message || 'Failed to save changes.',
-        confirmText: 'OK'
-      });
+      handleError(error, "Failed to save changes");
     }
   };
 
   const handleRatingChange = async (memberId: string, rating: number) => {
-    const newRatings = { ...movie.ratings, [memberId]: rating };
-    await updateMovie(movie.id, { ratings: newRatings });
+    try {
+      const newRatings = { ...movie.ratings, [memberId]: rating };
+      await updateMovie(movie.id, { ratings: newRatings });
+    } catch (error) {
+      handleError(error, "Failed to update rating");
+    }
   };
 
   const handleDelete = async () => {
-    const confirmed = await showModal({
-      type: 'confirm',
-      title: 'Delete Movie',
-      message: 'Are you sure you want to delete this movie?',
-      confirmText: 'Delete',
-      cancelText: 'Cancel'
-    });
+    try {
+      const confirmed = await showModal({
+        type: 'confirm',
+        title: 'Delete Movie',
+        message: 'Are you sure you want to delete this movie?',
+        confirmText: 'Delete',
+        cancelText: 'Cancel'
+      });
 
-    if (confirmed) {
-      await removeMovie(movie.id);
-      navigate('/');
+      if (confirmed) {
+        await removeMovie(movie.id);
+        navigate('/');
+      }
+    } catch (error) {
+      handleError(error, "Failed to delete movie");
     }
   };
 
   const handlePlexRequest = async () => {
     setIsSending(true);
-    const success = await sendRequestEmail(
-      'movie', 
-      movie.title, 
-      'Plex request from Family Movie App'
-    );
-    setIsSending(false);
+    try {
+      const success = await sendRequestEmail(
+        'movie', 
+        movie.title, 
+        'Plex request from Family Movie App'
+      );
 
-    if (success) {
-      showModal({
-        type: 'alert',
-        title: 'Request Sent!',
-        message: `Dad has been asked to add "${movie.title}" to Plex. 🍿`,
-        confirmText: 'Awesome'
-      });
-    } else {
-      showModal({
-        type: 'alert',
-        title: 'Oops',
-        message: 'Failed to send the request. Maybe tell him in person?',
-        confirmText: 'Okay'
-      });
+      if (success) {
+        showModal({
+          type: 'alert',
+          title: 'Request Sent!',
+          message: `Dad has been asked to add "${movie.title}" to Plex. 🍿`,
+          confirmText: 'Awesome'
+        });
+      } else {
+        throw new Error('Failed to send the request email.');
+      }
+    } catch (error) {
+      handleError(error, "Failed to send Plex request");
+    } finally {
+      setIsSending(false);
     }
   };
 

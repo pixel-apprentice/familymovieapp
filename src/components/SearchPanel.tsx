@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { AddMovieModal } from './AddMovieModal';
 import { hapticFeedback } from '../utils/haptics';
 import { toast } from 'sonner';
+import { handleError } from '../utils/errorHandler';
 
 export function SearchPanel() {
   const [query, setQuery] = useState('');
@@ -44,10 +45,15 @@ export function SearchPanel() {
     e.preventDefault();
     if (!query.trim()) return;
     setLoading(true);
-    const res = await searchMovies(query);
-    const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.id));
-    setResults(res.filter(m => !watchedIds.has(m.id.toString())));
-    setLoading(false);
+    try {
+      const res = await searchMovies(query);
+      const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.id));
+      setResults(res.filter(m => !watchedIds.has(m.id.toString())));
+    } catch (error) {
+      handleError(error, 'Failed to search movies');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleVibeSearch = async (e: React.FormEvent) => {
@@ -59,20 +65,25 @@ export function SearchPanel() {
     }
 
     setLoading(true);
-    const titles = await getVibeSearchTerms(vibe);
-    if (titles.length > 0) {
-      const tmdbResults = await Promise.all(
-        titles.map(async (title) => {
-          const res = await searchMovies(title);
-          return res[0]; // Take best match
-        })
-      );
-      const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.id));
-      setResults(tmdbResults.filter(Boolean).filter(m => !watchedIds.has(m!.id.toString())) as TMDBMovie[]);
-    } else {
-      setResults([]);
+    try {
+      const titles = await getVibeSearchTerms(vibe);
+      if (titles.length > 0) {
+        const tmdbResults = await Promise.all(
+          titles.map(async (title) => {
+            const res = await searchMovies(title);
+            return res[0]; // Take best match
+          })
+        );
+        const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.id));
+        setResults(tmdbResults.filter(Boolean).filter(m => !watchedIds.has(m!.id.toString())) as TMDBMovie[]);
+      } else {
+        setResults([]);
+      }
+    } catch (error) {
+      handleError(error, 'Failed to perform vibe search');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleRecommend = async () => {
@@ -81,28 +92,33 @@ export function SearchPanel() {
     }
 
     setLoading(true);
-    const currentUser = profiles[currentTurnIndex]?.id || 'Family';
-    const profileNames = profiles.map(p => p.name);
-    const history = movies.filter(m => m.status === 'watched' && m.ratings);
-    const recommendations = await getFamilyRecommendations(history, currentUser, profileNames);
-    
-    if (recommendations.length > 0) {
-      const tmdbResults = await Promise.all(
-        recommendations.map(async (rec) => {
-          const res = await searchMovies(rec.title);
-          if (res[0]) {
-            res[0].reason = rec.reason;
-            return res[0];
-          }
-          return null;
-        })
-      );
-      const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.id));
-      setResults(tmdbResults.filter(Boolean).filter(m => !watchedIds.has(m!.id.toString())) as TMDBMovie[]);
-    } else {
-      setResults([]);
+    try {
+      const currentUser = profiles[currentTurnIndex]?.id || 'Family';
+      const profileNames = profiles.map(p => p.name);
+      const history = movies.filter(m => m.status === 'watched' && m.ratings);
+      const recommendations = await getFamilyRecommendations(history, currentUser, profileNames);
+      
+      if (recommendations.length > 0) {
+        const tmdbResults = await Promise.all(
+          recommendations.map(async (rec) => {
+            const res = await searchMovies(rec.title);
+            if (res[0]) {
+              res[0].reason = rec.reason;
+              return res[0];
+            }
+            return null;
+          })
+        );
+        const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.id));
+        setResults(tmdbResults.filter(Boolean).filter(m => !watchedIds.has(m!.id.toString())) as TMDBMovie[]);
+      } else {
+        setResults([]);
+      }
+    } catch (error) {
+      handleError(error, 'Failed to get recommendations');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleAdd = (movie: TMDBMovie) => {
