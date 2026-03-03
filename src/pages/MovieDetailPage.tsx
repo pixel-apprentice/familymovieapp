@@ -4,12 +4,13 @@ import { useData, Movie } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useModal } from '../contexts/ModalContext';
 import { motion } from 'motion/react';
-import { ChevronLeft, Star, Youtube, Info, Mail, Edit2, Check, X, RefreshCw } from 'lucide-react';
+import { ChevronLeft, Star, Info, Edit2, RefreshCw } from 'lucide-react';
 import { sendRequestEmail } from '../services/emailService';
 import { searchMovies, GENRE_MAP } from '../services/tmdb';
 import { handleError } from '../utils/errorHandler';
-
 import { toast } from 'sonner';
+import { MovieEditForm } from '../components/movie/MovieEditForm';
+import { MovieActions } from '../components/movie/MovieActions';
 
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -253,56 +254,13 @@ export function MovieDetailPage() {
             </div>
             <div className="flex flex-wrap gap-3 items-center">
               {isEditing ? (
-                <div className="flex flex-col gap-4 bg-theme-surface/80 backdrop-blur-md p-6 rounded-2xl border-2 border-theme-primary/20 w-full shadow-xl">
-                  <h3 className="text-sm font-black uppercase tracking-widest text-theme-primary mb-2">Edit Movie Details</h3>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="flex flex-col gap-2">
-                      <label className="text-[10px] uppercase font-black text-theme-muted tracking-widest">Date Watched</label>
-                      <input 
-                        type="date" 
-                        value={editForm.date} 
-                        onChange={e => setEditForm({...editForm, date: e.target.value})}
-                        className="bg-theme-base border-2 border-theme-border rounded-xl px-4 py-3 text-sm font-mono text-theme-text focus:outline-none focus:border-theme-primary transition-colors w-full"
-                      />
-                    </div>
-                    
-                    <div className="flex flex-col gap-2">
-                      <label className="text-[10px] uppercase font-black text-theme-muted tracking-widest">Status</label>
-                      <select
-                        value={editForm.status}
-                        onChange={e => setEditForm({...editForm, status: e.target.value as any})}
-                        className="bg-theme-base border-2 border-theme-border rounded-xl px-4 py-3 text-sm font-black uppercase text-theme-text focus:outline-none focus:border-theme-primary transition-colors w-full"
-                      >
-                        <option value="wishlist">Wishlist</option>
-                        <option value="watched">Watched</option>
-                      </select>
-                    </div>
-                    
-                    <div className="flex flex-col gap-2">
-                      <label className="text-[10px] uppercase font-black text-theme-muted tracking-widest">Picked By</label>
-                      <select
-                        value={editForm.pickedBy}
-                        onChange={e => setEditForm({...editForm, pickedBy: e.target.value})}
-                        className="bg-theme-base border-2 border-theme-border rounded-xl px-4 py-3 text-sm font-black uppercase text-theme-text focus:outline-none focus:border-theme-primary transition-colors w-full"
-                      >
-                        <option value="Family">Family</option>
-                        {profiles.map(p => (
-                          <option key={p.id} value={p.id}>{p.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3 w-full mt-4 pt-4 border-t border-theme-border/50">
-                    <button onClick={handleSave} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-emerald-500 text-white hover:bg-emerald-600 rounded-xl transition-all font-black uppercase text-sm tracking-widest shadow-lg hover:scale-[1.02] active:scale-[0.98]" title="Save Changes">
-                      <Check size={20} /> Save Changes
-                    </button>
-                    <button onClick={() => setIsEditing(false)} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-theme-base border-2 border-theme-border text-theme-text hover:bg-theme-border/50 rounded-xl transition-all font-black uppercase text-sm tracking-widest hover:scale-[1.02] active:scale-[0.98]" title="Cancel">
-                      <X size={20} /> Cancel
-                    </button>
-                  </div>
-                </div>
+                <MovieEditForm 
+                  editForm={editForm} 
+                  setEditForm={setEditForm} 
+                  profiles={profiles} 
+                  handleSave={handleSave} 
+                  setIsEditing={setIsEditing} 
+                />
               ) : (
                 <>
                   {movie.date && (
@@ -325,44 +283,14 @@ export function MovieDetailPage() {
           </div>
 
           {/* Actions */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <a 
-              href={trailerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-3 w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-700 transition-all shadow-lg"
-            >
-              <Youtube size={20} />
-              Watch Trailer
-            </a>
-
-            {movie.status === 'wishlist' && (
-              <button 
-                onClick={handlePlexRequest}
-                disabled={isSending}
-                className="flex items-center justify-center gap-3 w-full py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-indigo-700 transition-all shadow-lg disabled:opacity-50"
-              >
-                <Mail size={20} />
-                {isSending ? 'Sending...' : 'Ask Dad to put this on Plex'}
-              </button>
-            )}
-
-            {movie.status === 'wishlist' && (
-              <button 
-                onClick={() => markWatched(movie.id)}
-                className="w-full py-4 bg-theme-primary text-theme-base rounded-2xl font-black uppercase text-xs tracking-widest hover:opacity-90 transition-all shadow-lg"
-              >
-                Mark as Watched
-              </button>
-            )}
-
-            <button 
-              onClick={handleDelete}
-              className="w-full py-4 bg-red-600/10 text-red-500 border-2 border-red-500/20 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-lg"
-            >
-              Delete Movie
-            </button>
-          </div>
+          <MovieActions 
+            movie={movie} 
+            trailerUrl={trailerUrl} 
+            isSending={isSending} 
+            handlePlexRequest={handlePlexRequest} 
+            markWatched={markWatched} 
+            handleDelete={handleDelete} 
+          />
 
           {/* Family Rankings Section */}
           <section className="space-y-6">
