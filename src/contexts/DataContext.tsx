@@ -213,18 +213,31 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateMovie = async (id: string, updates: Partial<Movie>) => {
+    console.log(`[DataContext] Updating movie ${id}:`, updates);
     if (isLocalMode) {
-      const newMovies = movies.map(m => m.id === id ? { ...m, ...updates } : m);
-      saveLocalMovies(newMovies);
+      setMovies(prev => {
+        const newMovies = prev.map(m => m.id === id ? { ...m, ...updates } : m);
+        localStorage.setItem('localMovies', JSON.stringify(newMovies));
+        return newMovies;
+      });
     } else {
-      await updateDoc(doc(db, 'movies', id), updates);
+      try {
+        await updateDoc(doc(db, 'movies', id), updates);
+        console.log(`[DataContext] Firebase update successful for ${id}`);
+      } catch (error) {
+        console.error(`[DataContext] Firebase update failed for ${id}:`, error);
+        throw error;
+      }
     }
   };
 
   const removeMovie = async (id: string) => {
     if (isLocalMode) {
-      const newMovies = movies.filter(m => m.id !== id);
-      saveLocalMovies(newMovies);
+      setMovies(prev => {
+        const newMovies = prev.filter(m => m.id !== id);
+        localStorage.setItem('localMovies', JSON.stringify(newMovies));
+        return newMovies;
+      });
     } else {
       const { deleteDoc } = await import('firebase/firestore');
       await deleteDoc(doc(db, 'movies', id));
@@ -236,8 +249,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const today = new Date().toISOString().split('T')[0];
     
     if (isLocalMode) {
-      const newMovies = movies.map(m => m.id === id ? { ...m, status: 'watched', date: today } : m);
-      saveLocalMovies(newMovies as Movie[]);
+      setMovies(prev => {
+        const newMovies = prev.map(m => m.id === id ? { ...m, status: 'watched', date: today } : m);
+        localStorage.setItem('localMovies', JSON.stringify(newMovies));
+        return newMovies as Movie[];
+      });
       saveLocalTurn(nextTurn);
     } else {
       const batch = writeBatch(db);

@@ -1,7 +1,4 @@
-const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-const BASE_URL = 'https://api.themoviedb.org/3';
-
-export const isTMDBConfigured = () => !!TMDB_API_KEY;
+export const isTMDBConfigured = () => true; // Handled on backend
 
 export interface TMDBMovie {
   id: number;
@@ -42,60 +39,20 @@ const dummyMovies: TMDBMovie[] = [
 ];
 
 export async function searchMovies(query: string, year?: string): Promise<TMDBMovie[]> {
-  if (!TMDB_API_KEY) {
-    console.warn("No TMDB API key found, returning dummy data.");
-    let results = dummyMovies.filter(m => m.title.toLowerCase().includes(query.toLowerCase()));
-    if (year) {
-      results = results.filter(m => m.release_date.startsWith(year));
-    }
-    return results;
-  }
-
   try {
-    let url = `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&include_adult=false`;
+    let url = `/api/tmdb/search?query=${encodeURIComponent(query)}`;
     if (year) {
-      url += `&primary_release_year=${year}`;
+      url += `&year=${year}`;
     }
     const response = await fetch(url);
     
     if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
-        console.warn("TMDB API key invalid or unauthorized.");
-        return dummyMovies;
-      }
-      throw new Error(`TMDB API error: ${response.status}`);
+      console.warn("Backend TMDB search failed, returning dummy data.");
+      return dummyMovies;
     }
 
     const data = await response.json();
-    const results = data.results || [];
-
-    // Filter out R-rated movies by checking US certification
-    const topResults = results.slice(0, 15);
-    const filteredResults: TMDBMovie[] = [];
-    
-    await Promise.all(topResults.map(async (movie: TMDBMovie) => {
-      try {
-        const releaseDatesRes = await fetch(`${BASE_URL}/movie/${movie.id}/release_dates?api_key=${TMDB_API_KEY}`);
-        const releaseDatesData = await releaseDatesRes.json();
-        const usRelease = releaseDatesData.results?.find((r: any) => r.iso_3166_1 === 'US');
-        const certification = usRelease?.release_dates?.[0]?.certification || '';
-        
-        if (!['R', 'NC-17'].includes(certification)) {
-          filteredResults.push(movie);
-        }
-      } catch (e) {
-        filteredResults.push(movie); // Keep if fetch fails
-      }
-    }));
-
-    // Sort to maintain original search relevance order
-    filteredResults.sort((a, b) => {
-      const indexA = topResults.findIndex((r: TMDBMovie) => r.id === a.id);
-      const indexB = topResults.findIndex((r: TMDBMovie) => r.id === b.id);
-      return indexA - indexB;
-    });
-
-    return filteredResults;
+    return data.results || [];
   } catch (error) {
     console.error("TMDB search error:", error);
     return dummyMovies;
@@ -103,18 +60,11 @@ export async function searchMovies(query: string, year?: string): Promise<TMDBMo
 }
 
 export async function getMovieDetails(id: number): Promise<TMDBMovie | null> {
-  if (!TMDB_API_KEY) {
-    return dummyMovies.find(m => m.id === id) || null;
-  }
-
   try {
-    const response = await fetch(`${BASE_URL}/movie/${id}?api_key=${TMDB_API_KEY}`);
+    const response = await fetch(`/api/tmdb/details/${id}`);
     if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-            console.warn("TMDB API key invalid or unauthorized.");
-            return dummyMovies.find(m => m.id === id) || null;
-        }
-        throw new Error(`TMDB API error: ${response.status}`);
+        console.warn("Backend TMDB details failed.");
+        return dummyMovies.find(m => m.id === id) || null;
     }
     return await response.json();
   } catch (error) {

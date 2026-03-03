@@ -8,6 +8,8 @@ import { ChevronLeft, Star, Youtube, Info, Mail, Edit2, Check, X, RefreshCw } fr
 import { sendRequestEmail } from '../services/emailService';
 import { searchMovies, GENRE_MAP } from '../services/tmdb';
 
+import { toast } from 'sonner';
+
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -18,7 +20,11 @@ export function MovieDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
-  const [editForm, setEditForm] = useState({ date: '', status: 'wishlist' as 'wishlist' | 'watched' });
+  const [editForm, setEditForm] = useState({ 
+    date: '', 
+    status: 'wishlist' as 'wishlist' | 'watched',
+    pickedBy: ''
+  });
   
   const movie = movies.find(m => m.id === id);
 
@@ -26,14 +32,27 @@ export function MovieDetailPage() {
     setHasAttemptedFetch(false);
   }, [id]);
 
+  // Only populate edit form when entering edit mode
   React.useEffect(() => {
-    if (movie) {
+    if (isEditing && movie) {
       setEditForm({
         date: movie.date || '',
-        status: movie.status
+        status: movie.status,
+        pickedBy: movie.pickedBy || ''
       });
     }
-  }, [movie, isEditing]);
+  }, [isEditing]);
+
+  // Handle movie changes (like navigation)
+  React.useEffect(() => {
+    if (movie && !isEditing) {
+      setEditForm({
+        date: movie.date || '',
+        status: movie.status,
+        pickedBy: movie.pickedBy || ''
+      });
+    }
+  }, [movie?.id]);
 
   useEffect(() => {
       // Auto-fetch metadata if missing
@@ -95,11 +114,24 @@ export function MovieDetailPage() {
   }
 
   const handleSave = async () => {
-    await updateMovie(movie.id, {
-      date: editForm.date || undefined,
-      status: editForm.status
-    });
-    setIsEditing(false);
+    try {
+      await updateMovie(movie.id, {
+        date: editForm.date || '',
+        status: editForm.status,
+        pickedBy: editForm.pickedBy || 'Family'
+      });
+      setIsEditing(false);
+      toast.success('Movie details updated successfully!');
+    } catch (error: any) {
+      console.error("Save failed:", error);
+      toast.error(error.message || 'Failed to save changes.');
+      showModal({
+        type: 'alert',
+        title: 'Save Failed',
+        message: error.message || 'Failed to save changes.',
+        confirmText: 'OK'
+      });
+    }
   };
 
   const handleRatingChange = async (memberId: string, rating: number) => {
@@ -219,27 +251,53 @@ export function MovieDetailPage() {
             </div>
             <div className="flex flex-wrap gap-3 items-center">
               {isEditing ? (
-                <div className="flex flex-wrap items-center gap-2 bg-theme-base/50 p-2 rounded-xl border border-theme-border/50">
-                  <input 
-                    type="date" 
-                    value={editForm.date} 
-                    onChange={e => setEditForm({...editForm, date: e.target.value})}
-                    className="bg-theme-surface border border-theme-border rounded-lg px-3 py-1.5 text-xs font-mono text-theme-text focus:outline-none focus:border-theme-primary/50"
-                  />
-                  <select
-                    value={editForm.status}
-                    onChange={e => setEditForm({...editForm, status: e.target.value as any})}
-                    className="bg-theme-surface border border-theme-border rounded-lg px-3 py-1.5 text-xs font-black uppercase text-theme-text focus:outline-none focus:border-theme-primary/50"
-                  >
-                    <option value="wishlist">Wishlist</option>
-                    <option value="watched">Watched</option>
-                  </select>
-                  <div className="flex gap-1">
-                    <button onClick={handleSave} className="p-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-lg transition-colors" title="Save">
-                      <Check size={16} />
+                <div className="flex flex-col gap-4 bg-theme-surface/80 backdrop-blur-md p-6 rounded-2xl border-2 border-theme-primary/20 w-full shadow-xl">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-theme-primary mb-2">Edit Movie Details</h3>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] uppercase font-black text-theme-muted tracking-widest">Date Watched</label>
+                      <input 
+                        type="date" 
+                        value={editForm.date} 
+                        onChange={e => setEditForm({...editForm, date: e.target.value})}
+                        className="bg-theme-base border-2 border-theme-border rounded-xl px-4 py-3 text-sm font-mono text-theme-text focus:outline-none focus:border-theme-primary transition-colors w-full"
+                      />
+                    </div>
+                    
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] uppercase font-black text-theme-muted tracking-widest">Status</label>
+                      <select
+                        value={editForm.status}
+                        onChange={e => setEditForm({...editForm, status: e.target.value as any})}
+                        className="bg-theme-base border-2 border-theme-border rounded-xl px-4 py-3 text-sm font-black uppercase text-theme-text focus:outline-none focus:border-theme-primary transition-colors w-full"
+                      >
+                        <option value="wishlist">Wishlist</option>
+                        <option value="watched">Watched</option>
+                      </select>
+                    </div>
+                    
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] uppercase font-black text-theme-muted tracking-widest">Picked By</label>
+                      <select
+                        value={editForm.pickedBy}
+                        onChange={e => setEditForm({...editForm, pickedBy: e.target.value})}
+                        className="bg-theme-base border-2 border-theme-border rounded-xl px-4 py-3 text-sm font-black uppercase text-theme-text focus:outline-none focus:border-theme-primary transition-colors w-full"
+                      >
+                        <option value="Family">Family</option>
+                        {profiles.map(p => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 w-full mt-4 pt-4 border-t border-theme-border/50">
+                    <button onClick={handleSave} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-emerald-500 text-white hover:bg-emerald-600 rounded-xl transition-all font-black uppercase text-sm tracking-widest shadow-lg hover:scale-[1.02] active:scale-[0.98]" title="Save Changes">
+                      <Check size={20} /> Save Changes
                     </button>
-                    <button onClick={() => setIsEditing(false)} className="p-1.5 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors" title="Cancel">
-                      <X size={16} />
+                    <button onClick={() => setIsEditing(false)} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-theme-base border-2 border-theme-border text-theme-text hover:bg-theme-border/50 rounded-xl transition-all font-black uppercase text-sm tracking-widest hover:scale-[1.02] active:scale-[0.98]" title="Cancel">
+                      <X size={20} /> Cancel
                     </button>
                   </div>
                 </div>

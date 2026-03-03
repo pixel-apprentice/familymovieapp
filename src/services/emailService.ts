@@ -1,45 +1,27 @@
-import emailjs from '@emailjs/browser';
-
-// These IDs should be replaced with your actual EmailJS service/template/user IDs
-// You can get these from https://dashboard.emailjs.com/admin
-const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-
-export const isEmailConfigured = () => !!(SERVICE_ID && TEMPLATE_ID && PUBLIC_KEY);
+export const isEmailConfigured = () => true; // Handled on backend
 
 export async function sendRequestEmail(type: 'movie' | 'pizza', details: string, subject?: string): Promise<boolean> {
   try {
-    if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
-      console.error('[Email Service] Missing EmailJS environment variables:', {
-        SERVICE_ID: !!SERVICE_ID,
-        TEMPLATE_ID: !!TEMPLATE_ID,
-        PUBLIC_KEY: !!PUBLIC_KEY
-      });
-      return false;
-    }
+    const response = await fetch('/api/email/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ type, details, subject }),
+    });
 
-    // We don't need to expose the destination email here.
-    // The destination is configured in the EmailJS template dashboard.
-    // This keeps your personal email private in the client-side code.
-    
-    const templateParams = {
-      subject: subject || `New ${type} request`,
-      message: details,
-      type: type,
-    };
-
-    const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
-
-    if (response.status === 200) {
+    if (response.ok) {
       console.log('[Email Service] Email sent successfully!');
       return true;
     } else {
-      console.error('[Email Service] Failed to send email:', response);
+      const errorData = await response.json().catch(() => ({}));
+      console.error('[Email Service] Failed to send email:', errorData);
+      alert(`EmailJS Error: ${errorData.error || 'Unknown error'}`);
       return false;
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Email Service] Error sending email:', error);
+    alert(`EmailJS Exception: ${error?.message || 'Check console for details'}`);
     return false;
   }
 }
