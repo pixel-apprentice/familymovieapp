@@ -19,9 +19,9 @@ async function startServer() {
 
   // --- Gemini Routes ---
   app.get("/api/gemini/test", async (req, res) => {
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY;
     if (!GEMINI_API_KEY) {
-      return res.status(500).json({ error: "GEMINI_API_KEY not configured on server" });
+      return res.status(500).json({ error: "GEMINI_API_KEY or API_KEY not configured on server" });
     }
 
     try {
@@ -43,9 +43,9 @@ async function startServer() {
   });
 
   app.post("/api/gemini/vibe", async (req, res) => {
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY;
     if (!GEMINI_API_KEY) {
-      return res.status(500).json({ error: "GEMINI_API_KEY not configured on server" });
+      return res.status(500).json({ error: "GEMINI_API_KEY or API_KEY not configured on server" });
     }
 
     const { vibe } = req.body;
@@ -80,9 +80,9 @@ async function startServer() {
   });
 
   app.post("/api/gemini/recommend", async (req, res) => {
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY;
     if (!GEMINI_API_KEY) {
-      return res.status(500).json({ error: "GEMINI_API_KEY not configured on server" });
+      return res.status(500).json({ error: "GEMINI_API_KEY or API_KEY not configured on server" });
     }
 
     const { history, currentUser, profileNames } = req.body;

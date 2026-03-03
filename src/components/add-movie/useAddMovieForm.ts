@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TMDBMovie } from '../../services/tmdb';
 import { useData } from '../../contexts/DataContext';
 import { toast } from 'sonner';
@@ -44,7 +44,6 @@ export function useAddMovieForm(movie: TMDBMovie | null, onClose: () => void, on
         status,
         pickedBy: finalPicker,
         date: status === 'watched' ? finalDate : undefined,
-        genres: movie.genres,
         ratings: status === 'watched' ? ratings : {}
       });
       
