@@ -6,13 +6,16 @@ import { useAuth } from './AuthContext';
 import { searchMovies, GENRE_MAP } from '../services/tmdb';
 
 export function useFirebaseData() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [profiles, setProfiles] = useState<FamilyProfile[]>(DEFAULT_PROFILES);
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   const [isLocalMode, setIsLocalMode] = useState(false);
 
   useEffect(() => {
+    // Don't do anything while Firebase Auth is still initializing
+    if (authLoading) return;
+
     if (!user) {
       setIsLocalMode(true);
       const localMovies = localStorage.getItem('localMovies');
@@ -41,7 +44,7 @@ export function useFirebaseData() {
       unsubscribeMovies();
       unsubscribeConfig();
     };
-  }, [user]);
+  }, [user, authLoading]);
 
   const saveLocalMovies = (newMovies: Movie[]) => {
     setMovies(newMovies);

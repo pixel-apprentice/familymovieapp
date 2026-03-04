@@ -4,6 +4,7 @@ import { Toaster } from 'sonner';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { DataProvider } from './contexts/DataContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthContext';
 import { ModalProvider } from './contexts/ModalContext';
 import { Modal } from './components/Modal';
 import { Layout } from './components/Layout';
@@ -14,6 +15,20 @@ import { useDatabaseSeed } from './hooks/useDatabaseSeed';
 
 function AppContent() {
   useDatabaseSeed();
+  const { loading: authLoading } = useAuth();
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-theme-base">
+        <div className="flex flex-col items-center gap-6">
+          <div className="w-12 h-12 rounded-full bg-theme-primary flex items-center justify-center text-theme-base font-black text-2xl shadow-xl animate-pulse">
+            F
+          </div>
+          <div className="w-8 h-8 border-4 border-theme-border border-t-theme-primary rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Layout>
