@@ -30,27 +30,36 @@ export const StarIcon: React.FC<{ filled: boolean, onClick?: () => void, classNa
 export const ThemeIcon: React.FC<{ themeName: string, className?: string }> = ({ themeName, className = '' }) => {
   switch (themeName) {
     case 'modern-pinnacle':
-      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></svg>;
+      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" /></svg>;
     case 'modern-luminous':
-      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>;
+      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>;
     case 'cinematic-glass':
-      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 4v16M18 4v16"/></svg>;
+      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M6 4v16M18 4v16" /></svg>;
     case 'film-noir':
-      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20M12 12l7.07 7.07M12 12L4.93 4.93"/></svg>;
+      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><path d="M12 2v20M2 12h20M12 12l7.07 7.07M12 12L4.93 4.93" /></svg>;
     case 'matinee-popcorn':
-      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 10h12l-2 12H8L6 10zM8 10V8a2 2 0 012-2h4a2 2 0 012 2v2M10 6V4a2 2 0 012-2h0a2 2 0 012 2v2"/></svg>;
+      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 10h12l-2 12H8L6 10zM8 10V8a2 2 0 012-2h4a2 2 0 012 2v2M10 6V4a2 2 0 012-2h0a2 2 0 012 2v2" /></svg>;
     case 'midnight-cinema':
-      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 0 0 20z"/></svg>;
+      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 0 0 20z" /></svg>;
     case 'vintage-ticket':
-      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 12h.01M21 12h.01"/></svg>;
+      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 12h.01M21 12h.01" /></svg>;
     case 'neon-cyberpunk':
-      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
+      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>;
     case 'minimalist-studio':
-      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>;
+      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></svg>;
     case 'velvet-theater':
-      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 20h20M5 20V4l7 4 7-4v16"/></svg>;
+      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 20h20M5 20V4l7 4 7-4v16" /></svg>;
     case 'sci-fi-hologram':
-      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20M12 12l7.07 7.07M12 12L4.93 4.93"/></svg>;
+      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 2v20M2 12h20M12 12l7.07 7.07M12 12L4.93 4.93" /></svg>;
+    case 'drive-in':
+      // Movie screen at night with stars
+      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="3" width="20" height="13" rx="1" /><path d="M8 21h8M12 16v5" /><circle cx="5" cy="1.5" r="0.5" fill="currentColor" /><circle cx="9" cy="0.8" r="0.5" fill="currentColor" /><circle cx="13" cy="1.5" r="0.5" fill="currentColor" /></svg>;
+    case 'golden-age':
+      // Director's clapperboard
+      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="7" width="20" height="15" rx="2" /><path d="M2 7l3-5h14l3 5" /><path d="M7 2l-2 5M12 2v5M17 2l2 5" /></svg>;
+    case 'blockbuster':
+      // VHS tape cassette
+      return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="5" width="22" height="14" rx="2" /><path d="M1 9h22" /><circle cx="7" cy="15" r="2" /><circle cx="17" cy="15" r="2" /><path d="M9 15h6" /></svg>;
     default:
       return null;
   }

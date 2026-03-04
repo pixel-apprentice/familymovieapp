@@ -15,7 +15,10 @@ export const themes: { id: Theme; label: string }[] = [
   { id: 'neon-cyberpunk', label: 'Neon' },
   { id: 'minimalist-studio', label: 'Studio' },
   { id: 'velvet-theater', label: 'Velvet' },
-  { id: 'sci-fi-hologram', label: 'Sci-Fi' }
+  { id: 'sci-fi-hologram', label: 'Sci-Fi' },
+  { id: 'drive-in', label: 'Drive-In' },
+  { id: 'golden-age', label: 'Golden Age' },
+  { id: 'blockbuster', label: 'Blockbuster' },
 ];
 
 export function ThemeSwitcher() {
@@ -37,8 +40,8 @@ export function ThemeSwitcher() {
           key={t.id}
           onClick={() => { hapticFeedback.light(); setTheme(t.id); }}
           className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-sm transition-all duration-300 relative overflow-hidden group ${theme === t.id
-              ? 'bg-theme-primary text-theme-base font-bold shadow-md scale-105 z-10'
-              : 'text-theme-muted hover:text-theme-text hover:bg-theme-border/20'
+            ? 'bg-theme-primary text-theme-base font-bold shadow-md scale-105 z-10'
+            : 'text-theme-muted hover:text-theme-text hover:bg-theme-border/20'
             } ${theme === 'modern-pinnacle' ? 'rounded-xl border border-white/5 hover:border-white/20' : ''
             } ${theme === 'modern-luminous' ? 'rounded-xl border border-black/5 hover:border-black/10' : ''
             } ${theme === 'cinematic-glass' ? 'rounded-xl border border-white/10 hover:border-white/30 backdrop-blur-md' : ''

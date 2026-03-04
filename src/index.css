@@ -17,7 +17,9 @@
 }
 
 @layer base {
-  :root, [data-theme="modern-pinnacle"] {
+
+  :root,
+  [data-theme="modern-pinnacle"] {
     --theme-base: #000000;
     --theme-surface: #0a0a0a;
     --theme-primary: #ffffff;
@@ -171,11 +173,61 @@
     --theme-font-body: "JetBrains Mono", monospace;
   }
 
+  /* Drive-In: Warm summer night at the drive-in */
+  [data-theme="drive-in"] {
+    --theme-base: #0d0c1d;
+    --theme-surface: #1a1833;
+    --theme-primary: #f97316;
+    --theme-secondary: #fb923c;
+    --theme-text: #fef3c7;
+    --theme-muted: #a78bfa;
+    --theme-border: #2e2b54;
+    --theme-accent: #fbbf24;
+    --theme-shadow: 0 8px 32px rgba(249, 115, 22, 0.2);
+    --theme-font-heading: "Outfit", sans-serif;
+    --theme-font-body: "Inter", sans-serif;
+  }
+
+  /* Golden Age: Old Hollywood glamour */
+  [data-theme="golden-age"] {
+    --theme-base: #1a1612;
+    --theme-surface: #252016;
+    --theme-primary: #d4a843;
+    --theme-secondary: #b8892e;
+    --theme-text: #f5ead4;
+    --theme-muted: #8a7a5e;
+    --theme-border: #3a3020;
+    --theme-accent: #e8c47a;
+    --theme-shadow: 0 8px 32px rgba(212, 168, 67, 0.15);
+    --theme-font-heading: "Cormorant Garamond", serif;
+    --theme-font-body: "Inter", sans-serif;
+  }
+
+  /* Blockbuster: 90s video rental nostalgia */
+  [data-theme="blockbuster"] {
+    --theme-base: #001f5b;
+    --theme-surface: #002875;
+    --theme-primary: #ffe000;
+    --theme-secondary: #ffd000;
+    --theme-text: #ffffff;
+    --theme-muted: #93b4ff;
+    --theme-border: #0a3580;
+    --theme-accent: #ffe000;
+    --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --theme-font-heading: "Outfit", sans-serif;
+    --theme-font-body: "Inter", sans-serif;
+  }
+
   body {
     @apply bg-theme-base text-theme-text font-theme-body transition-colors duration-700 min-h-screen selection:bg-theme-primary selection:text-theme-base;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-theme-heading font-black tracking-tight;
   }
 }
@@ -188,6 +240,7 @@
   background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #000000 70%);
   background-attachment: fixed;
 }
+
 [data-theme="modern-pinnacle"] .bg-theme-surface {
   background: rgba(10, 10, 10, 0.6);
   backdrop-filter: blur(20px);
@@ -202,6 +255,7 @@
   background-image: radial-gradient(circle at 50% 0%, #f8fafc 0%, #f1f5f9 70%);
   background-attachment: fixed;
 }
+
 [data-theme="modern-luminous"] .bg-theme-surface {
   background: rgba(253, 251, 247, 0.9);
   backdrop-filter: blur(20px);
@@ -213,11 +267,12 @@
 /* Cinematic Glass: Apple-style blur with neon accents */
 [data-theme="cinematic-glass"] body {
   background-color: #020617;
-  background-image: 
+  background-image:
     radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 85% 30%, rgba(129, 140, 248, 0.15) 0%, transparent 50%);
   background-attachment: fixed;
 }
+
 [data-theme="cinematic-glass"] .bg-theme-surface {
   background: rgba(15, 23, 42, 0.4);
   backdrop-filter: blur(24px);
@@ -232,6 +287,7 @@
   background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
   background-attachment: fixed;
 }
+
 [data-theme="film-noir"] .bg-theme-surface {
   background: #111111;
   border: 1px solid #333333;
@@ -242,15 +298,14 @@
 /* Matinee Popcorn: Red and white stripes, playful */
 [data-theme="matinee-popcorn"] body {
   background-color: #fef2f2;
-  background-image: repeating-linear-gradient(
-    45deg,
-    #fef2f2,
-    #fef2f2 20px,
-    #fee2e2 20px,
-    #fee2e2 40px
-  );
+  background-image: repeating-linear-gradient(45deg,
+      #fef2f2,
+      #fef2f2 20px,
+      #fee2e2 20px,
+      #fee2e2 40px);
   background-attachment: fixed;
 }
+
 [data-theme="matinee-popcorn"] .bg-theme-surface {
   background: #ffffff;
   border: 4px solid #ef4444;
@@ -263,6 +318,7 @@
   background: radial-gradient(circle at top, #18181b 0%, #09090b 100%);
   background-attachment: fixed;
 }
+
 [data-theme="midnight-cinema"] .bg-theme-surface {
   background: rgba(24, 24, 27, 0.8);
   backdrop-filter: blur(16px);
@@ -274,21 +330,23 @@
   background-color: #fdfbf7;
   background-image: url("https://www.transparenttextures.com/patterns/cream-paper.png");
 }
+
 [data-theme="vintage-ticket"] .bg-theme-surface {
   background: #f4f0e6;
   border: 1px solid #e7e5e4;
-  box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.05);
   background-image: url("https://www.transparenttextures.com/patterns/cream-paper.png");
 }
 
 /* Neon Cyberpunk: Grid & Glow */
 [data-theme="neon-cyberpunk"] body {
   background-color: #050517;
-  background-image: 
+  background-image:
     linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
   background-size: 30px 30px;
 }
+
 [data-theme="neon-cyberpunk"] .bg-theme-surface {
   background: rgba(15, 15, 45, 0.8);
   backdrop-filter: blur(8px);
@@ -300,6 +358,7 @@
 [data-theme="minimalist-studio"] body {
   background: #f5f5f5;
 }
+
 [data-theme="minimalist-studio"] .bg-theme-surface {
   background: #fafaf9;
   border: 1px solid #e5e7eb;
@@ -310,6 +369,7 @@
   background: radial-gradient(circle, #4a1025 0%, #2e0a16 100%);
   background-attachment: fixed;
 }
+
 [data-theme="velvet-theater"] .bg-theme-surface {
   background: linear-gradient(180deg, #5c142e 0%, #4a1025 100%);
   box-shadow: var(--theme-shadow);
@@ -321,6 +381,7 @@
   background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
   background-attachment: fixed;
 }
+
 [data-theme="sci-fi-hologram"] .bg-theme-surface {
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(12px);
@@ -328,41 +389,151 @@
   box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
 }
 
+/* Drive-In: Warm summer night at the open-air cinema */
+[data-theme="drive-in"] body {
+  background-color: #0d0c1d;
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(249, 115, 22, 0.12) 0%, transparent 60%),
+    radial-gradient(circle at 80% 20%, rgba(251, 191, 36, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(167, 139, 250, 0.08) 0%, transparent 40%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Ccircle cx='20' cy='30' r='1' fill='white' opacity='0.4'/%3E%3Ccircle cx='80' cy='10' r='0.8' fill='white' opacity='0.3'/%3E%3Ccircle cx='150' cy='50' r='1.2' fill='white' opacity='0.5'/%3E%3Ccircle cx='60' cy='80' r='0.6' fill='white' opacity='0.25'/%3E%3Ccircle cx='130' cy='20' r='1' fill='white' opacity='0.35'/%3E%3Ccircle cx='190' cy='70' r='0.8' fill='white' opacity='0.4'/%3E%3Ccircle cx='40' cy='140' r='1' fill='white' opacity='0.3'/%3E%3Ccircle cx='170' cy='130' r='0.6' fill='white' opacity='0.45'/%3E%3Ccircle cx='100' cy='160' r='1.2' fill='white' opacity='0.2'/%3E%3Ccircle cx='10' cy='190' r='0.8' fill='white' opacity='0.35'/%3E%3Ccircle cx='180' cy='185' r='1' fill='white' opacity='0.4'/%3E%3C/svg%3E");
+  background-attachment: fixed;
+}
+
+[data-theme="drive-in"] .bg-theme-surface {
+  background: rgba(26, 24, 51, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(249, 115, 22, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(251, 191, 36, 0.05);
+}
+
+/* Golden Age: Old Hollywood glamour — diagonal stripe + warm glow */
+[data-theme="golden-age"] body {
+  background-color: #1a1612;
+  background-image:
+    radial-gradient(ellipse at 30% 20%, rgba(212, 168, 67, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(212, 168, 67, 0.06) 0%, transparent 50%),
+    repeating-linear-gradient(-45deg,
+      rgba(212, 168, 67, 0.015),
+      rgba(212, 168, 67, 0.015) 1px,
+      transparent 1px,
+      transparent 40px);
+  background-attachment: fixed;
+}
+
+[data-theme="golden-age"] .bg-theme-surface {
+  background: rgba(37, 32, 22, 0.9);
+  border: 1px solid rgba(212, 168, 67, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(212, 168, 67, 0.08);
+}
+
+/* Blockbuster: 90s VHS rental nostalgia — deep blue + scanlines */
+[data-theme="blockbuster"] body {
+  background-color: #001f5b;
+  background-image:
+    repeating-linear-gradient(0deg,
+      transparent,
+      transparent 3px,
+      rgba(0, 0, 0, 0.08) 3px,
+      rgba(0, 0, 0, 0.08) 4px),
+    radial-gradient(ellipse at 50% 50%, #002875 0%, #001040 100%);
+  background-attachment: fixed;
+}
+
+[data-theme="blockbuster"] .bg-theme-surface {
+  background: rgba(0, 40, 117, 0.9);
+  border: 2px solid rgba(255, 224, 0, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 224, 0, 0.08);
+}
+
+
 /* --- Animations --- */
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 0.6; filter: blur(2px); transform: scale(1); }
-  50% { opacity: 1; filter: blur(4px); transform: scale(1.2); }
+
+  0%,
+  100% {
+    opacity: 0.6;
+    filter: blur(2px);
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    filter: blur(4px);
+    transform: scale(1.2);
+  }
 }
+
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
 @keyframes scan-line {
-  0% { top: -10%; opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { top: 110%; opacity: 0; }
+  0% {
+    top: -10%;
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  90% {
+    opacity: 1;
+  }
+
+  100% {
+    top: 110%;
+    opacity: 0;
+  }
 }
+
 .animate-scan-line {
   animation: scan-line 3s linear infinite;
 }
 
 @keyframes crt-flicker {
-  0% { opacity: 0.95; }
-  5% { opacity: 0.85; }
-  10% { opacity: 0.95; }
-  15% { opacity: 1; }
-  100% { opacity: 0.95; }
+  0% {
+    opacity: 0.95;
+  }
+
+  5% {
+    opacity: 0.85;
+  }
+
+  10% {
+    opacity: 0.95;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.95;
+  }
 }
+
 .animate-crt-flicker {
   animation: crt-flicker 0.1s infinite;
 }
 
 @keyframes liquid-float {
-  0%, 100% { transform: translateY(0) scale(1); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-  50% { transform: translateY(-5px) scale(1.05); border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+
+  50% {
+    transform: translateY(-5px) scale(1.05);
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+  }
 }
+
 .animate-liquid {
   animation: liquid-float 6s ease-in-out infinite;
 }
@@ -370,43 +541,41 @@
 /* --- Utility Classes for Skeuomorphism --- */
 
 .ticket-stub {
-  mask-image: radial-gradient(circle at 0 0, transparent 0, transparent 5px, black 6px), 
-              radial-gradient(circle at 100% 0, transparent 0, transparent 5px, black 6px), 
-              radial-gradient(circle at 0 100%, transparent 0, transparent 5px, black 6px), 
-              radial-gradient(circle at 100% 100%, transparent 0, transparent 5px, black 6px);
+  mask-image: radial-gradient(circle at 0 0, transparent 0, transparent 5px, black 6px),
+    radial-gradient(circle at 100% 0, transparent 0, transparent 5px, black 6px),
+    radial-gradient(circle at 0 100%, transparent 0, transparent 5px, black 6px),
+    radial-gradient(circle at 100% 100%, transparent 0, transparent 5px, black 6px);
   mask-composite: intersect;
 }
 
 .crt-curve {
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
   border-radius: 50% / 10%;
 }
 
 .gold-frame {
   border: 4px solid #facc15;
-  box-shadow: 
+  box-shadow:
     0 0 0 2px #a16207,
     0 0 0 4px #facc15,
-    0 10px 20px rgba(0,0,0,0.5);
+    0 10px 20px rgba(0, 0, 0, 0.5);
 }
 
 .wax-seal {
-  filter: drop-shadow(1px 1px 0px rgba(0,0,0,0.3));
+  filter: drop-shadow(1px 1px 0px rgba(0, 0, 0, 0.3));
 }
 
 .plastic-btn {
-  background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-  box-shadow: 
-    inset 0 1px 0 rgba(255,255,255,0.2),
-    0 4px 0 rgba(0,0,0,0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 4px 0 rgba(0, 0, 0, 0.2);
   transition: all 0.1s;
 }
+
 .plastic-btn:active {
   transform: translateY(4px);
-  box-shadow: 
-    inset 0 1px 0 rgba(255,255,255,0.2),
-    0 0 0 rgba(0,0,0,0.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 0 rgba(0, 0, 0, 0.2);
 }
-
-
-

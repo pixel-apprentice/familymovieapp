@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type Theme = 
+export type Theme =
   | 'modern-pinnacle'
   | 'modern-luminous'
   | 'cinematic-glass'
@@ -11,7 +11,10 @@ export type Theme =
   | 'neon-cyberpunk'
   | 'minimalist-studio'
   | 'velvet-theater'
-  | 'sci-fi-hologram';
+  | 'sci-fi-hologram'
+  | 'drive-in'
+  | 'golden-age'
+  | 'blockbuster';
 
 interface ThemeContextType {
   theme: Theme;
