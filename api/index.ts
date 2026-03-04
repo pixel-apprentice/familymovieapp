@@ -142,42 +142,64 @@ app.get("/api/tmdb/search", async (req, res) => {
         if (year) {
             url += `&primary_release_year=${year}`;
         }
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`TMDB API error: ${response.status}`);
-        const data = await response.json();
+        // Fetch up to 2 pages to ensure we have enough raw movies to evaluate,
+        // especially important for franchises like Jumanji where the 2017 sequel
+        // might be on page 2 of the raw TMDB search results.
+        const [res1, res2] = await Promise.all([
+            fetch(url),
+            fetch(`${url}&page=2`)
+        ]);
 
-        const results = data.results || [];
-        const topResults = results.slice(0, 15);
+        if (!res1.ok) throw new Error(`TMDB API error: ${res1.status}`);
 
-        // When allowR is true, skip certification checking entirely
+        const data1 = await res1.json();
+        const data2 = res2.ok ? await res2.json() : { results: [] };
+
+        let allResults = [...(data1.results || []), ...(data2.results || [])];
+
+        // Remove exact duplicates
+        const seen = new Set();
+        allResults = allResults.filter(m => {
+            if (seen.has(m.id)) return false;
+            seen.add(m.id);
+            return true;
+        });
+
+        // When allowR is true, we just return the top 15 of the combined list
         if (!shouldFilterRated) {
-            res.json({ results: topResults });
+            res.json({ results: allResults.slice(0, 15) });
             return;
         }
 
+        // We need 15 safe movies. We'll check them in chunks to avoid spamming TMDB
         const filteredResults: any[] = [];
 
-        await Promise.all(topResults.map(async (movie: any) => {
-            try {
-                const releaseDatesRes = await fetch(`${BASE_URL}/movie/${movie.id}/release_dates?api_key=${TMDB_API_KEY}`);
-                const releaseDatesData = await releaseDatesRes.json();
-                const usRelease = releaseDatesData.results?.find((r: any) => r.iso_3166_1 === 'US');
-                const certification = usRelease?.release_dates?.[0]?.certification || '';
-                if (!['R', 'NC-17'].includes(certification)) {
+        for (let i = 0; i < allResults.length && filteredResults.length < 15; i += 5) {
+            const chunk = allResults.slice(i, i + 5);
+            await Promise.all(chunk.map(async (movie: any) => {
+                try {
+                    const releaseDatesRes = await fetch(`${BASE_URL}/movie/${movie.id}/release_dates?api_key=${TMDB_API_KEY}`);
+                    const releaseDatesData = await releaseDatesRes.json();
+                    const usRelease = releaseDatesData.results?.find((r: any) => r.iso_3166_1 === 'US');
+                    const certification = usRelease?.release_dates?.[0]?.certification || '';
+                    if (!['R', 'NC-17'].includes(certification)) {
+                        filteredResults.push(movie);
+                    }
+                } catch (e) {
+                    // Safe fallback — if we can't verify, we'll include it.
                     filteredResults.push(movie);
                 }
-            } catch (e) {
-                filteredResults.push(movie);
-            }
-        }));
+            }));
+        }
 
+        // Re-sort the filtered results to match TMDB's original raw popularity/relevance sorting
         filteredResults.sort((a, b) => {
-            const indexA = topResults.findIndex((r: any) => r.id === a.id);
-            const indexB = topResults.findIndex((r: any) => r.id === b.id);
+            const indexA = allResults.findIndex((r: any) => r.id === a.id);
+            const indexB = allResults.findIndex((r: any) => r.id === b.id);
             return indexA - indexB;
         });
 
-        res.json({ results: filteredResults });
+        res.json({ results: filteredResults.slice(0, 15) });
     } catch (error: any) {
         console.error("TMDB search error:", error);
         res.status(500).json({ error: error.message });

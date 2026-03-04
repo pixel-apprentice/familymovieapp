@@ -41,23 +41,50 @@ export async function searchMovies(
   year?: string,
   allowRatedR?: boolean
 ): Promise<TMDBMovie[]> {
-  let url = `/api/tmdb/search?query=${encodeURIComponent(query)}`;
-  if (year) url += `&year=${year}`;
-  if (allowRatedR) url += `&allowR=true`;
+  const doSearch = async (q: string): Promise<TMDBMovie[]> => {
+    let url = `/api/tmdb/search?query=${encodeURIComponent(q)}`;
+    if (year) url += `&year=${year}`;
+    if (allowRatedR) url += `&allowR=true`;
 
-  const response = await fetch(url);
+    const response = await fetch(url);
+    if (!response.ok) {
+      let message = `Search failed (${response.status})`;
+      try {
+        const data = await response.json();
+        if (data?.error) message = data.error;
+      } catch { /* ignore JSON parse failure */ }
+      throw new Error(message);
+    }
+    const data = await response.json();
+    return data.results || [];
+  };
 
-  if (!response.ok) {
-    let message = `Search failed (${response.status})`;
-    try {
-      const data = await response.json();
-      if (data?.error) message = data.error;
-    } catch { /* ignore JSON parse failure */ }
-    throw new Error(message);
+  // Pass 1: Exact search
+  let results = await doSearch(query);
+
+  // Pass 2: Fallbacks if no results
+  if (results.length === 0) {
+    let fallbackQuery = query.toLowerCase().trim();
+    let tryFallback = false;
+
+    // 1. Strip trailing 's' (e.g., "Migrations" -> "Migration")
+    if (fallbackQuery.endsWith('s') && fallbackQuery.length > 3) {
+      fallbackQuery = fallbackQuery.slice(0, -1);
+      tryFallback = true;
+    }
+    // 2. Strip leading "The " (e.g., "The Jumanji" -> "Jumanji")
+    else if (fallbackQuery.startsWith('the ')) {
+      fallbackQuery = fallbackQuery.slice(4);
+      tryFallback = true;
+    }
+
+    if (tryFallback) {
+      console.log(`No results for "${query}", falling back to "${fallbackQuery}"...`);
+      results = await doSearch(fallbackQuery);
+    }
   }
 
-  const data = await response.json();
-  return data.results || [];
+  return results;
 }
 
 export async function getMovieDetails(id: number): Promise<TMDBMovie | null> {
