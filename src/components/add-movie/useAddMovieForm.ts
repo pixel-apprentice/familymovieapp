@@ -57,6 +57,7 @@ export function useAddMovieForm(movie: TMDBMovie | null, onClose: () => void, on
         tmdbId: movie.id.toString(),
         title: movie.title,
         poster_url: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : '',
+        trailerKey: movie.trailerKey,
         summary: movie.overview,
         status,
         pickedBy: finalPicker,

@@ -24,6 +24,7 @@ export interface Movie {
   tmdbId?: string;
   title: string;
   poster_url?: string;
+  trailerKey?: string;
   summary?: string;
   status: 'wishlist' | 'watched';
   pickedBy: string;
@@ -53,7 +54,7 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { showModal } = useModal();
-  
+
   const {
     movies,
     profiles,
@@ -81,7 +82,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
 
         const moviesSnap = await getDocs(collection(db, 'movies'));
-        
+
         // 1. Delete existing movies
         // Try batch delete first for performance
         try {
@@ -99,7 +100,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         } catch (batchError) {
           console.warn("Batch delete failed, attempting individual deletes...", batchError);
           // Fallback: Delete one by one (best effort)
-          const deletePromises = moviesSnap.docs.map(d => 
+          const deletePromises = moviesSnap.docs.map(d =>
             deleteDoc(d.ref).catch(e => console.warn(`Failed to delete doc ${d.id}:`, e))
           );
           await Promise.all(deletePromises);
@@ -136,7 +137,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         } catch (configError) {
           console.warn("Config reset failed (non-critical):", configError);
         }
-        
+
         window.location.reload();
       }
     } catch (error) {

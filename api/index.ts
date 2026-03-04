@@ -213,7 +213,7 @@ app.get("/api/tmdb/details/:id", async (req, res) => {
     }
     try {
         const BASE_URL = "https://api.themoviedb.org/3";
-        const response = await fetch(`${BASE_URL}/movie/${req.params.id}?api_key=${TMDB_API_KEY}`);
+        const response = await fetch(`${BASE_URL}/movie/${req.params.id}?api_key=${TMDB_API_KEY}&append_to_response=videos`);
         if (!response.ok) throw new Error(`TMDB API error: ${response.status}`);
         const data = await response.json();
         res.json(data);

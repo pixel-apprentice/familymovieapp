@@ -8,6 +8,7 @@ export interface TMDBMovie {
   overview: string;
   genre_ids?: number[];
   reason?: string;
+  trailerKey?: string;
 }
 
 export const GENRE_MAP: Record<number, string> = {
@@ -56,7 +57,30 @@ export async function searchMovies(
       throw new Error(message);
     }
     const data = await response.json();
-    return data.results || [];
+    const baseResults: TMDBMovie[] = data.results || [];
+
+    // Enrich top results with exact trailer keys
+    const enrichedResults = await Promise.all(
+      baseResults.map(async (movie) => {
+        try {
+          const details = await getMovieDetails(movie.id) as any;
+          if (details?.videos?.results?.length > 0) {
+            // Find the primary YouTube trailer
+            const trailers = details.videos.results.filter((v: any) => v.site === 'YouTube' && v.type === 'Trailer');
+            if (trailers.length > 0) {
+              // Prefer official trailers if possible
+              const official = trailers.find((t: any) => t.official);
+              movie.trailerKey = official ? official.key : trailers[0].key;
+            }
+          }
+        } catch (e) {
+          console.warn("Failed to enrichment trailer for", movie.title);
+        }
+        return movie;
+      })
+    );
+
+    return enrichedResults;
   };
 
   // Pass 1: Exact search

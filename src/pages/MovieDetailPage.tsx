@@ -102,6 +102,7 @@ export function MovieDetailPage() {
         await updateMovie(movie.id, {
           poster_url: fullPosterUrl,
           summary: bestMatch.overview,
+          trailerKey: bestMatch.trailerKey,
           genres: bestMatch.genre_ids?.map(id => GENRE_MAP[id]).filter(Boolean)
         });
         toast.success(`Metadata refreshed for ${movie.title}`);
@@ -203,7 +204,9 @@ export function MovieDetailPage() {
     }
   };
 
-  const trailerUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' movie trailer')}`;
+  const trailerUrl = movie.trailerKey
+    ? `https://www.youtube.com/watch?v=${movie.trailerKey}`
+    : `https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' movie trailer')}`;
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8">
