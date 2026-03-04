@@ -133,10 +133,9 @@ export function useFirebaseData() {
 
     for (const movie of moviesNeedingPosters) {
       try {
-        let year: string | undefined;
-        if (movie.date && /^\d{4}/.test(movie.date)) year = movie.date.split('-')[0];
-
-        const results = await searchMovies(movie.title, year);
+        // We do NOT use movie.date as the year, because movie.date is the date *watched*.
+        // We also pass allowRatedR=true so we can fetch posters for any movie already in the DB.
+        const results = await searchMovies(movie.title, undefined, true);
         if (results && results.length > 0) {
           const best = results[0];
 

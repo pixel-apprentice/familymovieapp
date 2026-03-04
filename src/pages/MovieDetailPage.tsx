@@ -84,14 +84,11 @@ export function MovieDetailPage() {
     setIsRefreshing(true);
     setHasAttemptedFetch(true);
     try {
-      // Extract year only if it looks like a year (4 digits)
-      let year = undefined;
-      if (movie.date && /^\d{4}/.test(movie.date)) {
-        year = movie.date.split('-')[0];
-      }
-
-      console.log(`Fetching metadata for ${movie.title} (${year})...`);
-      const results = await searchMovies(movie.title, year);
+      console.log(`Fetching metadata for ${movie.title}...`);
+      // Since this movie is already in our DB, we don't want to filter out R-rated movies
+      // (in case we watched one), and we definitely DON'T want to use movie.date as the 
+      // release year since movie.date is the date we *watched* it.
+      const results = await searchMovies(movie.title, undefined, true);
 
       if (results && results.length > 0) {
         const bestMatch = results[0];
