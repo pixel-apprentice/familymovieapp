@@ -79,7 +79,7 @@ export function MovieList() {
   };
 
   return (
-    <div className="flex flex-col gap-10 w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-2">
       {/* View mode toggle */}
       <div className="flex justify-end">
         <div className="flex items-center gap-1 bg-theme-surface border border-theme-border rounded-xl p-1">

@@ -17,15 +17,7 @@ export function UpNextSection({ wishlistMovies, pickRandom, randomMovie, setRand
   return (
     <section className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-black text-theme-primary uppercase tracking-tighter">Up Next</h2>
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={pickRandom}
-          disabled={wishlistMovies.length === 0}
-          className="px-4 py-2 bg-theme-accent text-theme-base font-black rounded-xl hover:scale-105 transition-transform disabled:opacity-50 shadow-lg uppercase text-[10px] tracking-widest flex items-center gap-2"
-        >
-          <span className="text-sm">🎲</span> Pick Random
-        </motion.button>
+        <h2 className="text-2xl font-black text-theme-primary uppercase tracking-tighter">Watchlist</h2>
       </div>
 
       <AnimatePresence mode="popLayout">
@@ -58,10 +50,10 @@ export function UpNextSection({ wishlistMovies, pickRandom, randomMovie, setRand
 
       {wishlistMovies.length === 0 ? (
         <div className="text-center py-12 bg-theme-surface rounded-3xl border border-theme-border border-dashed">
-          <p className="text-theme-muted font-mono text-sm uppercase tracking-widest">No movies in wishlist</p>
+          <p className="text-theme-muted font-mono text-sm uppercase tracking-widest">No movies in watchlist</p>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {wishlistMovies.map(movie => (
             <MovieCard key={movie.id} movie={movie} />
           ))}
