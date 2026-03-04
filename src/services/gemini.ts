@@ -5,37 +5,12 @@ export async function testGeminiConnection(): Promise<{ success: boolean; messag
     const response = await fetch('/api/gemini/test');
     if (response.ok) {
       const data = await response.json();
-      return { success: true, message: data.message || "Gemini is connected and responding via backend!" };
-    } else {
-      const errorData = await response.json().catch(() => ({}));
-      return { success: false, message: `Connection failed: ${errorData.error || "Unknown error"}` };
+      return { success: true, message: data.message || 'Gemini is connected!' };
     }
+    const err = await response.json().catch(() => ({}));
+    return { success: false, message: `Connection failed: ${err.error || response.status}` };
   } catch (error: any) {
-    console.error("Gemini Test Error:", error);
-    return { success: false, message: `Connection failed: ${error.message || "Unknown error"}` };
-  }
-}
-
-export async function getVibeSearchTerms(vibe: string, allowRatedR?: boolean): Promise<string[]> {
-  try {
-    const response = await fetch('/api/gemini/vibe', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ vibe, allowR: allowRatedR ?? false }),
-    });
-
-    if (!response.ok) {
-      console.warn("Backend Gemini vibe search failed, returning dummy search terms.");
-      return ["Space Adventure", "Funny Robots"];
-    }
-
-    const data = await response.json();
-    return data.titles || [];
-  } catch (error) {
-    console.error("Gemini Vibe Search error:", error);
-    return ["Space Adventure", "Funny Robots"];
+    return { success: false, message: `Connection failed: ${error.message}` };
   }
 }
 
@@ -44,31 +19,53 @@ export interface Recommendation {
   reason: string;
 }
 
-export async function getFamilyRecommendations(history: any[], currentUser: string, profileNames: string[], allowRatedR?: boolean): Promise<Recommendation[]> {
-  try {
-    const response = await fetch('/api/gemini/recommend', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ history, currentUser, profileNames, allowR: allowRatedR ?? false }),
-    });
+/**
+ * Get movie titles matching a vibe using Gemini. Throws on failure.
+ */
+export async function getVibeSearchTerms(vibe: string, allowRatedR?: boolean): Promise<string[]> {
+  const response = await fetch('/api/gemini/vibe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ vibe, allowR: allowRatedR ?? false }),
+  });
 
-    if (!response.ok) {
-      console.warn("Backend Gemini recommend failed, returning dummy recommendations.");
-      return [
-        { title: "The Incredibles", reason: "A superhero classic for the whole family." },
-        { title: "Toy Story", reason: "A heartwarming tale of friendship." }
-      ];
-    }
-
-    const data = await response.json();
-    return data.recommendations || [];
-  } catch (error) {
-    console.error("Gemini Recommender error:", error);
-    return [
-      { title: "The Incredibles", reason: "A superhero classic for the whole family." },
-      { title: "Toy Story", reason: "A heartwarming tale of friendship." }
-    ];
+  if (!response.ok) {
+    let message = `Vibe search failed (${response.status})`;
+    try {
+      const data = await response.json();
+      if (data?.error) message = data.error;
+    } catch { /* ignore */ }
+    throw new Error(message);
   }
+
+  const data = await response.json();
+  return data.titles || [];
+}
+
+/**
+ * Get personalized movie recommendations using Gemini. Throws on failure.
+ */
+export async function getFamilyRecommendations(
+  history: any[],
+  currentUser: string,
+  profileNames: string[],
+  allowRatedR?: boolean
+): Promise<Recommendation[]> {
+  const response = await fetch('/api/gemini/recommend', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ history, currentUser, profileNames, allowR: allowRatedR ?? false }),
+  });
+
+  if (!response.ok) {
+    let message = `Recommendation failed (${response.status})`;
+    try {
+      const data = await response.json();
+      if (data?.error) message = data.error;
+    } catch { /* ignore */ }
+    throw new Error(message);
+  }
+
+  const data = await response.json();
+  return data.recommendations || [];
 }
