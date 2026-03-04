@@ -4,7 +4,7 @@ import { useData, Movie } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useModal } from '../contexts/ModalContext';
 import { motion } from 'motion/react';
-import { ChevronLeft, Star, Info, Edit2, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star, Info, Edit2, RefreshCw } from 'lucide-react';
 import { sendRequestEmail } from '../services/emailService';
 import { searchMovies, GENRE_MAP } from '../services/tmdb';
 import { handleError } from '../utils/errorHandler';
@@ -29,6 +29,21 @@ export function MovieDetailPage() {
   });
 
   const movie = movies.find(m => m.id === id);
+
+  // Sorted watched movies for prev/next navigation
+  const watchedMovies = movies
+    .filter(m => m.status === 'watched')
+    .sort((a, b) => {
+      const aDate = a.date === 'Unknown' ? null : a.date;
+      const bDate = b.date === 'Unknown' ? null : b.date;
+      if (!aDate && !bDate) return 0;
+      if (!aDate) return 1;
+      if (!bDate) return -1;
+      return new Date(bDate).getTime() - new Date(aDate).getTime();
+    });
+  const currentIdx = watchedMovies.findIndex(m => m.id === id);
+  const prevMovie = currentIdx > 0 ? watchedMovies[currentIdx - 1] : null;
+  const nextMovie = currentIdx !== -1 && currentIdx < watchedMovies.length - 1 ? watchedMovies[currentIdx + 1] : null;
 
   React.useEffect(() => {
     setHasAttemptedFetch(false);
@@ -187,13 +202,38 @@ export function MovieDetailPage() {
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-theme-muted hover:text-theme-primary transition-colors mb-8 group"
-      >
-        <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-        <span className="text-xs font-black uppercase tracking-widest">Back</span>
-      </button>
+      <div className="flex items-center justify-between mb-8">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-theme-muted hover:text-theme-primary transition-colors group"
+        >
+          <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="text-xs font-black uppercase tracking-widest">Back</span>
+        </button>
+
+        {/* Prev / Next through watched movies */}
+        {currentIdx !== -1 && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => prevMovie && navigate(`/movie/${prevMovie.id}`)}
+              disabled={!prevMovie}
+              title={prevMovie ? prevMovie.title : ''}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-theme-border hover:border-theme-primary hover:text-theme-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed touch-manipulation"
+            >
+              <ChevronLeft size={12} /> Prev
+            </button>
+            <span className="text-[10px] text-theme-muted font-mono">{currentIdx + 1} / {watchedMovies.length}</span>
+            <button
+              onClick={() => nextMovie && navigate(`/movie/${nextMovie.id}`)}
+              disabled={!nextMovie}
+              title={nextMovie ? nextMovie.title : ''}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-theme-border hover:border-theme-primary hover:text-theme-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed touch-manipulation"
+            >
+              Next <ChevronRight size={12} />
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8">
         {/* Poster Section */}
@@ -319,8 +359,8 @@ export function MovieDetailPage() {
                         key={star}
                         onClick={() => handleRatingChange(profile.id, star)}
                         className={`p-1 transition-all hover:scale-125 ${star <= (movie.ratings[profile.id] || 0)
-                            ? 'text-theme-primary'
-                            : 'text-theme-muted opacity-20'
+                          ? 'text-theme-primary'
+                          : 'text-theme-muted opacity-20'
                           }`}
                       >
                         <Star size={20} fill={star <= (movie.ratings[profile.id] || 0) ? 'currentColor' : 'none'} />

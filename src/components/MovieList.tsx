@@ -4,18 +4,20 @@ import { hapticFeedback } from '../utils/haptics';
 import { UpNextSection } from './movie-list/UpNextSection';
 import { HistorySection } from './movie-list/HistorySection';
 import { AnimatePresence, motion } from 'motion/react';
-import { LayoutGrid, List, ChevronUp } from 'lucide-react';
+import { LayoutGrid, List, ChevronUp, ImageOff, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 // Persist view mode across page visits
 const STORAGE_KEY = 'fmn_view_mode';
 
 export function MovieList() {
-  const { movies, profiles } = useData();
+  const { movies, profiles, refreshMetadata } = useData();
   const [randomMovie, setRandomMovie] = useState<Movie | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
     try { return (localStorage.getItem(STORAGE_KEY) as 'grid' | 'list') || 'grid'; } catch { return 'grid'; }
   });
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [isRefreshingPosters, setIsRefreshingPosters] = useState(false);
 
   const wishlistMovies = useMemo(() => movies.filter(m => m.status === 'wishlist'), [movies]);
   const watchedMovies = useMemo(() => movies.filter(m => m.status === 'watched').sort((a, b) => {
@@ -26,6 +28,24 @@ export function MovieList() {
     if (!bDate) return -1;
     return new Date(bDate).getTime() - new Date(aDate).getTime();
   }), [movies]);
+
+  const missingPosterCount = useMemo(
+    () => movies.filter(m => !m.poster_url || m.poster_url.trim() === '').length,
+    [movies]
+  );
+
+  const handleRefreshAllPosters = async () => {
+    hapticFeedback.medium();
+    setIsRefreshingPosters(true);
+    try {
+      await refreshMetadata();
+      toast.success('Posters refreshed!');
+    } catch {
+      toast.error('Some posters could not be loaded.');
+    } finally {
+      setIsRefreshingPosters(false);
+    }
+  };
 
   const calculateAverageRating = (ratings: Movie['ratings']) => {
     const values = Object.values(ratings).filter((r): r is number => typeof r === 'number' && r > 0);
@@ -85,8 +105,8 @@ export function MovieList() {
             onClick={() => changeViewMode('grid')}
             aria-label="Grid view"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'grid'
-                ? 'bg-theme-primary text-theme-base shadow-sm'
-                : 'text-theme-muted hover:text-theme-primary'
+              ? 'bg-theme-primary text-theme-base shadow-sm'
+              : 'text-theme-muted hover:text-theme-primary'
               }`}
           >
             <LayoutGrid size={13} />
@@ -96,8 +116,8 @@ export function MovieList() {
             onClick={() => changeViewMode('list')}
             aria-label="List view"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'list'
-                ? 'bg-theme-primary text-theme-base shadow-sm'
-                : 'text-theme-muted hover:text-theme-primary'
+              ? 'bg-theme-primary text-theme-base shadow-sm'
+              : 'text-theme-muted hover:text-theme-primary'
               }`}
           >
             <List size={13} />
@@ -105,6 +125,24 @@ export function MovieList() {
           </button>
         </div>
       </div>
+
+      {/* Missing poster alert — shown only when movies need artwork */}
+      {missingPosterCount > 0 && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-theme-surface border border-theme-border rounded-2xl text-sm">
+          <ImageOff size={16} className="text-theme-muted shrink-0" />
+          <span className="flex-1 text-theme-muted text-[11px] font-bold uppercase tracking-widest">
+            {missingPosterCount} {missingPosterCount === 1 ? 'movie is' : 'movies are'} missing posters
+          </span>
+          <button
+            onClick={handleRefreshAllPosters}
+            disabled={isRefreshingPosters}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-theme-primary text-theme-base rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all disabled:opacity-50 touch-manipulation"
+          >
+            <RefreshCw size={11} className={isRefreshingPosters ? 'animate-spin' : ''} />
+            {isRefreshingPosters ? 'Refreshing…' : 'Refresh All'}
+          </button>
+        </div>
+      )}
 
       <UpNextSection
         wishlistMovies={wishlistMovies}

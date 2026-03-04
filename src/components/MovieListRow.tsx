@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, ExternalLink, ChevronDown, ChevronUp as ChevronUpIcon } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { Movie } from '../contexts/DataContext';
 import { useData } from '../contexts/DataContext';
 import { hapticFeedback } from '../utils/haptics';
@@ -10,20 +10,16 @@ interface MovieListRowProps {
 }
 
 export const MovieListRow: React.FC<MovieListRowProps> = ({ movie }) => {
-    const { updateMovie, profiles, markWatched } = useData();
-    const [showRatings, setShowRatings] = useState(false);
+    const { profiles, markWatched } = useData();
     const profile = profiles.find(p => p.id === movie.pickedBy);
     const pickerColor = profile?.color || 'currentColor';
 
-    const values = Object.values(movie.ratings).filter((r): r is number => typeof r === 'number' && r > 0);
-    const avgRating = values.length > 0
-        ? parseFloat((values.reduce((a, b) => a + b, 0) / values.length).toFixed(1))
-        : 0;
-
-    const handleRate = (memberId: string, rating: number) => {
-        hapticFeedback.light();
-        updateMovie(movie.id, { ratings: { ...movie.ratings, [memberId]: rating } });
-    };
+    const avgRating = (() => {
+        const values = Object.values(movie.ratings).filter((r): r is number => typeof r === 'number' && r > 0);
+        return values.length > 0
+            ? parseFloat((values.reduce((a, b) => a + b, 0) / values.length).toFixed(1))
+            : 0;
+    })();
 
     const getPosterSrc = (url: string): string | null => {
         if (!url || url.trim() === '') return null;
@@ -35,7 +31,6 @@ export const MovieListRow: React.FC<MovieListRowProps> = ({ movie }) => {
 
     return (
         <div className="p-3 bg-theme-surface rounded-2xl border border-theme-border hover:border-theme-primary/40 transition-colors">
-            {/* Main row */}
             <div className="flex gap-3 items-center">
                 {/* Poster */}
                 <Link to={`/movie/${movie.id}`} className="shrink-0 block">
@@ -70,38 +65,19 @@ export const MovieListRow: React.FC<MovieListRowProps> = ({ movie }) => {
                         <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: pickerColor }}>
                             {profile?.name || movie.pickedBy}
                         </span>
+                        {avgRating > 0 && (
+                            <span className="text-[10px] text-theme-muted font-mono">★ {avgRating}</span>
+                        )}
                         {movie.status === 'wishlist' && (
                             <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border border-theme-primary/30 text-theme-primary bg-theme-primary/10">
                                 Pending
                             </span>
                         )}
                     </div>
-
-                    {/* Ratings toggle */}
-                    {movie.status === 'watched' && (
-                        <button
-                            onClick={() => setShowRatings(v => !v)}
-                            className="flex items-center gap-1 mt-0.5 w-fit touch-manipulation hover:text-theme-primary transition-colors text-theme-muted"
-                        >
-                            {avgRating > 0 ? (
-                                <>
-                                    <Star size={10} fill="currentColor" className="text-theme-primary" />
-                                    <span className="text-[10px] font-black text-theme-primary">{avgRating}</span>
-                                    <span className="text-[9px] ml-0.5">avg</span>
-                                </>
-                            ) : (
-                                <span className="text-[9px] uppercase tracking-widest font-black">Rate this</span>
-                            )}
-                            {showRatings ? <ChevronUpIcon size={10} className="ml-0.5" /> : <ChevronDown size={10} className="ml-0.5" />}
-                        </button>
-                    )}
                 </div>
 
-                {/* Right actions */}
-                <div className="shrink-0 flex flex-col items-end gap-2">
-                    <Link to={`/movie/${movie.id}`} className="text-theme-muted hover:text-theme-primary transition-colors p-1">
-                        <ExternalLink size={13} />
-                    </Link>
+                {/* Actions */}
+                <div className="shrink-0 flex items-center gap-2">
                     {movie.status === 'wishlist' && (
                         <button
                             onClick={() => { hapticFeedback.success(); markWatched(movie.id); }}
@@ -110,41 +86,11 @@ export const MovieListRow: React.FC<MovieListRowProps> = ({ movie }) => {
                             Watched
                         </button>
                     )}
+                    <Link to={`/movie/${movie.id}`} className="text-theme-muted hover:text-theme-primary transition-colors p-1">
+                        <ExternalLink size={13} />
+                    </Link>
                 </div>
             </div>
-
-            {/* Expanded per-person ratings — renders below the row at full width */}
-            {movie.status === 'watched' && showRatings && (
-                <div className="mt-3 pt-3 border-t border-theme-border/30 flex flex-col gap-2">
-                    {profiles.map(p => {
-                        const filled = (star: number) => star <= (movie.ratings[p.id] || 0);
-                        return (
-                            <div key={p.id} className="flex items-center gap-2">
-                                <span className="text-[10px] font-black uppercase w-14 text-right shrink-0" style={{ color: p.color }}>
-                                    {p.name}
-                                </span>
-                                <div className="flex gap-0.5">
-                                    {[1, 2, 3, 4, 5].map(star => (
-                                        <button
-                                            key={star}
-                                            onClick={() => handleRate(p.id, star)}
-                                            className="p-1.5 touch-manipulation active:scale-90 transition-transform"
-                                            aria-label={`${p.name}: ${star} star`}
-                                        >
-                                            <Star
-                                                size={16}
-                                                fill={filled(star) ? p.color : 'none'}
-                                                stroke={filled(star) ? p.color : 'currentColor'}
-                                                className={filled(star) ? '' : 'text-theme-border'}
-                                            />
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
         </div>
     );
 };
