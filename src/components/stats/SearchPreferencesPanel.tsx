@@ -10,7 +10,12 @@ export function SearchPreferencesPanel() {
         <section className="space-y-6">
             <div className="flex items-center gap-4">
                 <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
-                    Search Preferences
+                    {theme === 'mooooovies' ? 'Graze Preferences' :
+                     theme === 'drive-in' ? 'Screening Preferences' :
+                     theme === 'blockbuster' ? 'Rental Preferences' :
+                     theme === 'sci-fi-hologram' ? 'Search Parameters' :
+                     theme === 'golden-age' ? 'Casting Preferences' :
+                     'Search Preferences'}
                 </h2>
                 <div className="h-px flex-1 bg-theme-border/30" />
             </div>

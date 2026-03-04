@@ -60,6 +60,8 @@ export const ThemeIcon: React.FC<{ themeName: string, className?: string }> = ({
     case 'blockbuster':
       // VHS tape cassette
       return <svg className={`w-5 h-5 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="5" width="22" height="14" rx="2" /><path d="M1 9h22" /><circle cx="7" cy="15" r="2" /><circle cx="17" cy="15" r="2" /><path d="M9 15h6" /></svg>;
+    case 'mooooovies':
+      return <span className={className}>🐄</span>;
     default:
       return null;
   }

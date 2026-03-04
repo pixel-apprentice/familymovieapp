@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function startServer() {
   const app = express();
-  const PORT = 3001;
+  const PORT = 3000;
 
   // Middleware to parse JSON bodies
   app.use(express.json());

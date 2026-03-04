@@ -16,7 +16,12 @@ export function StatsPage() {
       <section className="space-y-6">
         <div className="flex items-center gap-4">
           <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
-            Appearance
+            {theme === 'mooooovies' ? 'Pasture Look' :
+             theme === 'drive-in' ? 'Lot Appearance' :
+             theme === 'blockbuster' ? 'Store Layout' :
+             theme === 'sci-fi-hologram' ? 'Holo-Interface' :
+             theme === 'golden-age' ? 'Set Design' :
+             'Appearance'}
           </h2>
           <div className="h-px flex-1 bg-theme-border/30" />
         </div>
@@ -24,7 +29,12 @@ export function StatsPage() {
           } ${theme === 'modern-luminous' ? 'rounded-3xl border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl bg-black/[0.02]' : ''
           }`}>
           <p className="text-xs font-mono uppercase tracking-widest text-theme-muted mb-6 px-4">
-            Choose your family's vibe:{' '}
+            {theme === 'mooooovies' ? 'Choose your herd\'s vibe:' :
+             theme === 'drive-in' ? 'Choose your crew\'s vibe:' :
+             theme === 'blockbuster' ? 'Choose your store\'s vibe:' :
+             theme === 'sci-fi-hologram' ? 'Select interface mode:' :
+             theme === 'golden-age' ? 'Choose your cast\'s vibe:' :
+             'Choose your family\'s vibe:'}{' '}
             <span className="text-theme-primary font-black">
               {themes.find(t => t.id === theme)?.label ?? theme}
             </span>

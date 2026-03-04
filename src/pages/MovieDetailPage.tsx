@@ -320,7 +320,21 @@ export function MovieDetailPage() {
                   </span>
                   <span className="w-1 h-1 rounded-full bg-theme-border" />
                   <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${movie.status === 'watched' ? 'border-emerald-500/30 text-emerald-500 bg-emerald-500/10' : 'border-amber-500/30 text-amber-500 bg-amber-500/10'}`}>
-                    {movie.status}
+                    {movie.status === 'watched' ? (
+                      theme === 'mooooovies' ? 'Grazed' :
+                      theme === 'drive-in' ? 'Screened' :
+                      theme === 'blockbuster' ? 'Returned' :
+                      theme === 'sci-fi-hologram' ? 'Archived' :
+                      theme === 'golden-age' ? 'Wrapped' :
+                      'Watched'
+                    ) : (
+                      theme === 'mooooovies' ? 'Pasture' :
+                      theme === 'drive-in' ? 'Marquee' :
+                      theme === 'blockbuster' ? 'Reserved' :
+                      theme === 'sci-fi-hologram' ? 'Pending' :
+                      theme === 'golden-age' ? 'Scheduled' :
+                      'Wishlist'
+                    )}
                   </span>
                   <button onClick={() => setIsEditing(true)} className="ml-2 text-theme-muted hover:text-theme-primary transition-colors opacity-50 hover:opacity-100">
                     <Edit2 size={14} />

@@ -31,7 +31,13 @@ export function CurrentTurn() {
       >
         <div className="flex flex-col min-w-0 pr-3">
           <span className={`text-[10px] md:text-xs uppercase tracking-widest text-theme-muted font-black opacity-80 ${theme === 'vintage-ticket' ? 'font-serif italic tracking-widest' : ''}`}>
-            {theme === 'neon-cyberpunk' ? 'ACTIVE_USER' : 'Up Next'}
+            {theme === 'neon-cyberpunk' ? 'ACTIVE_USER' : 
+             theme === 'mooooovies' ? 'Next Up to Pasture' : 
+             theme === 'drive-in' ? 'Now Showing' :
+             theme === 'blockbuster' ? 'Next Rental' :
+             theme === 'sci-fi-hologram' ? 'Next Transmission' :
+             theme === 'golden-age' ? 'Next Picture' :
+             'Up Next'}
           </span>
           <h1 className={`text-3xl md:text-4xl font-black text-theme-primary truncate ${theme === 'velvet-theater' ? 'font-serif italic drop-shadow-[0_2px_0_#713f12] text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-600' : ''
             } ${theme === 'neon-cyberpunk' ? 'drop-shadow-[0_0_5px_rgba(0,240,255,0.8)]' : ''
@@ -81,7 +87,12 @@ export function CurrentTurn() {
           onClick={() => { hapticFeedback.medium(); skipTurn(); }}
           className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-theme-muted hover:text-theme-primary transition-colors"
         >
-          Skip Turn
+          {theme === 'mooooovies' ? 'Moo-ve Along' : 
+           theme === 'drive-in' ? 'Change Frequency' :
+           theme === 'blockbuster' ? 'Be Kind, Rewind' :
+           theme === 'sci-fi-hologram' ? 'Abort Sequence' :
+           theme === 'golden-age' ? 'Cut! Next Scene' :
+           'Skip Turn'}
         </button>
       </div>
     </div>

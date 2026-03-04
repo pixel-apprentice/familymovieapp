@@ -1,6 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { TMDBMovie } from '../../services/tmdb';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface AddMovieHeaderProps {
   movie: TMDBMovie;
@@ -8,6 +9,7 @@ interface AddMovieHeaderProps {
 }
 
 export function AddMovieHeader({ movie, onClose }: AddMovieHeaderProps) {
+  const { theme } = useTheme();
   return (
     <>
       <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
@@ -15,7 +17,14 @@ export function AddMovieHeader({ movie, onClose }: AddMovieHeaderProps) {
       </div>
 
       <div className="px-6 pb-4 pt-2 sm:pt-6 border-b border-theme-border flex items-center justify-between shrink-0">
-        <h2 className="text-xl font-black uppercase tracking-widest text-theme-primary">Add Movie</h2>
+        <h2 className="text-xl font-black uppercase tracking-widest text-theme-primary">
+          {theme === 'mooooovies' ? 'Add to Herd' :
+           theme === 'drive-in' ? 'Add to Marquee' :
+           theme === 'blockbuster' ? 'Reserve Tape' :
+           theme === 'sci-fi-hologram' ? 'Save Log' :
+           theme === 'golden-age' ? 'Cast Picture' :
+           'Add Movie'}
+        </h2>
         <button onClick={onClose} className="p-2 -mr-2 text-theme-muted hover:text-theme-text transition-colors">
           <X size={24} />
         </button>

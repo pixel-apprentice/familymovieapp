@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { TMDBMovie } from '../../services/tmdb';
 import { hapticFeedback } from '../../utils/haptics';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface SearchResultsProps {
   results: TMDBMovie[];
@@ -10,18 +11,33 @@ interface SearchResultsProps {
 }
 
 export function SearchResults({ results, setResults, handleAdd }: SearchResultsProps) {
+  const { theme } = useTheme();
   if (results.length === 0) return null;
 
   return (
     <AnimatePresence mode="popLayout">
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <span className="text-[10px] font-black uppercase tracking-widest text-theme-muted">{results.length} Results Found</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-theme-muted">
+            {results.length} {
+              theme === 'mooooovies' ? 'Pastures Found' :
+              theme === 'drive-in' ? 'Frequencies Found' :
+              theme === 'blockbuster' ? 'Tapes Found' :
+              theme === 'sci-fi-hologram' ? 'Logs Found' :
+              theme === 'golden-age' ? 'Scripts Found' :
+              'Results Found'
+            }
+          </span>
           <button 
             onClick={() => { hapticFeedback.light(); setResults([]); }}
             className="text-[10px] font-black uppercase tracking-widest text-theme-primary hover:text-theme-accent transition-colors"
           >
-            Clear Results
+            {theme === 'mooooovies' ? 'Clear Pasture' :
+             theme === 'drive-in' ? 'Clear Screen' :
+             theme === 'blockbuster' ? 'Return Tapes' :
+             theme === 'sci-fi-hologram' ? 'Purge Data' :
+             theme === 'golden-age' ? 'Clear Stage' :
+             'Clear Results'}
           </button>
         </div>
         <motion.div 
@@ -52,7 +68,12 @@ export function SearchResults({ results, setResults, handleAdd }: SearchResultsP
                   <p className="text-[10px] text-theme-muted italic line-clamp-3 leading-snug mb-2">{movie.reason}</p>
                 )}
                 <div className="mt-auto self-start text-[10px] font-black uppercase tracking-widest text-theme-primary hover:text-theme-accent transition-colors py-1 border-b border-transparent hover:border-theme-accent">
-                  + Add Movie
+                  + {theme === 'mooooovies' ? 'Add to Herd' :
+                     theme === 'drive-in' ? 'Add to Marquee' :
+                     theme === 'blockbuster' ? 'Reserve Tape' :
+                     theme === 'sci-fi-hologram' ? 'Save Log' :
+                     theme === 'golden-age' ? 'Cast Picture' :
+                     'Add Movie'}
                 </div>
               </div>
             </motion.div>

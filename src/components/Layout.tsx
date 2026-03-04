@@ -41,7 +41,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
               F
             </div>
             <h1 className={`text-xl md:text-2xl font-black tracking-tighter text-theme-primary`}>
-              Family Movie Night
+              {theme === 'mooooovies' ? 'Family Mooovie Night' :
+               theme === 'drive-in' ? 'Drive-In Movie Night' :
+               theme === 'blockbuster' ? 'Blockbuster Night' :
+               theme === 'sci-fi-hologram' ? 'Holo-Deck Cinema' :
+               theme === 'golden-age' ? 'Golden Age Cinema' :
+               'Family Movie Night'}
             </h1>
           </Link>
           
@@ -88,7 +93,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
 
       <footer className="py-12 text-center text-theme-muted text-[10px] font-mono uppercase tracking-[0.3em] border-t border-theme-border/20 mt-20 bg-theme-surface/30">
-        <p>© 2026 Family Movie Night</p>
+        <p>© 2026 {theme === 'mooooovies' ? 'Family Mooovie Night' :
+               theme === 'drive-in' ? 'Drive-In Movie Night' :
+               theme === 'blockbuster' ? 'Blockbuster Night' :
+               theme === 'sci-fi-hologram' ? 'Holo-Deck Cinema' :
+               theme === 'golden-age' ? 'Golden Age Cinema' :
+               'Family Movie Night'}</p>
         <p className="mt-2 opacity-50">Enjoy the show</p>
       </footer>
     </div>

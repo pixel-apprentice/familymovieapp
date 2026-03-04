@@ -42,7 +42,12 @@ export function UserStatsPanel() {
       <section className="space-y-8">
         <div className="flex items-center gap-4">
           <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
-            Advanced Family Stats
+            {theme === 'mooooovies' ? 'Herd Stats' :
+             theme === 'drive-in' ? 'Crew Stats' :
+             theme === 'blockbuster' ? 'Member Stats' :
+             theme === 'sci-fi-hologram' ? 'Crew Metrics' :
+             theme === 'golden-age' ? 'Cast Stats' :
+             'Advanced Family Stats'}
           </h2>
           <div className="h-px flex-1 bg-theme-border/30" />
         </div>
@@ -73,7 +78,14 @@ export function UserStatsPanel() {
                 </div>
 
                 <span className="text-base font-black uppercase tracking-widest text-theme-text mb-0.5">{member}</span>
-                <span className="text-[9px] font-mono uppercase tracking-widest text-theme-muted mb-4">Master Critic</span>
+                <span className="text-[9px] font-mono uppercase tracking-widest text-theme-muted mb-4">
+                  {theme === 'mooooovies' ? 'Top Grazer' :
+                   theme === 'drive-in' ? 'Regular' :
+                   theme === 'blockbuster' ? 'VIP Member' :
+                   theme === 'sci-fi-hologram' ? 'Commander' :
+                   theme === 'golden-age' ? 'A-Lister' :
+                   'Master Critic'}
+                </span>
 
                 <div className="flex flex-col items-center mb-4">
                   <div className="flex items-center gap-2">
@@ -113,15 +125,38 @@ export function UserStatsPanel() {
         } ${
           theme === 'modern-luminous' ? 'rounded-3xl border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl bg-black/[0.02]' : ''
         }`}>
-          <h3 className="text-lg font-black uppercase tracking-widest text-theme-primary mb-6">Movie Night Insights</h3>
+          <h3 className="text-lg font-black uppercase tracking-widest text-theme-primary mb-6">
+            {theme === 'mooooovies' ? 'Pasture Insights' :
+             theme === 'drive-in' ? 'Screening Insights' :
+             theme === 'blockbuster' ? 'Rental Insights' :
+             theme === 'sci-fi-hologram' ? 'Log Analysis' :
+             theme === 'golden-age' ? 'Box Office Insights' :
+             'Movie Night Insights'}
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-4 p-4 bg-theme-base/30 rounded-2xl border border-theme-border/20">
               <div className="w-10 h-10 rounded-full bg-theme-primary/20 flex items-center justify-center text-theme-primary">
                 🎬
               </div>
               <div>
-                <p className="text-sm font-black text-theme-text">Total Movies Watched</p>
-                <p className="text-xs text-theme-muted font-mono">{watchedMovies.length} cinematic adventures and counting!</p>
+                <p className="text-sm font-black text-theme-text">
+                  {theme === 'mooooovies' ? 'Total Movies Grazed' :
+                   theme === 'drive-in' ? 'Total Screenings' :
+                   theme === 'blockbuster' ? 'Total Tapes Returned' :
+                   theme === 'sci-fi-hologram' ? 'Total Logs Archived' :
+                   theme === 'golden-age' ? 'Total Pictures Wrapped' :
+                   'Total Movies Watched'}
+                </p>
+                <p className="text-xs text-theme-muted font-mono">
+                  {watchedMovies.length} {
+                    theme === 'mooooovies' ? 'pastures and counting!' :
+                    theme === 'drive-in' ? 'features and counting!' :
+                    theme === 'blockbuster' ? 'rentals and counting!' :
+                    theme === 'sci-fi-hologram' ? 'transmissions and counting!' :
+                    theme === 'golden-age' ? 'scripts and counting!' :
+                    'cinematic adventures and counting!'
+                  }
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-4 p-4 bg-theme-base/30 rounded-2xl border border-theme-border/20">

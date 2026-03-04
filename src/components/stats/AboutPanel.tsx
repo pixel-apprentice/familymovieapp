@@ -11,7 +11,12 @@ export function AboutPanel() {
       <section className="space-y-6">
         <div className="flex items-center gap-4">
           <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
-            About
+            {theme === 'mooooovies' ? 'About the Pasture' :
+             theme === 'drive-in' ? 'About the Lot' :
+             theme === 'blockbuster' ? 'About the Store' :
+             theme === 'sci-fi-hologram' ? 'System Info' :
+             theme === 'golden-age' ? 'Production Notes' :
+             'About'}
           </h2>
           <div className="h-px flex-1 bg-theme-border/30" />
         </div>
@@ -22,21 +27,40 @@ export function AboutPanel() {
           theme === 'modern-luminous' ? 'rounded-3xl border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl bg-black/[0.02]' : ''
         }`}>
           <div className="text-center sm:text-left">
-            <h3 className="text-lg font-black uppercase tracking-widest text-theme-text">App Version</h3>
+            <h3 className="text-lg font-black uppercase tracking-widest text-theme-text">
+              {theme === 'mooooovies' ? 'Pasture Version' :
+               theme === 'drive-in' ? 'Lot Version' :
+               theme === 'blockbuster' ? 'Store Version' :
+               theme === 'sci-fi-hologram' ? 'System Version' :
+               theme === 'golden-age' ? 'Print Version' :
+               'App Version'}
+            </h3>
             <p className="text-xs text-theme-muted font-mono uppercase tracking-widest mt-1">Current Build: v0.5</p>
           </div>
           <button 
             onClick={() => setShowChangelog(true)}
             className="px-6 py-3 bg-theme-primary text-theme-base font-black rounded-2xl hover:scale-105 transition-transform shadow-lg uppercase text-[10px] tracking-widest"
           >
-            View Changelog
+            {theme === 'mooooovies' ? 'View Graze Log' :
+             theme === 'drive-in' ? 'View Logbook' :
+             theme === 'blockbuster' ? 'View Inventory Log' :
+             theme === 'sci-fi-hologram' ? 'View System Log' :
+             theme === 'golden-age' ? 'View Production Log' :
+             'View Changelog'}
           </button>
         </div>
       </section>
 
       {/* Footer Version */}
       <div className="text-center py-4 opacity-30 border-t border-theme-border/10">
-        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-theme-muted">Family Movie Night v0.5</p>
+        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-theme-muted">
+          {theme === 'mooooovies' ? 'Family Mooovie Night' :
+           theme === 'drive-in' ? 'Drive-In Movie Night' :
+           theme === 'blockbuster' ? 'Blockbuster Night' :
+           theme === 'sci-fi-hologram' ? 'Holo-Deck Cinema' :
+           theme === 'golden-age' ? 'Golden Age Cinema' :
+           'Family Movie Night'} v0.5
+        </p>
       </div>
 
       {/* Changelog Modal */}
@@ -59,7 +83,14 @@ export function AboutPanel() {
               onClick={e => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-black uppercase tracking-tighter text-theme-primary">Changelog</h2>
+                <h2 className="text-2xl font-black uppercase tracking-tighter text-theme-primary">
+                  {theme === 'mooooovies' ? 'Graze Log' :
+                   theme === 'drive-in' ? 'Logbook' :
+                   theme === 'blockbuster' ? 'Inventory Log' :
+                   theme === 'sci-fi-hologram' ? 'System Log' :
+                   theme === 'golden-age' ? 'Production Log' :
+                   'Changelog'}
+                </h2>
                 <button 
                   onClick={() => setShowChangelog(false)} 
                   className="p-2 hover:bg-theme-base rounded-full transition-colors text-theme-muted hover:text-theme-text"

@@ -19,6 +19,7 @@ export const themes: { id: Theme; label: string }[] = [
   { id: 'drive-in', label: 'Drive-In' },
   { id: 'golden-age', label: 'Golden Age' },
   { id: 'blockbuster', label: 'Blockbuster' },
+  { id: 'mooooovies', label: 'Mooooovies' },
 ];
 
 export function ThemeSwitcher() {
@@ -33,6 +34,7 @@ export function ThemeSwitcher() {
       } ${theme === 'velvet-theater' ? 'border-b-4 border-amber-600 bg-rose-950/50' : ''
       } ${theme === 'neon-cyberpunk' ? 'border-b-2 border-cyan-400 bg-indigo-950/80 shadow-[0_4px_20px_rgba(0,240,255,0.15)]' : ''
       } ${theme === 'vintage-ticket' ? 'rounded-xl shadow-inner border-b-2 border-amber-900/20' : ''
+      } ${theme === 'mooooovies' ? 'border-b-4 border-black bg-white shadow-[0_4px_0_rgba(0,0,0,1)]' : ''
       }`}>
       {themes.map(t => (
         <motion.button
@@ -51,6 +53,7 @@ export function ThemeSwitcher() {
             } ${theme === 'neon-cyberpunk' ? 'rounded-sm border border-cyan-500/30 hover:shadow-[0_0_10px_rgba(0,240,255,0.4)]' : ''
             } ${theme === 'sci-fi-hologram' ? 'rounded-full hover:shadow-[0_0_15px_currentColor]' : ''
             } ${theme === 'vintage-ticket' ? 'ticket-stub rounded-none border border-amber-900/20 shadow-sm' : ''
+            } ${theme === 'mooooovies' ? 'rounded-2xl border-2 border-black/20 hover:border-black/50 bg-white text-black font-bold' : ''
             }`}
         >
           <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-theme-text text-theme-base text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">

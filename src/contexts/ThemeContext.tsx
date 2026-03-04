@@ -14,7 +14,8 @@ export type Theme =
   | 'sci-fi-hologram'
   | 'drive-in'
   | 'golden-age'
-  | 'blockbuster';
+  | 'blockbuster'
+  | 'mooooovies';
 
 interface ThemeContextType {
   theme: Theme;

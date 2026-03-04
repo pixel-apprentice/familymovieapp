@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Mail } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface AddMovieActionsProps {
   isSendingPlex: boolean;
@@ -9,6 +10,7 @@ interface AddMovieActionsProps {
 }
 
 export function AddMovieActions({ isSendingPlex, isSubmitting, handlePlexRequest }: AddMovieActionsProps) {
+  const { theme } = useTheme();
   return (
     <div className="p-6 border-t border-theme-border bg-theme-base/50 shrink-0 space-y-3">
       <motion.button 
@@ -28,7 +30,13 @@ export function AddMovieActions({ isSendingPlex, isSubmitting, handlePlexRequest
         disabled={isSubmitting}
         className="w-full min-h-[44px] py-4 bg-theme-primary text-theme-base font-black rounded-xl uppercase text-xs tracking-widest hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100 shadow-lg"
       >
-        {isSubmitting ? 'Adding...' : 'Add Movie'}
+        {isSubmitting ? 'Adding...' : 
+         theme === 'mooooovies' ? 'Add to Herd' :
+         theme === 'drive-in' ? 'Add to Marquee' :
+         theme === 'blockbuster' ? 'Reserve Tape' :
+         theme === 'sci-fi-hologram' ? 'Save Log' :
+         theme === 'golden-age' ? 'Cast Picture' :
+         'Add Movie'}
       </motion.button>
     </div>
   );

@@ -137,7 +137,14 @@ export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
               } ${theme === 'vintage-ticket' ? 'ticket-stub bg-amber-600 text-amber-50' : ''
               }`}
           >
-            <span className="relative z-10">Watched</span>
+            <span className="relative z-10">
+              {theme === 'mooooovies' ? 'Grazed' :
+               theme === 'drive-in' ? 'Screened' :
+               theme === 'blockbuster' ? 'Returned' :
+               theme === 'sci-fi-hologram' ? 'Archived' :
+               theme === 'golden-age' ? 'Wrapped' :
+               'Watched'}
+            </span>
             <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-500 skew-x-12" />
           </motion.button>
         )}

@@ -32,7 +32,12 @@ export function DataManagementPanel() {
         <section className="space-y-6">
             <div className="flex items-center gap-4">
                 <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
-                    Data Management
+                    {theme === 'mooooovies' ? 'Pasture Management' :
+                     theme === 'drive-in' ? 'Lot Management' :
+                     theme === 'blockbuster' ? 'Inventory Management' :
+                     theme === 'sci-fi-hologram' ? 'Data Management' :
+                     theme === 'golden-age' ? 'Archive Management' :
+                     'Data Management'}
                 </h2>
                 <div className="h-px flex-1 bg-theme-border/30" />
             </div>
@@ -42,10 +47,22 @@ export function DataManagementPanel() {
                 <div className="bg-theme-surface/50 border border-theme-border rounded-[2rem] p-6 flex flex-col gap-4">
                     <div className="flex items-center gap-3 text-theme-primary">
                         <Database size={24} />
-                        <h3 className="font-black uppercase tracking-widest text-sm">Movie Posters</h3>
+                        <h3 className="font-black uppercase tracking-widest text-sm">
+                            {theme === 'mooooovies' ? 'Movie Posters' :
+                             theme === 'drive-in' ? 'Feature Posters' :
+                             theme === 'blockbuster' ? 'Tape Covers' :
+                             theme === 'sci-fi-hologram' ? 'Holo-Covers' :
+                             theme === 'golden-age' ? 'Playbills' :
+                             'Movie Posters'}
+                        </h3>
                     </div>
                     <p className="text-xs text-theme-muted font-mono leading-relaxed flex-1">
-                        Scanning your library for missing artwork. TMDB is used to fetch high-quality movie posters.
+                        {theme === 'mooooovies' ? 'Scanning the pasture for missing artwork. TMDB is used to fetch high-quality movie posters.' :
+                         theme === 'drive-in' ? 'Scanning the lot for missing artwork. TMDB is used to fetch high-quality movie posters.' :
+                         theme === 'blockbuster' ? 'Scanning the shelves for missing artwork. TMDB is used to fetch high-quality movie posters.' :
+                         theme === 'sci-fi-hologram' ? 'Scanning the databanks for missing artwork. TMDB is used to fetch high-quality movie posters.' :
+                         theme === 'golden-age' ? 'Scanning the archives for missing artwork. TMDB is used to fetch high-quality movie posters.' :
+                         'Scanning your library for missing artwork. TMDB is used to fetch high-quality movie posters.'}
                     </p>
 
                     <div className="mt-4 flex items-center justify-between gap-4 p-4 bg-theme-base rounded-2xl border border-theme-border/50">
