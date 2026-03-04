@@ -3,6 +3,7 @@ import { collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc } from 'fireb
 import { db } from '../services/firebase';
 import { Movie, FamilyProfile, DEFAULT_PROFILES } from './DataContext';
 import { useAuth } from './AuthContext';
+import { searchMovies, GENRE_MAP } from '../services/tmdb';
 
 export function useFirebaseData() {
   const { user } = useAuth();
@@ -53,8 +54,12 @@ export function useFirebaseData() {
       saveLocalMovies([...movies, newMovie]);
       return;
     }
+    // Strip undefined/null values — Firestore setDoc rejects undefined
+    const sanitized = Object.fromEntries(
+      Object.entries(movie).filter(([_, v]) => v !== undefined && v !== null)
+    );
     const docRef = movie.id ? doc(db, 'movies', movie.id) : doc(collection(db, 'movies'));
-    await setDoc(docRef, movie);
+    await setDoc(docRef, sanitized);
   };
 
   const updateMovie = async (id: string, updates: Partial<Movie>) => {
@@ -114,7 +119,30 @@ export function useFirebaseData() {
   };
 
   const refreshMetadata = async () => {
-    // Optional: force refresh
+    // Bulk-fetch TMDB posters for all movies missing them
+    const moviesNeedingPosters = movies.filter(m => !m.poster_url || m.poster_url.trim() === '');
+    if (moviesNeedingPosters.length === 0) return;
+    for (const movie of moviesNeedingPosters) {
+      try {
+        let year: string | undefined;
+        if (movie.date && /^\d{4}/.test(movie.date)) year = movie.date.split('-')[0];
+        const results = await searchMovies(movie.title, year);
+        if (results && results.length > 0) {
+          const best = results[0];
+          const sanitized = Object.fromEntries(
+            Object.entries({
+              poster_url: best.poster_path || '',
+              summary: best.overview,
+              genres: best.genre_ids?.map((id: number) => GENRE_MAP[id]).filter(Boolean),
+              tmdbId: String(best.id),
+            }).filter(([_, v]) => v !== undefined && v !== null)
+          );
+          await updateDoc(doc(db, 'movies', movie.id), sanitized);
+        }
+      } catch (e) {
+        console.warn(`Failed to refresh metadata for ${movie.title}:`, e);
+      }
+    }
   };
 
   return {

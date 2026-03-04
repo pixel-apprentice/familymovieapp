@@ -12,12 +12,12 @@ export function useSearch() {
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Processing...');
   const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
-  
+
   const { currentTurnIndex, movies, profiles } = useData();
 
   useEffect(() => {
     if (!loading) return;
-    
+
     const messages = [
       "Analyzing family favorites...",
       "Consulting the movie critics...",
@@ -27,13 +27,13 @@ export function useSearch() {
       "Almost there..."
     ];
     let i = 0;
-    
+
     setLoadingMessage(messages[0]);
     const interval = setInterval(() => {
       i = (i + 1) % messages.length;
       setLoadingMessage(messages[i]);
     }, 3000);
-    
+
     return () => clearInterval(interval);
   }, [loading]);
 
@@ -43,8 +43,16 @@ export function useSearch() {
     setLoading(true);
     try {
       const res = await searchMovies(query);
-      const watchedIds = new Set(movies.filter(m => m.status === 'watched').map(m => m.tmdbId?.toString() || m.id.toString()));
-      setResults(res.filter(m => !watchedIds.has(m.id.toString())));
+      const watchedTmdbIds = new Set(
+        movies.filter(m => m.status === 'watched' && m.tmdbId).map(m => m.tmdbId!.toString())
+      );
+      const watchedTitles = new Set(
+        movies.filter(m => m.status === 'watched').map(m => m.title.toLowerCase().trim())
+      );
+      setResults(res.filter(m =>
+        !watchedTmdbIds.has(m.id.toString()) &&
+        !watchedTitles.has(m.title.toLowerCase().trim())
+      ));
     } catch (error) {
       handleError(error, 'Failed to search movies');
     } finally {
@@ -55,7 +63,7 @@ export function useSearch() {
   const handleVibeSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!vibe.trim()) return;
-    
+
     if (!isGeminiConfigured()) {
       toast.error("Gemini API key is missing. Using offline fallback.");
     }
@@ -93,7 +101,7 @@ export function useSearch() {
       const profileNames = profiles.map(p => p.name);
       const history = movies.filter(m => m.status === 'watched' && m.ratings);
       const recommendations = await getFamilyRecommendations(history, currentUser, profileNames);
-      
+
       if (recommendations.length > 0) {
         const tmdbResults = await Promise.all(
           recommendations.map(async (rec) => {
