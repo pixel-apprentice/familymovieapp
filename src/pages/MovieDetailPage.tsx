@@ -96,12 +96,20 @@ export function MovieDetailPage() {
       if (results && results.length > 0) {
         const bestMatch = results[0];
         console.log("Found match:", bestMatch);
+
+        // Always save as a full absolute URL for consistency
+        const fullPosterUrl = bestMatch.poster_path
+          ? `https://image.tmdb.org/t/p/w500${bestMatch.poster_path}`
+          : '';
+
         await updateMovie(movie.id, {
-          poster_url: bestMatch.poster_path || '',
+          poster_url: fullPosterUrl,
           summary: bestMatch.overview,
           genres: bestMatch.genre_ids?.map(id => GENRE_MAP[id]).filter(Boolean)
         });
+        toast.success(`Metadata refreshed for ${movie.title}`);
       } else {
+        toast.error(`No metadata found for "${movie.title}"`);
         console.warn("No results found for", movie.title);
       }
     } catch (error) {
@@ -204,7 +212,7 @@ export function MovieDetailPage() {
     <div className="w-full max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/')}
           className="flex items-center gap-2 text-theme-muted hover:text-theme-primary transition-colors group"
         >
           <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />

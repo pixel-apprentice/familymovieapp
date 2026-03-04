@@ -122,19 +122,31 @@ export function useFirebaseData() {
   };
 
   const refreshMetadata = async () => {
-    // Bulk-fetch TMDB posters for all movies missing them
-    const moviesNeedingPosters = movies.filter(m => !m.poster_url || m.poster_url.trim() === '');
+    // Bulk-fetch TMDB posters for movies missing them or with invalid paths
+    const moviesNeedingPosters = movies.filter(m =>
+      !m.poster_url ||
+      m.poster_url.trim() === '' ||
+      (!m.poster_url.startsWith('http') && m.poster_url.length < 5) // Catch broken short strings
+    );
+
     if (moviesNeedingPosters.length === 0) return;
+
     for (const movie of moviesNeedingPosters) {
       try {
         let year: string | undefined;
         if (movie.date && /^\d{4}/.test(movie.date)) year = movie.date.split('-')[0];
+
         const results = await searchMovies(movie.title, year);
         if (results && results.length > 0) {
           const best = results[0];
+
+          const fullPosterUrl = best.poster_path
+            ? `https://image.tmdb.org/t/p/w500${best.poster_path}`
+            : '';
+
           const sanitized = Object.fromEntries(
             Object.entries({
-              poster_url: best.poster_path || '',
+              poster_url: fullPosterUrl,
               summary: best.overview,
               genres: best.genre_ids?.map((id: number) => GENRE_MAP[id]).filter(Boolean),
               tmdbId: String(best.id),
