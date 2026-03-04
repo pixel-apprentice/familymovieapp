@@ -61,7 +61,7 @@ export function UpNextSection({ wishlistMovies, pickRandom, randomMovie, setRand
           <p className="text-theme-muted font-mono text-sm uppercase tracking-widest">No movies in wishlist</p>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {wishlistMovies.map(movie => (
             <MovieCard key={movie.id} movie={movie} />
           ))}

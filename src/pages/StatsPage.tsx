@@ -4,6 +4,7 @@ import { ThemeSwitcher, themes } from '../components/ThemeSwitcher';
 import { UserStatsPanel } from '../components/stats/UserStatsPanel';
 import { AboutPanel } from '../components/stats/AboutPanel';
 import { SearchPreferencesPanel } from '../components/stats/SearchPreferencesPanel';
+import { DataManagementPanel } from '../components/stats/DataManagementPanel';
 
 export function StatsPage() {
   const { theme } = useTheme();
@@ -33,6 +34,8 @@ export function StatsPage() {
       </section>
 
       <SearchPreferencesPanel />
+
+      <DataManagementPanel />
 
       <UserStatsPanel />
       <AboutPanel />

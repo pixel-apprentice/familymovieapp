@@ -29,24 +29,6 @@ export function MovieList() {
     return new Date(bDate).getTime() - new Date(aDate).getTime();
   }), [movies]);
 
-  const missingPosterCount = useMemo(
-    () => movies.filter(m => !m.poster_url || m.poster_url.trim() === '').length,
-    [movies]
-  );
-
-  const handleRefreshAllPosters = async () => {
-    hapticFeedback.medium();
-    setIsRefreshingPosters(true);
-    try {
-      await refreshMetadata();
-      toast.success('Posters refreshed!');
-    } catch {
-      toast.error('Some posters could not be loaded.');
-    } finally {
-      setIsRefreshingPosters(false);
-    }
-  };
-
   const calculateAverageRating = (ratings: Movie['ratings']) => {
     const values = Object.values(ratings).filter((r): r is number => typeof r === 'number' && r > 0);
     if (values.length === 0) return 0;
@@ -125,24 +107,6 @@ export function MovieList() {
           </button>
         </div>
       </div>
-
-      {/* Missing poster alert — shown only when movies need artwork */}
-      {missingPosterCount > 0 && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-theme-surface border border-theme-border rounded-2xl text-sm">
-          <ImageOff size={16} className="text-theme-muted shrink-0" />
-          <span className="flex-1 text-theme-muted text-[11px] font-bold uppercase tracking-widest">
-            {missingPosterCount} {missingPosterCount === 1 ? 'movie is' : 'movies are'} missing posters
-          </span>
-          <button
-            onClick={handleRefreshAllPosters}
-            disabled={isRefreshingPosters}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-theme-primary text-theme-base rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all disabled:opacity-50 touch-manipulation"
-          >
-            <RefreshCw size={11} className={isRefreshingPosters ? 'animate-spin' : ''} />
-            {isRefreshingPosters ? 'Refreshing…' : 'Refresh All'}
-          </button>
-        </div>
-      )}
 
       <UpNextSection
         wishlistMovies={wishlistMovies}
