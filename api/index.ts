@@ -37,16 +37,19 @@ app.post("/api/gemini/vibe", async (req, res) => {
     if (!GEMINI_API_KEY) {
         return res.status(500).json({ error: "GEMINI_API_KEY not configured on server" });
     }
-    const { vibe } = req.body;
+    const { vibe, allowR } = req.body;
     if (!vibe) {
         return res.status(400).json({ error: "Vibe parameter is required" });
     }
+    const ratingInstruction = allowR
+        ? ''
+        : 'Do NOT include any R-rated, TV-MA, or NC-17 movies. Only return family-friendly, G, PG, or PG-13 movies.';
     try {
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
             model: "gemini-3-flash-preview",
             contents: `Suggest 10 movie titles that match this vibe: "${vibe}". 
-      Do NOT include any R-rated, TV-MA, or NC-17 movies. Only return family-friendly, G, PG, or PG-13 movies.
+      ${ratingInstruction}
       Return ONLY a JSON array of 10 movie titles.`,
             config: {
                 responseMimeType: "application/json",
@@ -69,10 +72,13 @@ app.post("/api/gemini/recommend", async (req, res) => {
     if (!GEMINI_API_KEY) {
         return res.status(500).json({ error: "GEMINI_API_KEY not configured on server" });
     }
-    const { history, currentUser, profileNames } = req.body;
+    const { history, currentUser, profileNames, allowR } = req.body;
     if (!history || !currentUser || !profileNames) {
         return res.status(400).json({ error: "Missing required parameters" });
     }
+    const ratingInstruction = allowR
+        ? ''
+        : 'Do NOT include any R-rated, TV-MA, or NC-17 movies. Only return family-friendly, G, PG, or PG-13 movies.';
     try {
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const historyText = history.map((h: any) => {
@@ -92,7 +98,7 @@ app.post("/api/gemini/recommend", async (req, res) => {
       
       Suggest 10 new movies that ${currentUser} would like, but also consider the family's general taste based on their ratings. 
       Heavily prioritize genres and styles that received high ratings (4/5 or 5/5) and avoid those that were rated poorly.
-      Do NOT include any R-rated, TV-MA, or NC-17 movies. Only return family-friendly, G, PG, or PG-13 movies.
+      ${ratingInstruction}
       
       For each movie, provide a 1-sentence reason why it was recommended.
       Return ONLY a JSON array of objects with "title" and "reason" properties.`,
@@ -125,10 +131,11 @@ app.get("/api/tmdb/search", async (req, res) => {
     if (!TMDB_API_KEY) {
         return res.status(500).json({ error: "TMDB_API_KEY not configured on server" });
     }
-    const { query, year } = req.query;
+    const { query, year, allowR } = req.query;
     if (!query) {
         return res.status(400).json({ error: "Query parameter is required" });
     }
+    const shouldFilterRated = allowR !== 'true';
     try {
         const BASE_URL = "https://api.themoviedb.org/3";
         let url = `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query as string)}&include_adult=false`;
@@ -141,6 +148,13 @@ app.get("/api/tmdb/search", async (req, res) => {
 
         const results = data.results || [];
         const topResults = results.slice(0, 15);
+
+        // When allowR is true, skip certification checking entirely
+        if (!shouldFilterRated) {
+            res.json({ results: topResults });
+            return;
+        }
+
         const filteredResults: any[] = [];
 
         await Promise.all(topResults.map(async (movie: any) => {

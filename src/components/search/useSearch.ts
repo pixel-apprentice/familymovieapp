@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { searchMovies, TMDBMovie } from '../../services/tmdb';
 import { getVibeSearchTerms, getFamilyRecommendations, isGeminiConfigured } from '../../services/gemini';
 import { useData } from '../../contexts/DataContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import { toast } from 'sonner';
 import { handleError } from '../../utils/errorHandler';
 
@@ -14,6 +15,7 @@ export function useSearch() {
   const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
 
   const { currentTurnIndex, movies, profiles } = useData();
+  const { allowRatedR } = useSettings();
 
   useEffect(() => {
     if (!loading) return;
@@ -42,7 +44,7 @@ export function useSearch() {
     if (!query.trim()) return;
     setLoading(true);
     try {
-      const res = await searchMovies(query);
+      const res = await searchMovies(query, undefined, allowRatedR);
       const watchedTmdbIds = new Set(
         movies.filter(m => m.status === 'watched' && m.tmdbId).map(m => m.tmdbId!.toString())
       );
@@ -70,11 +72,11 @@ export function useSearch() {
 
     setLoading(true);
     try {
-      const titles = await getVibeSearchTerms(vibe);
+      const titles = await getVibeSearchTerms(vibe, allowRatedR);
       if (titles.length > 0) {
         const tmdbResults = await Promise.all(
           titles.map(async (title) => {
-            const res = await searchMovies(title);
+            const res = await searchMovies(title, undefined, allowRatedR);
             return res[0]; // Take best match
           })
         );
@@ -100,12 +102,12 @@ export function useSearch() {
       const currentUser = profiles[currentTurnIndex]?.id || 'Family';
       const profileNames = profiles.map(p => p.name);
       const history = movies.filter(m => m.status === 'watched' && m.ratings);
-      const recommendations = await getFamilyRecommendations(history, currentUser, profileNames);
+      const recommendations = await getFamilyRecommendations(history, currentUser, profileNames, allowRatedR);
 
       if (recommendations.length > 0) {
         const tmdbResults = await Promise.all(
           recommendations.map(async (rec) => {
-            const res = await searchMovies(rec.title);
+            const res = await searchMovies(rec.title, undefined, allowRatedR);
             if (res[0]) {
               res[0].reason = rec.reason;
               return res[0];

@@ -38,14 +38,17 @@ const dummyMovies: TMDBMovie[] = [
   { id: 3, title: "Magic Kingdom", poster_path: null, release_date: "2025-11-20", overview: "Magic everywhere." }
 ];
 
-export async function searchMovies(query: string, year?: string): Promise<TMDBMovie[]> {
+export async function searchMovies(query: string, year?: string, allowRatedR?: boolean): Promise<TMDBMovie[]> {
   try {
     let url = `/api/tmdb/search?query=${encodeURIComponent(query)}`;
     if (year) {
       url += `&year=${year}`;
     }
+    if (allowRatedR) {
+      url += `&allowR=true`;
+    }
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       console.warn("Backend TMDB search failed, returning dummy data.");
       return dummyMovies;
@@ -63,8 +66,8 @@ export async function getMovieDetails(id: number): Promise<TMDBMovie | null> {
   try {
     const response = await fetch(`/api/tmdb/details/${id}`);
     if (!response.ok) {
-        console.warn("Backend TMDB details failed.");
-        return dummyMovies.find(m => m.id === id) || null;
+      console.warn("Backend TMDB details failed.");
+      return dummyMovies.find(m => m.id === id) || null;
     }
     return await response.json();
   } catch (error) {

@@ -6,6 +6,7 @@ import { DataProvider } from './contexts/DataContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './contexts/AuthContext';
 import { ModalProvider } from './contexts/ModalContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import { Modal } from './components/Modal';
 import { Layout } from './components/Layout';
 import { HomePage } from './pages/HomePage';
@@ -48,11 +49,13 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <ModalProvider>
-          <DataProvider>
-            <BrowserRouter>
-              <AppContent />
-            </BrowserRouter>
-          </DataProvider>
+          <SettingsProvider>
+            <DataProvider>
+              <BrowserRouter>
+                <AppContent />
+              </BrowserRouter>
+            </DataProvider>
+          </SettingsProvider>
         </ModalProvider>
       </AuthProvider>
     </ThemeProvider>

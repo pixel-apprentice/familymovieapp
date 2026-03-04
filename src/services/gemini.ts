@@ -16,14 +16,14 @@ export async function testGeminiConnection(): Promise<{ success: boolean; messag
   }
 }
 
-export async function getVibeSearchTerms(vibe: string): Promise<string[]> {
+export async function getVibeSearchTerms(vibe: string, allowRatedR?: boolean): Promise<string[]> {
   try {
     const response = await fetch('/api/gemini/vibe', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ vibe }),
+      body: JSON.stringify({ vibe, allowR: allowRatedR ?? false }),
     });
 
     if (!response.ok) {
@@ -44,14 +44,14 @@ export interface Recommendation {
   reason: string;
 }
 
-export async function getFamilyRecommendations(history: any[], currentUser: string, profileNames: string[]): Promise<Recommendation[]> {
+export async function getFamilyRecommendations(history: any[], currentUser: string, profileNames: string[], allowRatedR?: boolean): Promise<Recommendation[]> {
   try {
     const response = await fetch('/api/gemini/recommend', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ history, currentUser, profileNames }),
+      body: JSON.stringify({ history, currentUser, profileNames, allowR: allowRatedR ?? false }),
     });
 
     if (!response.ok) {

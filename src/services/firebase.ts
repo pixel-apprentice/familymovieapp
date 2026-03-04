@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -17,25 +17,26 @@ let isFirebaseInitialized = false;
 
 try {
   if (
-    firebaseConfig.apiKey && 
-    firebaseConfig.projectId && 
+    firebaseConfig.apiKey &&
+    firebaseConfig.projectId &&
     firebaseConfig.appId &&
     firebaseConfig.apiKey !== 'undefined'
   ) {
     console.log("[Firebase] Configuration found, initializing...");
     const app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
+
+    // Enable offline persistence with multi-tab support (Option 1 + 2 combo)
+    db = initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+      })
+    });
+
     auth = getAuth(app);
     isFirebaseInitialized = true;
-    console.log("[Firebase] Initialized successfully.");
+    console.log("[Firebase] Initialized with offline persistence.");
   } else {
-    console.warn("[Firebase] Configuration incomplete or missing. Keys present:", {
-      apiKey: !!firebaseConfig.apiKey,
-      authDomain: !!firebaseConfig.authDomain,
-      projectId: !!firebaseConfig.projectId,
-      appId: !!firebaseConfig.appId
-    });
-    console.warn("Falling back to local mode.");
+    console.warn("[Firebase] Configuration incomplete. Falling back to local mode.");
   }
 } catch (error) {
   console.error("Firebase initialization error", error);
