@@ -101,6 +101,11 @@ export async function searchMovies(
       fallbackQuery = fallbackQuery.slice(4);
       tryFallback = true;
     }
+    // 3. Typo fix: ending in 'ie' -> 'y' (e.g., "Vinnie" -> "Vinny")
+    else if (fallbackQuery.endsWith('ie')) {
+      fallbackQuery = fallbackQuery.slice(0, -2) + 'y';
+      tryFallback = true;
+    }
 
     if (tryFallback) {
       console.log(`No results for "${query}", falling back to "${fallbackQuery}"...`);

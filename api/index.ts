@@ -180,13 +180,32 @@ app.get("/api/tmdb/search", async (req, res) => {
                 try {
                     const releaseDatesRes = await fetch(`${BASE_URL}/movie/${movie.id}/release_dates?api_key=${TMDB_API_KEY}`);
                     const releaseDatesData = await releaseDatesRes.json();
-                    const usRelease = releaseDatesData.results?.find((r: any) => r.iso_3166_1 === 'US');
-                    const certification = usRelease?.release_dates?.[0]?.certification || '';
-                    if (!['R', 'NC-17'].includes(certification)) {
+
+                    if (!releaseDatesData.results) {
+                        // Include if no release date data available at all
+                        filteredResults.push(movie);
+                        return;
+                    }
+
+                    const usRelease = releaseDatesData.results.find((r: any) => r.iso_3166_1 === 'US');
+
+                    // If no US release data, be permissive and include it
+                    if (!usRelease || !usRelease.release_dates || usRelease.release_dates.length === 0) {
+                        filteredResults.push(movie);
+                        return;
+                    }
+
+                    // Look for ANY release date cert that is rated R
+                    // TMDB arrays sometimes have multiple release dates (theatrical, digital)
+                    const isRatedR = usRelease.release_dates.some((rd: any) =>
+                        rd.certification === 'R' || rd.certification === 'NC-17'
+                    );
+
+                    if (!isRatedR) {
                         filteredResults.push(movie);
                     }
                 } catch (e) {
-                    // Safe fallback — if we can't verify, we'll include it.
+                    // Safe fallback — if we can't verify (e.g. timeout), we'll include it.
                     filteredResults.push(movie);
                 }
             }));
