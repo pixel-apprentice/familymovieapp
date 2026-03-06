@@ -290,13 +290,7 @@ export const THEME_TEXT = {
     searchResults: 'Scripts Found',
     searchClear: 'Clear Stage',
     statusWatched: 'Wrapped',
-    statusWishlist: 'Scheduled',
-  },
-  'neon-cyberpunk': {
-    searchTitle: 'Acquisition Protocol',
-    searchSubtitle: 'Search or describe your desired cinematic experience',
-    searchMagic: 'Neural Vibe Analysis',
-    nextUp: 'ACTIVE_USER',
+    statusWishlist: 'Scheduled'
   }
 };
 

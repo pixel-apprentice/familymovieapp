@@ -10,10 +10,7 @@ export const themes: { id: Theme; label: string }[] = [
   { id: 'cinematic-glass', label: 'Glass' },
   { id: 'film-noir', label: 'Noir' },
   { id: 'matinee-popcorn', label: 'Popcorn' },
-  { id: 'midnight-cinema', label: 'Midnight' },
   { id: 'vintage-ticket', label: 'Vintage' },
-  { id: 'neon-cyberpunk', label: 'Neon' },
-  { id: 'minimalist-studio', label: 'Studio' },
   { id: 'velvet-theater', label: 'Velvet' },
   { id: 'sci-fi-hologram', label: 'Sci-Fi' },
   { id: 'drive-in', label: 'Drive-In' },
@@ -26,15 +23,15 @@ export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className={`flex flex-wrap gap-1 md:gap-2 p-2 md:p-4 bg-theme-surface border-b border-theme-border transition-all duration-500 ${theme === 'modern-pinnacle' ? 'rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.8)] border border-white/10 m-2 md:m-4 backdrop-blur-xl' : ''
-      } ${theme === 'modern-luminous' ? 'rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.06)] border border-black/5 m-2 md:m-4 backdrop-blur-xl' : ''
-      } ${theme === 'cinematic-glass' ? 'rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/10 m-2 md:m-4 backdrop-blur-2xl bg-slate-900/40' : ''
-      } ${theme === 'film-noir' ? 'border-b-4 border-white/20 bg-black' : ''
-      } ${theme === 'matinee-popcorn' ? 'rounded-2xl border-4 border-red-500 bg-white shadow-[0_8px_32px_rgba(239,68,68,0.2)] m-2 md:m-4' : ''
-      } ${theme === 'velvet-theater' ? 'border-b-4 border-amber-600 bg-rose-950/50' : ''
-      } ${theme === 'neon-cyberpunk' ? 'border-b-2 border-cyan-400 bg-indigo-950/80 shadow-[0_4px_20px_rgba(0,240,255,0.15)]' : ''
-      } ${theme === 'vintage-ticket' ? 'rounded-xl shadow-inner border-b-2 border-amber-900/20' : ''
-      } ${theme === 'mooooovies' ? 'border-b-4 border-black bg-white shadow-[0_4px_0_rgba(0,0,0,1)]' : ''
+    <div className={`flex flex-wrap gap-2 md:gap-3 p-4 md:p-5 m-2 md:m-4 transition-all duration-500 rounded-2xl md:rounded-3xl border-2 bg-theme-surface ${theme === 'modern-pinnacle' ? 'shadow-[0_8px_32px_rgba(0,0,0,0.8)] border-white/10 backdrop-blur-xl' :
+        theme === 'modern-luminous' ? 'shadow-[0_8px_32px_rgba(0,0,0,0.06)] border-black/5 backdrop-blur-xl' :
+          theme === 'cinematic-glass' ? 'shadow-[0_8px_32px_rgba(0,0,0,0.5)] border-white/10 backdrop-blur-2xl bg-slate-900/40' :
+            theme === 'film-noir' ? 'border-white/20 bg-black text-white' :
+              theme === 'matinee-popcorn' ? 'border-red-500 bg-white shadow-[0_8px_32px_rgba(239,68,68,0.2)]' :
+                theme === 'velvet-theater' ? 'border-amber-600 bg-rose-950/50' :
+                  theme === 'vintage-ticket' ? 'shadow-inner border-amber-900/20' :
+                    theme === 'mooooovies' ? 'border-black bg-white shadow-[0_4px_0_rgba(0,0,0,1)]' :
+                      'border-theme-border shadow-xl'
       }`}>
       {themes.map(t => (
         <motion.button
@@ -50,7 +47,6 @@ export function ThemeSwitcher() {
             } ${theme === 'film-noir' ? 'rounded-none border border-white/20 hover:bg-white/10' : ''
             } ${theme === 'matinee-popcorn' ? 'rounded-full border-2 border-red-500/30 hover:border-red-500 hover:bg-red-50' : ''
             } ${theme === 'velvet-theater' ? 'rounded-none mx-0.5 border border-amber-700/30' : ''
-            } ${theme === 'neon-cyberpunk' ? 'rounded-sm border border-cyan-500/30 hover:shadow-[0_0_10px_rgba(0,240,255,0.4)]' : ''
             } ${theme === 'sci-fi-hologram' ? 'rounded-full hover:shadow-[0_0_15px_currentColor]' : ''
             } ${theme === 'vintage-ticket' ? 'ticket-stub rounded-none border border-amber-900/20 shadow-sm' : ''
             } ${theme === 'mooooovies' ? 'rounded-2xl border-2 border-black/20 hover:border-black/50 bg-white text-black' : ''

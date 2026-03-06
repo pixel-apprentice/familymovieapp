@@ -89,19 +89,7 @@
     --theme-font-body: "Inter", sans-serif;
   }
 
-  [data-theme="midnight-cinema"] {
-    --theme-base: #09090b;
-    --theme-surface: #18181b;
-    --theme-primary: #e11d48;
-    --theme-secondary: #9f1239;
-    --theme-text: #f4f4f5;
-    --theme-muted: #a1a1aa;
-    --theme-border: #27272a;
-    --theme-accent: #fb7185;
-    --theme-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-    --theme-font-heading: "Outfit", sans-serif;
-    --theme-font-body: "Inter", sans-serif;
-  }
+
 
   [data-theme="vintage-ticket"] {
     --theme-base: #fdfbf7;
@@ -117,33 +105,7 @@
     --theme-font-body: "Libre Baskerville", serif;
   }
 
-  [data-theme="neon-cyberpunk"] {
-    --theme-base: #050517;
-    --theme-surface: #0f0f2d;
-    --theme-primary: #00f0ff;
-    --theme-secondary: #ff003c;
-    --theme-text: #e0e0ff;
-    --theme-muted: #8a8aab;
-    --theme-border: #00f0ff;
-    --theme-accent: #fcee0a;
-    --theme-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
-    --theme-font-heading: "JetBrains Mono", monospace;
-    --theme-font-body: "Inter", sans-serif;
-  }
 
-  [data-theme="minimalist-studio"] {
-    --theme-base: #f5f5f5;
-    --theme-surface: #fafafa;
-    --theme-primary: #000000;
-    --theme-secondary: #4b5563;
-    --theme-text: #111827;
-    --theme-muted: #6b7280;
-    --theme-border: #e5e7eb;
-    --theme-accent: #3b82f6;
-    --theme-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    --theme-font-heading: "Inter", sans-serif;
-    --theme-font-body: "Inter", sans-serif;
-  }
 
   [data-theme="velvet-theater"] {
     --theme-base: #2e0a16;
@@ -310,35 +272,24 @@
   background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
 }
 
-/* Matinee Popcorn: Red and white stripes, playful */
+/* Matinee Popcorn: Buttery and cinematic */
 [data-theme="matinee-popcorn"] body {
-  background-color: #fef2f2;
-  background-image: repeating-linear-gradient(45deg,
-      #fef2f2,
-      #fef2f2 20px,
-      #fee2e2 20px,
-      #fee2e2 40px);
+  background-color: #fffbeb;
+  background-image: radial-gradient(circle at 20px 20px, #fef3c7 15px, transparent 15px),
+    radial-gradient(circle at 60px 60px, #fef3c7 15px, transparent 15px);
+  background-size: 80px 80px;
   background-attachment: fixed;
 }
 
 [data-theme="matinee-popcorn"] .bg-theme-surface {
   background: #ffffff;
   border: 4px solid #ef4444;
+  /* Clean striped bucket border */
   border-radius: 2rem;
-  box-shadow: 8px 8px 0px rgba(239, 68, 68, 0.2);
+  box-shadow: 8px 8px 0px rgba(239, 68, 68, 0.4);
 }
 
-/* Midnight Cinema: Deep shadows */
-[data-theme="midnight-cinema"] body {
-  background: radial-gradient(circle at top, #18181b 0%, #09090b 100%);
-  background-attachment: fixed;
-}
 
-[data-theme="midnight-cinema"] .bg-theme-surface {
-  background: rgba(24, 24, 27, 0.8);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
 
 /* Vintage Ticket: Paper texture */
 [data-theme="vintage-ticket"] body {
@@ -353,31 +304,7 @@
   background-image: url("https://www.transparenttextures.com/patterns/cream-paper.png");
 }
 
-/* Neon Cyberpunk: Grid & Glow */
-[data-theme="neon-cyberpunk"] body {
-  background-color: #050517;
-  background-image:
-    linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
-  background-size: 30px 30px;
-}
 
-[data-theme="neon-cyberpunk"] .bg-theme-surface {
-  background: rgba(15, 15, 45, 0.8);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
-}
-
-/* Minimalist Studio: Pure clean */
-[data-theme="minimalist-studio"] body {
-  background: #f5f5f5;
-}
-
-[data-theme="minimalist-studio"] .bg-theme-surface {
-  background: #fafaf9;
-  border: 1px solid #e5e7eb;
-}
 
 /* Velvet Theater: Rich curtain */
 [data-theme="velvet-theater"] body {
@@ -465,8 +392,8 @@
 /* Mooooovies: Cow print */
 [data-theme="mooooovies"] body {
   background-color: #f1f5f9;
-  background-image: radial-gradient(rgba(0,0,0,0.03) 15%, transparent 15%),
-    radial-gradient(rgba(0,0,0,0.03) 15%, transparent 15%);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.03) 15%, transparent 15%),
+    radial-gradient(rgba(0, 0, 0, 0.03) 15%, transparent 15%);
   background-position: 0 0, 40px 40px;
   background-size: 80px 80px;
   background-attachment: fixed;
