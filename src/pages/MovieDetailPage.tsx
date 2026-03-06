@@ -342,6 +342,22 @@ export function MovieDetailPage() {
                 </>
               )}
             </div>
+
+            {movie.genres && movie.genres.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {movie.genres.map(genre => (
+                  <span key={genre} className="px-2 py-1 text-[10px] font-black uppercase tracking-widest border border-theme-border rounded-md text-theme-muted">
+                    {genre}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {movie.summary && (
+              <p className="text-sm text-theme-muted leading-relaxed mt-6 max-w-2xl">
+                {movie.summary}
+              </p>
+            )}
           </div>
 
           {/* Actions */}

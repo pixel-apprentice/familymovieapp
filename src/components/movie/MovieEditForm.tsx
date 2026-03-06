@@ -1,6 +1,6 @@
 import React from 'react';
 import { Check, X } from 'lucide-react';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme, useThemeText } from '../../contexts/ThemeContext';
 
 interface MovieEditFormProps {
   editForm: {
@@ -20,26 +20,17 @@ interface MovieEditFormProps {
 
 export function MovieEditForm({ editForm, setEditForm, profiles, handleSave, setIsEditing }: MovieEditFormProps) {
   const { theme } = useTheme();
+  const getThemeText = useThemeText();
   return (
     <div className="flex flex-col gap-4 bg-theme-surface/80 backdrop-blur-md p-6 rounded-2xl border-2 border-theme-primary/20 w-full shadow-xl">
       <h3 className="text-sm font-black uppercase tracking-widest text-theme-primary mb-2">
-        {theme === 'mooooovies' ? 'Edit Pasture Details' :
-         theme === 'drive-in' ? 'Edit Screening Details' :
-         theme === 'blockbuster' ? 'Edit Tape Details' :
-         theme === 'sci-fi-hologram' ? 'Edit Log Details' :
-         theme === 'golden-age' ? 'Edit Script Details' :
-         'Edit Movie Details'}
+        {getThemeText('editDetails')}
       </h3>
       
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="flex flex-col gap-2">
           <label className="text-[10px] uppercase font-black text-theme-muted tracking-widest">
-            {theme === 'mooooovies' ? 'Date Grazed' :
-             theme === 'drive-in' ? 'Date Screened' :
-             theme === 'blockbuster' ? 'Date Returned' :
-             theme === 'sci-fi-hologram' ? 'Date Archived' :
-             theme === 'golden-age' ? 'Date Wrapped' :
-             'Date Watched'}
+            {getThemeText('dateWatched')}
           </label>
           <input 
             type="date" 
@@ -57,20 +48,10 @@ export function MovieEditForm({ editForm, setEditForm, profiles, handleSave, set
             className="bg-theme-base border-2 border-theme-border rounded-xl px-4 py-3 text-sm font-black uppercase text-theme-text focus:outline-none focus:border-theme-primary transition-colors w-full"
           >
             <option value="wishlist">
-              {theme === 'mooooovies' ? 'Pasture' :
-               theme === 'drive-in' ? 'Marquee' :
-               theme === 'blockbuster' ? 'Reserved' :
-               theme === 'sci-fi-hologram' ? 'Pending' :
-               theme === 'golden-age' ? 'Scheduled' :
-               'Wishlist'}
+              {getThemeText('statusWishlist')}
             </option>
             <option value="watched">
-              {theme === 'mooooovies' ? 'Grazed' :
-               theme === 'drive-in' ? 'Screened' :
-               theme === 'blockbuster' ? 'Returned' :
-               theme === 'sci-fi-hologram' ? 'Archived' :
-               theme === 'golden-age' ? 'Wrapped' :
-               'Watched'}
+              {getThemeText('statusWatched')}
             </option>
           </select>
         </div>
@@ -83,12 +64,7 @@ export function MovieEditForm({ editForm, setEditForm, profiles, handleSave, set
             className="bg-theme-base border-2 border-theme-border rounded-xl px-4 py-3 text-sm font-black uppercase text-theme-text focus:outline-none focus:border-theme-primary transition-colors w-full"
           >
             <option value="Family">
-              {theme === 'mooooovies' ? 'The Herd' :
-               theme === 'drive-in' ? 'The Crew' :
-               theme === 'blockbuster' ? 'Staff' :
-               theme === 'sci-fi-hologram' ? 'The Collective' :
-               theme === 'golden-age' ? 'The Cast' :
-               'Family'}
+              {getThemeText('theFamily')}
             </option>
             {profiles.map(p => (
               <option key={p.id} value={p.id}>{p.name}</option>

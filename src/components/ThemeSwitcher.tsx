@@ -41,8 +41,8 @@ export function ThemeSwitcher() {
           whileTap={{ scale: 0.95 }}
           key={t.id}
           onClick={() => { hapticFeedback.light(); setTheme(t.id); }}
-          className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-sm transition-all duration-300 relative overflow-hidden group ${theme === t.id
-            ? 'bg-theme-primary text-theme-base font-bold shadow-md scale-105 z-10'
+          className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-sm font-medium transition-all duration-300 relative overflow-hidden group ${theme === t.id
+            ? 'bg-theme-primary text-theme-base shadow-md scale-105 z-10'
             : 'text-theme-muted hover:text-theme-text hover:bg-theme-border/20'
             } ${theme === 'modern-pinnacle' ? 'rounded-xl border border-white/5 hover:border-white/20' : ''
             } ${theme === 'modern-luminous' ? 'rounded-xl border border-black/5 hover:border-black/10' : ''
@@ -53,7 +53,7 @@ export function ThemeSwitcher() {
             } ${theme === 'neon-cyberpunk' ? 'rounded-sm border border-cyan-500/30 hover:shadow-[0_0_10px_rgba(0,240,255,0.4)]' : ''
             } ${theme === 'sci-fi-hologram' ? 'rounded-full hover:shadow-[0_0_15px_currentColor]' : ''
             } ${theme === 'vintage-ticket' ? 'ticket-stub rounded-none border border-amber-900/20 shadow-sm' : ''
-            } ${theme === 'mooooovies' ? 'rounded-2xl border-2 border-black/20 hover:border-black/50 bg-white text-black font-bold' : ''
+            } ${theme === 'mooooovies' ? 'rounded-2xl border-2 border-black/20 hover:border-black/50 bg-white text-black' : ''
             }`}
         >
           <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-theme-text text-theme-base text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">

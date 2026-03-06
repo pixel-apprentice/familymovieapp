@@ -1,7 +1,7 @@
 import React from 'react';
 import { Movie, useData } from '../contexts/DataContext';
 import { RatingsPanel } from './RatingsPanel';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme, useThemeText } from '../contexts/ThemeContext';
 import { motion } from 'motion/react';
 import { Trash2, Youtube, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -10,6 +10,7 @@ import { hapticFeedback } from '../utils/haptics';
 export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
   const { markWatched, removeMovie, profiles } = useData();
   const { theme } = useTheme();
+  const getThemeText = useThemeText();
 
   const trailerUrl = movie.trailerKey
     ? `https://www.youtube.com/watch?v=${movie.trailerKey}`
@@ -138,12 +139,7 @@ export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
               }`}
           >
             <span className="relative z-10">
-              {theme === 'mooooovies' ? 'Grazed' :
-               theme === 'drive-in' ? 'Screened' :
-               theme === 'blockbuster' ? 'Returned' :
-               theme === 'sci-fi-hologram' ? 'Archived' :
-               theme === 'golden-age' ? 'Wrapped' :
-               'Watched'}
+              {getThemeText('watched')}
             </span>
             <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-500 skew-x-12" />
           </motion.button>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Youtube, Mail } from 'lucide-react';
 import { Movie } from '../../contexts/DataContext';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme, useThemeText } from '../../contexts/ThemeContext';
 
 interface MovieActionsProps {
   movie: Movie;
@@ -14,6 +14,7 @@ interface MovieActionsProps {
 
 export function MovieActions({ movie, trailerUrl, isSending, handlePlexRequest, markWatched, handleDelete }: MovieActionsProps) {
   const { theme } = useTheme();
+  const getThemeText = useThemeText();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <a 
@@ -42,12 +43,7 @@ export function MovieActions({ movie, trailerUrl, isSending, handlePlexRequest, 
           onClick={() => markWatched(movie.id)}
           className="w-full py-4 bg-theme-primary text-theme-base rounded-2xl font-black uppercase text-xs tracking-widest hover:opacity-90 transition-all shadow-lg"
         >
-          {theme === 'mooooovies' ? 'Mark as Grazed' :
-           theme === 'drive-in' ? 'Mark as Screened' :
-           theme === 'blockbuster' ? 'Mark as Returned' :
-           theme === 'sci-fi-hologram' ? 'Mark as Archived' :
-           theme === 'golden-age' ? 'Mark as Wrapped' :
-           'Mark as Watched'}
+          {getThemeText('markAsWatched')}
         </button>
       )}
 
@@ -55,12 +51,7 @@ export function MovieActions({ movie, trailerUrl, isSending, handlePlexRequest, 
         onClick={handleDelete}
         className="w-full py-4 bg-red-600/10 text-red-500 border-2 border-red-500/20 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-lg"
       >
-        {theme === 'mooooovies' ? 'Remove from Pasture' :
-         theme === 'drive-in' ? 'Remove from Marquee' :
-         theme === 'blockbuster' ? 'Return Tape' :
-         theme === 'sci-fi-hologram' ? 'Delete Log' :
-         theme === 'golden-age' ? 'Burn Script' :
-         'Delete Movie'}
+        {getThemeText('deleteMovie')}
       </button>
     </div>
   );

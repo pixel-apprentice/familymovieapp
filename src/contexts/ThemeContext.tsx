@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { getThemeText, ThemeTextKey } from '../utils/themeDictionary';
 
 export type Theme =
   | 'modern-pinnacle'
@@ -48,4 +49,9 @@ export function useTheme() {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
+}
+
+export function useThemeText() {
+  const { theme } = useTheme();
+  return (key: ThemeTextKey) => getThemeText(theme, key);
 }

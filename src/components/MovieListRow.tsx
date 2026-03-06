@@ -4,7 +4,7 @@ import { ExternalLink } from 'lucide-react';
 import { Movie } from '../contexts/DataContext';
 import { useData } from '../contexts/DataContext';
 import { hapticFeedback } from '../utils/haptics';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme, useThemeText } from '../contexts/ThemeContext';
 
 interface MovieListRowProps {
     movie: Movie;
@@ -13,6 +13,7 @@ interface MovieListRowProps {
 export const MovieListRow: React.FC<MovieListRowProps> = ({ movie }) => {
     const { profiles, markWatched } = useData();
     const { theme } = useTheme();
+    const getThemeText = useThemeText();
     const profile = profiles.find(p => p.id === movie.pickedBy);
     const pickerColor = profile?.color || 'currentColor';
 
@@ -85,12 +86,7 @@ export const MovieListRow: React.FC<MovieListRowProps> = ({ movie }) => {
                             onClick={() => { hapticFeedback.success(); markWatched(movie.id); }}
                             className="px-2.5 py-1.5 bg-theme-primary/10 text-theme-primary rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-theme-primary hover:text-theme-base transition-all active:scale-95 touch-manipulation opacity-0 group-hover:opacity-100 focus:opacity-100 sm:opacity-100"
                         >
-                            {theme === 'mooooovies' ? 'Grazed' :
-                             theme === 'drive-in' ? 'Screened' :
-                             theme === 'blockbuster' ? 'Returned' :
-                             theme === 'sci-fi-hologram' ? 'Archived' :
-                             theme === 'golden-age' ? 'Wrapped' :
-                             'Watched'}
+                            {getThemeText('watched')}
                         </button>
                     )}
                     <Link to={`/movie/${movie.id}`} className="text-theme-muted hover:text-theme-primary transition-colors p-2 -mr-2">

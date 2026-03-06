@@ -4,7 +4,7 @@ import { Movie } from '../../contexts/DataContext';
 import { MovieCard } from '../MovieCard';
 import { MovieListRow } from '../MovieListRow';
 import { hapticFeedback } from '../../utils/haptics';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme, useThemeText } from '../../contexts/ThemeContext';
 
 interface UpNextSectionProps {
   wishlistMovies: Movie[];
@@ -16,26 +16,15 @@ interface UpNextSectionProps {
 
 export function UpNextSection({ wishlistMovies, pickRandom, randomMovie, setRandomMovie, viewMode }: UpNextSectionProps) {
   const { theme } = useTheme();
+  const getThemeText = useThemeText();
   return (
     <section className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-black text-theme-primary uppercase tracking-tighter">
-          {theme === 'mooooovies' ? 'The Herd\'s Watchlist' : 
-           theme === 'drive-in' ? 'Double Feature List' :
-           theme === 'blockbuster' ? 'Reserved VHS Tapes' :
-           theme === 'sci-fi-hologram' ? 'Data Logs' :
-           theme === 'golden-age' ? 'The Marquee' :
-           'Watchlist'}
+          {getThemeText('upNextTitle')}
         </h2>
         <span className="text-[10px] font-black uppercase tracking-widest text-theme-muted">
-          {wishlistMovies.length} {
-            theme === 'mooooovies' ? 'Pastures' :
-            theme === 'drive-in' ? 'Frequencies' :
-            theme === 'blockbuster' ? 'Tapes' :
-            theme === 'sci-fi-hologram' ? 'Logs' :
-            theme === 'golden-age' ? 'Scripts' :
-            'Movies'
-          }
+          {wishlistMovies.length} {getThemeText('upNextUnit')}
         </span>
       </div>
 
@@ -54,12 +43,7 @@ export function UpNextSection({ wishlistMovies, pickRandom, randomMovie, setRand
             >
               <div className="bg-theme-surface p-6 rounded-3xl border-2 border-theme-accent shadow-2xl text-center space-y-4">
                 <h3 className="text-sm font-black uppercase tracking-widest text-theme-accent">
-                  {theme === 'mooooovies' ? 'The Herd Has Spoken' :
-                   theme === 'drive-in' ? 'Feature Presentation' :
-                   theme === 'blockbuster' ? 'Staff Pick' :
-                   theme === 'sci-fi-hologram' ? 'Optimal Selection' :
-                   theme === 'golden-age' ? 'Now Showing' :
-                   'The Universe Has Chosen'}
+                  {getThemeText('randomPick')}
                 </h3>
                 <MovieCard movie={randomMovie} />
                 <button
@@ -77,12 +61,7 @@ export function UpNextSection({ wishlistMovies, pickRandom, randomMovie, setRand
       {wishlistMovies.length === 0 ? (
         <div className="text-center py-12 bg-theme-surface rounded-3xl border border-theme-border border-dashed">
           <p className="text-theme-muted font-mono text-sm uppercase tracking-widest">
-            {theme === 'mooooovies' ? 'No movies in the pasture' : 
-             theme === 'drive-in' ? 'No movies on the marquee' :
-             theme === 'blockbuster' ? 'No tapes reserved' :
-             theme === 'sci-fi-hologram' ? 'No data logs found' :
-             theme === 'golden-age' ? 'No pictures scheduled' :
-             'No movies in watchlist'}
+            {getThemeText('upNextEmpty')}
           </p>
         </div>
       ) : viewMode === 'grid' ? (
