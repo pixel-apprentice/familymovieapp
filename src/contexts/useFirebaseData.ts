@@ -121,17 +121,21 @@ export function useFirebaseData() {
     await setDoc(doc(db, 'metadata', 'config'), { profiles: newProfiles }, { merge: true });
   };
 
-  const refreshMetadata = async () => {
-    // Bulk-fetch TMDB posters for movies missing them or with invalid paths
-    const moviesNeedingPosters = movies.filter(m =>
-      !m.poster_url ||
-      m.poster_url.trim() === '' ||
-      (!m.poster_url.startsWith('http') && m.poster_url.length < 5) // Catch broken short strings
-    );
+  const refreshMetadata = async (forceAll = false) => {
+    // Bulk-fetch TMDB posters.
+    // - default: only missing/broken posters
+    // - forceAll=true: refresh every movie (used by "Refresh All")
+    const moviesToRefresh = forceAll
+      ? movies
+      : movies.filter(m =>
+          !m.poster_url ||
+          m.poster_url.trim() === '' ||
+          (!m.poster_url.startsWith('http') && m.poster_url.length < 5) // Catch broken short strings
+        );
 
-    if (moviesNeedingPosters.length === 0) return;
+    if (moviesToRefresh.length === 0) return;
 
-    for (const movie of moviesNeedingPosters) {
+    for (const movie of moviesToRefresh) {
       try {
         let best: any = null;
 

@@ -46,7 +46,7 @@ interface DataContextType {
   setTurn: (index: number) => Promise<void>;
   resetDatabase: () => Promise<void>;
   updateProfiles: (profiles: FamilyProfile[]) => Promise<void>;
-  refreshMetadata: () => Promise<void>;
+  refreshMetadata: (forceAll?: boolean) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
