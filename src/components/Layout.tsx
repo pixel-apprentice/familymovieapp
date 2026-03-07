@@ -7,6 +7,7 @@ import { motion } from 'motion/react';
 import { Home, Settings } from 'lucide-react';
 import { PizzaButton } from './PizzaButton';
 import { hapticFeedback } from '../utils/haptics';
+import { PWAStatusBar } from './PWAStatusBar';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { isLocalMode } = useData();
@@ -33,6 +34,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <span>⚠️ Local Mode: Check Firebase Keys & Enable Anonymous Auth</span>
         </div>
       )}
+
+      <PWAStatusBar />
 
       <header className="sticky top-0 z-40 bg-theme-base/60 backdrop-blur-xl border-b border-theme-border/50">
         <div className="max-w-7xl mx-auto flex items-center justify-between p-3 md:p-4">

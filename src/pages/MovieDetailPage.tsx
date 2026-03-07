@@ -6,7 +6,7 @@ import { useModal } from '../contexts/ModalContext';
 import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, Star, Info, Edit2, RefreshCw } from 'lucide-react';
 import { sendRequestEmail } from '../services/emailService';
-import { searchMovies, GENRE_MAP } from '../services/tmdb';
+import { searchMovies, getMovieDetails, pickBestMovieMatch, GENRE_MAP } from '../services/tmdb';
 import { handleError } from '../utils/errorHandler';
 import { toast } from 'sonner';
 import { MovieEditForm } from '../components/movie/MovieEditForm';
@@ -88,10 +88,18 @@ export function MovieDetailPage() {
       // Since this movie is already in our DB, we don't want to filter out R-rated movies
       // (in case we watched one), and we definitely DON'T want to use movie.date as the 
       // release year since movie.date is the date we *watched* it.
-      const results = await searchMovies(movie.title, undefined, true);
+      let bestMatch: any = null;
 
-      if (results && results.length > 0) {
-        const bestMatch = results[0];
+      if (movie.tmdbId && /^\d+$/.test(String(movie.tmdbId))) {
+        bestMatch = await getMovieDetails(Number(movie.tmdbId));
+      }
+
+      if (!bestMatch) {
+        const results = await searchMovies(movie.title, undefined, true);
+        bestMatch = pickBestMovieMatch(movie.title, results);
+      }
+
+      if (bestMatch) {
         console.log("Found match:", bestMatch);
 
         // Always save as a full absolute URL for consistency
@@ -103,7 +111,8 @@ export function MovieDetailPage() {
           poster_url: fullPosterUrl,
           summary: bestMatch.overview,
           trailerKey: bestMatch.trailerKey,
-          genres: bestMatch.genre_ids?.map(id => GENRE_MAP[id]).filter(Boolean)
+          genres: bestMatch.genre_ids?.map(id => GENRE_MAP[id]).filter(Boolean),
+          tmdbId: String(bestMatch.id)
         });
         toast.success(`Metadata refreshed for ${movie.title}`);
       } else {
