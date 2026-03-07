@@ -4,7 +4,7 @@ import { hapticFeedback } from '../utils/haptics';
 import { UpNextSection } from './movie-list/UpNextSection';
 import { HistorySection } from './movie-list/HistorySection';
 import { AnimatePresence, motion } from 'motion/react';
-import { LayoutGrid, List, ChevronUp, Filter, WandSparkles, Trash2, CircleCheck, X } from 'lucide-react';
+import { LayoutGrid, List, ChevronUp, Filter, WandSparkles, Trash2, CircleCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 const STORAGE_KEY = 'fmn_view_mode';
@@ -22,7 +22,6 @@ export function MovieList() {
   const [genreFilter, setGenreFilter] = useState('all');
   const [sortMode, setSortMode] = useState<SortMode>('recent');
   const [bulkBusy, setBulkBusy] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
 
   const wishlistMovies = useMemo(() => movies.filter(m => m.status === 'wishlist'), [movies]);
   const watchedMoviesRaw = useMemo(() => movies.filter(m => m.status === 'watched'), [movies]);
@@ -66,14 +65,7 @@ export function MovieList() {
     return list;
   }, [watchedMoviesRaw, pickerFilter, genreFilter, sortMode]);
 
-  const hasActiveFilters = pickerFilter !== 'all' || genreFilter !== 'all' || sortMode !== 'recent';
-
-  const clearFilters = () => {
-    setPickerFilter('all');
-    setGenreFilter('all');
-    setSortMode('recent');
-  };
-
+  // Feature #2: weighted smart picker
   const pickRandom = () => {
     if (filteredWishlist.length === 0) return;
     hapticFeedback.medium();
@@ -147,25 +139,22 @@ export function MovieList() {
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-2">
-      <div className="flex items-center justify-between gap-2 relative">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowFilters(v => !v)}
-            className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${showFilters || hasActiveFilters
-              ? 'border-theme-primary text-theme-primary bg-theme-primary/10'
-              : 'border-theme-border text-theme-muted hover:text-theme-primary hover:border-theme-primary/50'
-              }`}
-          >
-            <Filter size={12} />
-            Filters
-            {hasActiveFilters && <span className="px-1.5 py-0.5 rounded bg-theme-primary text-theme-base text-[9px]">ON</span>}
-          </button>
-
-          {hasActiveFilters && (
-            <button onClick={clearFilters} className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-theme-muted hover:text-theme-primary border border-theme-border">
-              <X size={11} /> Clear
-            </button>
-          )}
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
+        <div className="flex flex-wrap items-center gap-2 bg-theme-surface border border-theme-border rounded-xl p-2">
+          <Filter size={14} className="text-theme-muted" />
+          <select value={pickerFilter} onChange={(e) => setPickerFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
+            <option value="all">All Pickers</option>
+            {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          <select value={genreFilter} onChange={(e) => setGenreFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
+            <option value="all">All Genres</option>
+            {uniqueGenres.map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
+          <select value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
+            <option value="recent">Sort: Recent</option>
+            <option value="title">Sort: Title</option>
+            <option value="rating">Sort: Rating</option>
+          </select>
         </div>
 
         <div className="flex items-center gap-1 bg-theme-surface border border-theme-border rounded-xl p-1 justify-end">
