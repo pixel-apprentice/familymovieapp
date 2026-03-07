@@ -3,7 +3,7 @@ import { collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc } from 'fireb
 import { db } from '../services/firebase';
 import { Movie, FamilyProfile, DEFAULT_PROFILES } from './DataContext';
 import { useAuth } from './AuthContext';
-import { searchMovies, GENRE_MAP } from '../services/tmdb';
+import { searchMovies, getMovieDetails, pickBestMovieMatch, GENRE_MAP } from '../services/tmdb';
 
 export function useFirebaseData() {
   const { user, loading: authLoading } = useAuth();
@@ -133,26 +133,39 @@ export function useFirebaseData() {
 
     for (const movie of moviesNeedingPosters) {
       try {
-        // We do NOT use movie.date as the year, because movie.date is the date *watched*.
-        // We also pass allowRatedR=true so we can fetch posters for any movie already in the DB.
-        const results = await searchMovies(movie.title, undefined, true);
-        if (results && results.length > 0) {
-          const best = results[0];
+        let best: any = null;
 
-          const fullPosterUrl = best.poster_path
-            ? `https://image.tmdb.org/t/p/w500${best.poster_path}`
-            : '';
-
-          const sanitized = Object.fromEntries(
-            Object.entries({
-              poster_url: fullPosterUrl,
-              summary: best.overview,
-              genres: best.genre_ids?.map((id: number) => GENRE_MAP[id]).filter(Boolean),
-              tmdbId: String(best.id),
-            }).filter(([_, v]) => v !== undefined && v !== null)
-          );
-          await updateDoc(doc(db, 'movies', movie.id), sanitized);
+        // If we already know the TMDB id, trust it first (same behavior users expect from detail refresh)
+        if (movie.tmdbId && /^\d+$/.test(String(movie.tmdbId))) {
+          best = await getMovieDetails(Number(movie.tmdbId));
         }
+
+        // Fallback to title search for older rows without tmdbId
+        if (!best) {
+          // We do NOT use movie.date as the year, because movie.date is the date *watched*.
+          // We also pass allowRatedR=true so we can fetch posters for any movie already in the DB.
+          const results = await searchMovies(movie.title, undefined, true);
+          best = pickBestMovieMatch(movie.title, results);
+        }
+
+        if (!best) {
+          console.warn(`No TMDB match found for ${movie.title}`);
+          continue;
+        }
+
+        const fullPosterUrl = best.poster_path
+          ? `https://image.tmdb.org/t/p/w500${best.poster_path}`
+          : '';
+
+        const sanitized = Object.fromEntries(
+          Object.entries({
+            poster_url: fullPosterUrl,
+            summary: best.overview,
+            genres: best.genre_ids?.map((id: number) => GENRE_MAP[id]).filter(Boolean),
+            tmdbId: String(best.id),
+          }).filter(([_, v]) => v !== undefined && v !== null)
+        );
+        await updateDoc(doc(db, 'movies', movie.id), sanitized);
       } catch (e) {
         console.warn(`Failed to refresh metadata for ${movie.title}:`, e);
       }

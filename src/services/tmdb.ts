@@ -116,6 +116,47 @@ export async function searchMovies(
   return results;
 }
 
+
+const normalizeTitle = (title: string) =>
+  title
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+export function pickBestMovieMatch(query: string, results: TMDBMovie[]): TMDBMovie | null {
+  if (!results || results.length === 0) return null;
+
+  const normalizedQuery = normalizeTitle(query);
+  const queryTokens = normalizedQuery.split(' ').filter(Boolean);
+
+  const scored = results.map((movie, index) => {
+    const normalizedTitle = normalizeTitle(movie.title);
+    const titleTokens = normalizedTitle.split(' ').filter(Boolean);
+
+    let score = 0;
+
+    if (normalizedTitle === normalizedQuery) score += 100;
+    if (normalizedTitle.startsWith(normalizedQuery)) score += 40;
+    if (normalizedQuery.startsWith(normalizedTitle)) score += 20;
+
+    const overlap = queryTokens.filter(token => titleTokens.includes(token)).length;
+    score += overlap * 8;
+
+    // Prefer results that actually have posters
+    if (movie.poster_path) score += 10;
+
+    // Very slight preference for earlier API results to preserve TMDB ranking when tied
+    score += Math.max(0, 5 - index);
+
+    return { movie, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0]?.movie ?? results[0];
+}
+
 export async function getMovieDetails(id: number): Promise<TMDBMovie | null> {
   const response = await fetch(`/api/tmdb/details/${id}`);
   if (!response.ok) {
