@@ -4,18 +4,27 @@ import { useSettings } from '../../contexts/SettingsContext';
 
 export function SearchPreferencesPanel() {
     const { theme } = useTheme();
-    const { allowRatedR, setAllowRatedR } = useSettings();
+    const {
+        allowRatedR,
+        setAllowRatedR,
+        recommendationMode,
+        setRecommendationMode,
+        contentMaxRating,
+        setContentMaxRating,
+        blockMatureThemes,
+        setBlockMatureThemes,
+    } = useSettings();
 
     return (
         <section className="space-y-6">
             <div className="flex items-center gap-4">
                 <h2 className={`text-xl md:text-2xl font-black uppercase tracking-widest text-theme-primary ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
                     {theme === 'mooooovies' ? 'Graze Preferences' :
-                     theme === 'drive-in' ? 'Screening Preferences' :
-                     theme === 'blockbuster' ? 'Rental Preferences' :
-                     theme === 'sci-fi-hologram' ? 'Search Parameters' :
-                     theme === 'golden-age' ? 'Casting Preferences' :
-                     'Search Preferences'}
+                        theme === 'drive-in' ? 'Screening Preferences' :
+                            theme === 'blockbuster' ? 'Rental Preferences' :
+                                theme === 'sci-fi-hologram' ? 'Search Parameters' :
+                                    theme === 'golden-age' ? 'Casting Preferences' :
+                                        'Search Preferences'}
                 </h2>
                 <div className="h-px flex-1 bg-theme-border/30" />
             </div>
@@ -23,42 +32,61 @@ export function SearchPreferencesPanel() {
             <div className={`bg-theme-surface/30 p-6 rounded-[2.5rem] border-2 border-theme-border shadow-xl ${theme === 'modern-pinnacle' ? 'rounded-3xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl bg-white/[0.02]' : ''
                 } ${theme === 'modern-luminous' ? 'rounded-3xl border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl bg-black/[0.02]' : ''
                 }`}>
-                <div className="flex items-center justify-between gap-6">
-                    <div className="flex-1">
-                        <h3 className="text-sm font-black uppercase tracking-widest text-theme-text">
-                            🔞 Allow R-Rated Movies
-                        </h3>
-                        <p className="text-xs text-theme-muted font-mono mt-1 leading-relaxed">
-                            When enabled, R-rated movies may appear in search results and AI recommendations.
-                            Off by default to keep things family-friendly.
-                        </p>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <label className="flex flex-col gap-2 text-xs font-mono uppercase tracking-widest text-theme-muted">
+                        Max Rating
+                        <select
+                            value={contentMaxRating}
+                            onChange={(e) => setContentMaxRating(e.target.value as 'PG' | 'PG-13' | 'R')}
+                            className="bg-theme-base border border-theme-border rounded-xl px-3 py-2 text-theme-text font-black"
+                        >
+                            <option value="PG">PG</option>
+                            <option value="PG-13">PG-13</option>
+                            <option value="R">R</option>
+                        </select>
+                    </label>
 
-                    {/* Toggle Switch */}
+                    <label className="flex flex-col gap-2 text-xs font-mono uppercase tracking-widest text-theme-muted">
+                        Recommendation Mode
+                        <select
+                            value={recommendationMode}
+                            onChange={(e) => setRecommendationMode(e.target.value as any)}
+                            className="bg-theme-base border border-theme-border rounded-xl px-3 py-2 text-theme-text font-black"
+                        >
+                            <option value="balanced">Balanced</option>
+                            <option value="familiar">Comfort Picks</option>
+                            <option value="explore">Try Something New</option>
+                            <option value="safe">Kid-Safe Only</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div className="mt-5 flex flex-col gap-4">
                     <button
                         id="allow-rated-r-toggle"
                         role="switch"
                         aria-checked={allowRatedR}
                         onClick={() => setAllowRatedR(!allowRatedR)}
-                        className={`relative flex-shrink-0 w-14 h-7 rounded-full border-2 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-theme-primary ${allowRatedR
-                                ? 'bg-theme-primary border-theme-primary'
-                                : 'bg-theme-border border-theme-border'
-                            }`}
+                        className="w-full flex items-center justify-between p-3 rounded-2xl border border-theme-border bg-theme-base/60"
                     >
-                        <span
-                            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-300 ${allowRatedR ? 'translate-x-7' : 'translate-x-0'
-                                }`}
-                        />
+                        <span className="text-xs font-black uppercase tracking-widest text-theme-text">🔞 Allow R-Rated Movies</span>
+                        <span className={`text-[10px] font-mono uppercase tracking-widest ${allowRatedR ? 'text-theme-primary' : 'text-theme-muted'}`}>
+                            {allowRatedR ? 'Enabled' : 'Disabled'}
+                        </span>
+                    </button>
+
+                    <button
+                        role="switch"
+                        aria-checked={blockMatureThemes}
+                        onClick={() => setBlockMatureThemes(!blockMatureThemes)}
+                        className="w-full flex items-center justify-between p-3 rounded-2xl border border-theme-border bg-theme-base/60"
+                    >
+                        <span className="text-xs font-black uppercase tracking-widest text-theme-text">🛡️ Block Mature Theme Keywords</span>
+                        <span className={`text-[10px] font-mono uppercase tracking-widest ${blockMatureThemes ? 'text-theme-primary' : 'text-theme-muted'}`}>
+                            {blockMatureThemes ? 'On' : 'Off'}
+                        </span>
                     </button>
                 </div>
-
-                {allowRatedR && (
-                    <div className="mt-4 px-4 py-3 rounded-2xl bg-orange-500/10 border border-orange-500/20">
-                        <p className="text-[11px] font-mono text-orange-400 uppercase tracking-widest">
-                            ⚠️ R-rated content enabled — search results may include mature titles
-                        </p>
-                    </div>
-                )}
             </div>
         </section>
     );

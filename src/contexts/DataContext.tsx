@@ -38,6 +38,7 @@ interface DataContextType {
   profiles: FamilyProfile[];
   currentTurnIndex: number;
   isLocalMode: boolean;
+  syncStatus: 'synced' | 'syncing' | 'offline' | 'local-only';
   addMovie: (movie: Omit<Movie, 'id'> & { id?: string }) => Promise<void>;
   updateMovie: (id: string, updates: Partial<Movie>) => Promise<void>;
   removeMovie: (id: string) => Promise<void>;
@@ -60,6 +61,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     profiles,
     currentTurnIndex,
     isLocalMode,
+    syncStatus,
     addMovie,
     updateMovie,
     removeMovie,
@@ -156,6 +158,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     profiles,
     currentTurnIndex,
     isLocalMode,
+    syncStatus,
     addMovie,
     updateMovie,
     removeMovie,
@@ -165,7 +168,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     resetDatabase,
     updateProfiles,
     refreshMetadata
-  }), [movies, profiles, currentTurnIndex, isLocalMode]);
+  }), [movies, profiles, currentTurnIndex, isLocalMode, syncStatus]);
 
   return (
     <DataContext.Provider value={value}>

@@ -11,6 +11,7 @@ export function useFirebaseData() {
   const [profiles, setProfiles] = useState<FamilyProfile[]>(DEFAULT_PROFILES);
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   const [isLocalMode, setIsLocalMode] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'offline' | 'local-only'>('syncing');
 
   useEffect(() => {
     // Don't do anything while Firebase Auth is still initializing
@@ -18,6 +19,7 @@ export function useFirebaseData() {
 
     if (!user) {
       setIsLocalMode(true);
+      setSyncStatus('local-only');
       const localMovies = localStorage.getItem('localMovies');
       if (localMovies) setMovies(JSON.parse(localMovies));
       const localTurn = localStorage.getItem('localTurn');
@@ -26,10 +28,12 @@ export function useFirebaseData() {
     }
 
     setIsLocalMode(false);
+    setSyncStatus(navigator.onLine ? 'synced' : 'offline');
 
     const unsubscribeMovies = onSnapshot(collection(db, 'movies'), (snapshot) => {
       const moviesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Movie));
       setMovies(moviesData);
+      setSyncStatus(navigator.onLine ? 'synced' : 'offline');
     });
 
     const unsubscribeConfig = onSnapshot(doc(db, 'metadata', 'config'), (docSnap) => {
@@ -45,6 +49,23 @@ export function useFirebaseData() {
       unsubscribeConfig();
     };
   }, [user, authLoading]);
+
+
+  useEffect(() => {
+    const onOnline = () => {
+      if (isLocalMode) return;
+      setSyncStatus('synced');
+    };
+    const onOffline = () => {
+      setSyncStatus(isLocalMode ? 'local-only' : 'offline');
+    };
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, [isLocalMode]);
 
   const saveLocalMovies = (newMovies: Movie[]) => {
     setMovies(newMovies);
@@ -62,6 +83,7 @@ export function useFirebaseData() {
       Object.entries(movie).filter(([_, v]) => v !== undefined && v !== null)
     );
     const docRef = movie.id ? doc(db, 'movies', movie.id) : doc(collection(db, 'movies'));
+    setSyncStatus('syncing');
     await setDoc(docRef, sanitized);
   };
 
@@ -74,6 +96,7 @@ export function useFirebaseData() {
     const sanitized = Object.fromEntries(
       Object.entries(updates).filter(([_, v]) => v !== undefined)
     );
+    setSyncStatus('syncing');
     await updateDoc(doc(db, 'movies', id), sanitized);
   };
 
@@ -82,6 +105,7 @@ export function useFirebaseData() {
       saveLocalMovies(movies.filter(m => m.id !== id));
       return;
     }
+    setSyncStatus('syncing');
     await deleteDoc(doc(db, 'movies', id));
   };
 
@@ -91,6 +115,7 @@ export function useFirebaseData() {
       saveLocalMovies(movies.map(m => m.id === id ? { ...m, ...updates } : m));
       return;
     }
+    setSyncStatus('syncing');
     await updateDoc(doc(db, 'movies', id), updates);
   };
 
@@ -101,6 +126,7 @@ export function useFirebaseData() {
       localStorage.setItem('localTurn', nextTurn.toString());
       return;
     }
+    setSyncStatus('syncing');
     await setDoc(doc(db, 'metadata', 'config'), { currentTurnIndex: nextTurn }, { merge: true });
   };
 
@@ -110,6 +136,7 @@ export function useFirebaseData() {
       localStorage.setItem('localTurn', index.toString());
       return;
     }
+    setSyncStatus('syncing');
     await setDoc(doc(db, 'metadata', 'config'), { currentTurnIndex: index }, { merge: true });
   };
 
@@ -118,6 +145,7 @@ export function useFirebaseData() {
       setProfiles(newProfiles);
       return;
     }
+    setSyncStatus('syncing');
     await setDoc(doc(db, 'metadata', 'config'), { profiles: newProfiles }, { merge: true });
   };
 
@@ -135,6 +163,7 @@ export function useFirebaseData() {
 
     if (moviesToRefresh.length === 0) return;
 
+    setSyncStatus('syncing');
     for (const movie of moviesToRefresh) {
       try {
         let best: any = null;
@@ -181,6 +210,7 @@ export function useFirebaseData() {
     profiles,
     currentTurnIndex,
     isLocalMode,
+    syncStatus,
     addMovie,
     updateMovie,
     removeMovie,

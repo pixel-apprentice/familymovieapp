@@ -10,7 +10,7 @@ import { hapticFeedback } from '../utils/haptics';
 import { PWAStatusBar } from './PWAStatusBar';
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { isLocalMode } = useData();
+  const { isLocalMode, syncStatus } = useData();
   const { theme } = useTheme();
   const location = useLocation();
 
@@ -53,6 +53,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </h1>
           </Link>
           
+          <div className="hidden md:flex items-center mr-2">
+            <span className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${
+              syncStatus === 'synced' ? 'bg-emerald-500/20 text-emerald-400' :
+              syncStatus === 'syncing' ? 'bg-blue-500/20 text-blue-400' :
+              syncStatus === 'offline' ? 'bg-amber-500/20 text-amber-400' :
+              'bg-theme-border/40 text-theme-muted'
+            }`}>
+              {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing' : syncStatus === 'offline' ? 'Offline' : 'Local'}
+            </span>
+          </div>
+
           <nav className="flex items-center gap-1 md:gap-2">
             <Link 
               to="/" 

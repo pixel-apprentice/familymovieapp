@@ -5,34 +5,43 @@ import { useData } from '../../contexts/DataContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import { toast } from 'sonner';
 
-// Build a Set of already-watched movie identifiers for de-duplication
-function buildWatchedSets(movies: ReturnType<typeof useData>['movies']): {
-  watchedTmdbIds: Set<string>;
-  watchedTitles: Set<string>;
+const MATURE_KEYWORDS = ['gore', 'graphic', 'sexual', 'drug', 'abuse', 'torture', 'violence', 'nudity'];
+
+function buildExistingSets(movies: ReturnType<typeof useData>['movies']): {
+  existingTmdbIds: Set<string>;
+  existingTitles: Set<string>;
 } {
-  const watchedTmdbIds = new Set<string>(
+  const existingTmdbIds = new Set<string>(
     movies
-      .filter(m => m.status === 'watched' && m.tmdbId)
+      .filter(m => m.tmdbId)
       .map(m => m.tmdbId!.toString())
   );
-  const watchedTitles = new Set<string>(
+  const existingTitles = new Set<string>(
     movies
-      .filter(m => m.status === 'watched')
+      .filter(() => true)
       .map(m => m.title.toLowerCase().trim())
   );
-  return { watchedTmdbIds, watchedTitles };
+  return { existingTmdbIds, existingTitles };
 }
 
 function dedupeResults(
   results: TMDBMovie[],
-  watchedTmdbIds: Set<string>,
-  watchedTitles: Set<string>
+  existingTmdbIds: Set<string>,
+  existingTitles: Set<string>
 ): TMDBMovie[] {
   return results.filter(
     m =>
-      !watchedTmdbIds.has(m.id.toString()) &&
-      !watchedTitles.has((m.title || '').toLowerCase().trim())
+      !existingTmdbIds.has(m.id.toString()) &&
+      !existingTitles.has((m.title || '').toLowerCase().trim())
   );
+}
+
+function filterForSafety(results: TMDBMovie[], blockMatureThemes: boolean): TMDBMovie[] {
+  if (!blockMatureThemes) return results;
+  return results.filter(m => {
+    const summary = (m.overview || '').toLowerCase();
+    return !MATURE_KEYWORDS.some(k => summary.includes(k));
+  });
 }
 
 export function useSearch() {
@@ -44,9 +53,8 @@ export function useSearch() {
   const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
 
   const { currentTurnIndex, movies, profiles } = useData();
-  const { allowRatedR } = useSettings();
+  const { allowRatedR, recommendationMode, blockMatureThemes } = useSettings();
 
-  // Rotating loading messages
   useEffect(() => {
     if (!loading) return;
     const messages = [
@@ -66,7 +74,6 @@ export function useSearch() {
     return () => clearInterval(interval);
   }, [loading]);
 
-  // ── Direct Search ──────────────────────────────────────────────────────────
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
@@ -75,11 +82,11 @@ export function useSearch() {
     setResults([]);
     try {
       const res = await searchMovies(query.trim(), undefined, allowRatedR);
-      const { watchedTmdbIds, watchedTitles } = buildWatchedSets(movies);
-      const filtered = dedupeResults(res, watchedTmdbIds, watchedTitles);
+      const { existingTmdbIds, existingTitles } = buildExistingSets(movies);
+      const filtered = filterForSafety(dedupeResults(res, existingTmdbIds, existingTitles), blockMatureThemes);
 
       if (filtered.length === 0 && res.length > 0) {
-        toast.info("All results have already been watched!");
+        toast.info('No safe/new results for that search.');
       } else if (filtered.length === 0) {
         toast.info(`No results found for "${query}"`);
       } else {
@@ -93,7 +100,6 @@ export function useSearch() {
     }
   };
 
-  // ── Vibe Search ────────────────────────────────────────────────────────────
   const handleVibeSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!vibe.trim()) return;
@@ -108,34 +114,22 @@ export function useSearch() {
         return;
       }
 
-      // Use allSettled so one failed lookup doesn't kill all results
       const settled = await Promise.allSettled(
         titles.map(title => searchMovies(title, undefined, allowRatedR))
       );
 
-      const { watchedTmdbIds, watchedTitles } = buildWatchedSets(movies);
+      const { existingTmdbIds, existingTitles } = buildExistingSets(movies);
       const found: TMDBMovie[] = [];
-      let failCount = 0;
 
       for (const result of settled) {
         if (result.status === 'fulfilled' && result.value.length > 0) {
           found.push(result.value[0]);
-        } else {
-          failCount++;
         }
       }
 
-      const filtered = dedupeResults(found, watchedTmdbIds, watchedTitles);
-
-      if (failCount > 0 && failCount < titles.length) {
-        toast.warning(`${failCount} suggestion${failCount > 1 ? 's' : ''} couldn't be found, showing the rest`);
-      } else if (failCount === titles.length) {
-        toast.error('Vibe search worked but none of the suggestions could be looked up. Check your connection.');
-        return;
-      }
-
+      const filtered = filterForSafety(dedupeResults(found, existingTmdbIds, existingTitles), blockMatureThemes);
       if (filtered.length === 0) {
-        toast.info("All vibe suggestions have already been watched — try a new vibe!");
+        toast.info('All vibe suggestions were filtered or already watched.');
       } else {
         setResults(filtered);
       }
@@ -147,17 +141,16 @@ export function useSearch() {
     }
   };
 
-  // ── Surprise Me / Recommendations ─────────────────────────────────────────
   const handleRecommend = async () => {
     setLoading(true);
     setResults([]);
     try {
       const currentUser = profiles[currentTurnIndex]?.id || 'Family';
       const profileNames = profiles.map(p => p.name);
-      const history = movies.filter(m => m.status === 'watched');
+      const history = movies.filter(() => true);
 
       if (history.length === 0) {
-        toast.info("Add some watched movies first — we need your history to make recommendations!");
+        toast.info('Add watched movies first to get recommendations!');
         return;
       }
 
@@ -165,15 +158,9 @@ export function useSearch() {
         history,
         currentUser,
         profileNames,
-        allowRatedR
+        allowRatedR || recommendationMode !== 'safe'
       );
 
-      if (!recommendations.length) {
-        toast.info('No recommendations returned — try again in a moment');
-        return;
-      }
-
-      // allSettled so individual TMDB lookups don't cascade-fail
       const settled = await Promise.allSettled(
         recommendations.map(rec => searchMovies(rec.title, undefined, allowRatedR).then(res => {
           if (res[0]) { res[0].reason = rec.reason; }
@@ -181,29 +168,28 @@ export function useSearch() {
         }))
       );
 
-      const { watchedTmdbIds, watchedTitles } = buildWatchedSets(movies);
-      const found: TMDBMovie[] = [];
-      let failCount = 0;
+      const { existingTmdbIds, existingTitles } = buildExistingSets(movies);
+      let found: TMDBMovie[] = [];
 
       for (const result of settled) {
-        if (result.status === 'fulfilled' && result.value) {
-          found.push(result.value);
-        } else {
-          failCount++;
-        }
+        if (result.status === 'fulfilled' && result.value) found.push(result.value);
       }
 
-      const filtered = dedupeResults(found, watchedTmdbIds, watchedTitles);
+      found = dedupeResults(found, existingTmdbIds, existingTitles);
+      found = filterForSafety(found, blockMatureThemes || recommendationMode === 'safe');
 
-      if (failCount > 0 && failCount < recommendations.length) {
-        toast.warning(`${failCount} recommendation${failCount > 1 ? 's' : ''} couldn't be found on TMDB`);
+      if (recommendationMode === 'familiar') {
+        found = found.filter(f => (f.reason || '').toLowerCase().includes('like') || (f.reason || '').toLowerCase().includes('similar'));
+      }
+      if (recommendationMode === 'explore') {
+        found = found.filter(f => (f.reason || '').toLowerCase().includes('new') || (f.reason || '').toLowerCase().includes('different'));
       }
 
-      if (filtered.length === 0) {
-        toast.info(`All recommendations have already been watched! It's picking ${currentUser}'s favorites 😄`);
+      if (found.length === 0) {
+        toast.info('No recommendations matched your current mode/preferences.');
       } else {
-        setResults(filtered);
-        toast.success(`${filtered.length} recommendations for ${currentUser}!`);
+        setResults(found);
+        toast.success(`${found.length} ${recommendationMode} recommendations for ${currentUser}!`);
       }
     } catch (error: any) {
       console.error('Recommend error:', error);
