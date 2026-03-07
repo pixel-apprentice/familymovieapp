@@ -5,7 +5,7 @@ import { sendRequestEmail } from '../../services/emailService';
 import { toast } from 'sonner';
 
 export function useAddMovieForm(movie: TMDBMovie | null, onClose: () => void, onAdded: () => void) {
-  const { addMovie, profiles, currentTurnIndex } = useData();
+  const { addMovie, profiles, currentTurnIndex, movies } = useData();
   const [status, setStatus] = useState<'wishlist' | 'watched'>('wishlist');
   const [picker, setPicker] = useState<string>('');
   const [isFamilyPick, setIsFamilyPick] = useState(false);
@@ -52,6 +52,17 @@ export function useAddMovieForm(movie: TMDBMovie | null, onClose: () => void, on
     try {
       const finalPicker = isFamilyPick ? 'Family' : picker;
       const finalDate = dateUnknown ? 'Unknown' : date;
+
+      const isDuplicate = movies.some(m =>
+        (m.tmdbId && m.tmdbId.toString() === movie.id.toString()) ||
+        m.title.toLowerCase().trim() === movie.title.toLowerCase().trim()
+      );
+
+      if (isDuplicate) {
+        toast.warning(`${movie.title} is already in your list.`);
+        setIsSubmitting(false);
+        return;
+      }
 
       await addMovie({
         tmdbId: movie.id.toString(),

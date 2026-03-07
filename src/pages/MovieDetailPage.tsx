@@ -6,7 +6,7 @@ import { useModal } from '../contexts/ModalContext';
 import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, Star, Info, Edit2, RefreshCw } from 'lucide-react';
 import { sendRequestEmail } from '../services/emailService';
-import { searchMovies, GENRE_MAP } from '../services/tmdb';
+import { searchMovies, getMovieDetails, pickBestMovieMatch, GENRE_MAP } from '../services/tmdb';
 import { handleError } from '../utils/errorHandler';
 import { toast } from 'sonner';
 import { MovieEditForm } from '../components/movie/MovieEditForm';
@@ -22,6 +22,7 @@ export function MovieDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
+  const [watchPartyPack, setWatchPartyPack] = useState<{ snack: string; activity: string; prompt: string } | null>(null);
   const [editForm, setEditForm] = useState({
     date: '',
     status: 'wishlist' as 'wishlist' | 'watched',
@@ -88,10 +89,18 @@ export function MovieDetailPage() {
       // Since this movie is already in our DB, we don't want to filter out R-rated movies
       // (in case we watched one), and we definitely DON'T want to use movie.date as the 
       // release year since movie.date is the date we *watched* it.
-      const results = await searchMovies(movie.title, undefined, true);
+      let bestMatch: any = null;
 
-      if (results && results.length > 0) {
-        const bestMatch = results[0];
+      if (movie.tmdbId && /^\d+$/.test(String(movie.tmdbId))) {
+        bestMatch = await getMovieDetails(Number(movie.tmdbId));
+      }
+
+      if (!bestMatch) {
+        const results = await searchMovies(movie.title, undefined, true);
+        bestMatch = pickBestMovieMatch(movie.title, results);
+      }
+
+      if (bestMatch) {
         console.log("Found match:", bestMatch);
 
         // Always save as a full absolute URL for consistency
@@ -103,7 +112,8 @@ export function MovieDetailPage() {
           poster_url: fullPosterUrl,
           summary: bestMatch.overview,
           trailerKey: bestMatch.trailerKey,
-          genres: bestMatch.genre_ids?.map(id => GENRE_MAP[id]).filter(Boolean)
+          genres: bestMatch.genre_ids?.map(id => GENRE_MAP[id]).filter(Boolean),
+          tmdbId: String(bestMatch.id)
         });
         toast.success(`Metadata refreshed for ${movie.title}`);
       } else {
@@ -115,6 +125,22 @@ export function MovieDetailPage() {
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+
+  const generateWatchPartyPack = () => {
+    if (!movie) return;
+    const genres = movie.genres || [];
+    const snack = genres.includes('Animation') ? 'Colorful candy + popcorn mix' :
+      genres.includes('Action') ? 'Spicy wings + fries' :
+      genres.includes('Sci-Fi') ? 'Galaxy popcorn + blue soda' :
+      genres.includes('Comedy') ? 'Pizza slices + cookies' :
+      'Classic popcorn + pizza';
+    const activity = genres.includes('Mystery') ? 'Solve-a-clue mini game before starting' :
+      genres.includes('Adventure') ? 'Pick a travel destination inspired by the movie' :
+      'Vote on favorite scene after credits';
+    const prompt = `"${movie.title}" question: Which character made the boldest choice and why?`;
+    setWatchPartyPack({ snack, activity, prompt });
   };
 
   const getPosterSrc = (url: string) => {
@@ -268,6 +294,14 @@ export function MovieDetailPage() {
             {/* Fallback / Placeholder (shown if no URL or if load fails) */}
             <div className={`w-full h-full bg-theme-surface flex flex-col items-center justify-center p-4 text-center ${movie.poster_url ? 'hidden' : ''}`}>
               <span className="text-theme-muted font-black uppercase tracking-widest opacity-20 text-sm">{movie.title}</span>
+
+              <button
+                onClick={generateWatchPartyPack}
+                className="p-2 text-theme-muted hover:text-theme-primary transition-colors opacity-70 hover:opacity-100"
+                title="Generate Watch Party Pack"
+              >
+                🎉
+              </button>
               <button
                 onClick={handleRefreshMetadata}
                 disabled={isRefreshing}
@@ -291,6 +325,14 @@ export function MovieDetailPage() {
               <h1 className={`text-4xl md:text-6xl font-black leading-none text-theme-text ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
                 {movie.title}
               </h1>
+
+              <button
+                onClick={generateWatchPartyPack}
+                className="p-2 text-theme-muted hover:text-theme-primary transition-colors opacity-70 hover:opacity-100"
+                title="Generate Watch Party Pack"
+              >
+                🎉
+              </button>
               <button
                 onClick={handleRefreshMetadata}
                 disabled={isRefreshing}
@@ -300,6 +342,15 @@ export function MovieDetailPage() {
                 <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
               </button>
             </div>
+            {watchPartyPack && (
+              <div className="p-4 rounded-2xl border border-theme-border bg-theme-surface/40 space-y-2 mb-3">
+                <h3 className="text-xs font-black uppercase tracking-widest text-theme-primary">🎉 Watch Party Pack</h3>
+                <p className="text-xs text-theme-text"><span className="font-black">Snack:</span> {watchPartyPack.snack}</p>
+                <p className="text-xs text-theme-text"><span className="font-black">Activity:</span> {watchPartyPack.activity}</p>
+                <p className="text-xs text-theme-text"><span className="font-black">Discussion:</span> {watchPartyPack.prompt}</p>
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-3 items-center">
               {isEditing ? (
                 <MovieEditForm
