@@ -75,7 +75,7 @@ export function SystemHealthPanel() {
                 onClick={async () => {
                   setRefreshingPosters(true);
                   try {
-                    await refreshMetadata();
+                    await refreshMetadata(true);
                   } finally {
                     setRefreshingPosters(false);
                   }

@@ -19,7 +19,7 @@ export function DataManagementPanel() {
         hapticFeedback.medium();
         setIsRefreshingPosters(true);
         try {
-            await refreshMetadata();
+            await refreshMetadata(true);
             toast.success('Posters refreshed!');
         } catch {
             toast.error('Some posters could not be loaded.');
@@ -57,12 +57,12 @@ export function DataManagementPanel() {
                         </h3>
                     </div>
                     <p className="text-xs text-theme-muted font-mono leading-relaxed flex-1">
-                        {theme === 'mooooovies' ? 'Scanning the pasture for missing artwork. TMDB is used to fetch high-quality movie posters.' :
-                         theme === 'drive-in' ? 'Scanning the lot for missing artwork. TMDB is used to fetch high-quality movie posters.' :
-                         theme === 'blockbuster' ? 'Scanning the shelves for missing artwork. TMDB is used to fetch high-quality movie posters.' :
-                         theme === 'sci-fi-hologram' ? 'Scanning the databanks for missing artwork. TMDB is used to fetch high-quality movie posters.' :
-                         theme === 'golden-age' ? 'Scanning the archives for missing artwork. TMDB is used to fetch high-quality movie posters.' :
-                         'Scanning your library for missing artwork. TMDB is used to fetch high-quality movie posters.'}
+                        {theme === 'mooooovies' ? 'Refreshing poster metadata across the whole pasture. TMDB is used to fetch high-quality movie posters.' :
+                         theme === 'drive-in' ? 'Refreshing poster metadata across the whole lot. TMDB is used to fetch high-quality movie posters.' :
+                         theme === 'blockbuster' ? 'Refreshing poster metadata across the whole shelf. TMDB is used to fetch high-quality movie posters.' :
+                         theme === 'sci-fi-hologram' ? 'Refreshing poster metadata across the full databank. TMDB is used to fetch high-quality movie posters.' :
+                         theme === 'golden-age' ? 'Refreshing poster metadata across the full archive. TMDB is used to fetch high-quality movie posters.' :
+                         'Refreshing poster metadata across your whole library. TMDB is used to fetch high-quality movie posters.'}
                     </p>
 
                     <div className="mt-4 flex items-center justify-between gap-4 p-4 bg-theme-base rounded-2xl border border-theme-border/50">
@@ -74,7 +74,7 @@ export function DataManagementPanel() {
                         </div>
                         <button
                             onClick={handleRefreshAllPosters}
-                            disabled={isRefreshingPosters || missingPosterCount === 0}
+                            disabled={isRefreshingPosters}
                             className="px-4 py-2 bg-theme-primary text-theme-base font-black rounded-xl text-[10px] uppercase tracking-widest hover:opacity-90 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
                         >
                             <RefreshCw size={12} className={isRefreshingPosters ? 'animate-spin' : ''} />
