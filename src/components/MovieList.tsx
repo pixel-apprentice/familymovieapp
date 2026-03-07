@@ -165,6 +165,33 @@ export function MovieList() {
             <List size={13} /><span>List</span>
           </button>
         </div>
+
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              initial={{ opacity: 0, y: -8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.98 }}
+              className="absolute top-12 left-0 z-30 w-full md:w-auto bg-theme-surface border border-theme-border rounded-xl p-2 shadow-2xl"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <select value={pickerFilter} onChange={(e) => setPickerFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
+                  <option value="all">All Pickers</option>
+                  {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+                <select value={genreFilter} onChange={(e) => setGenreFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
+                  <option value="all">All Genres</option>
+                  {uniqueGenres.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+                <select value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
+                  <option value="recent">Sort: Recent</option>
+                  <option value="title">Sort: Title</option>
+                  <option value="rating">Sort: Rating</option>
+                </select>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="flex flex-wrap gap-2">
