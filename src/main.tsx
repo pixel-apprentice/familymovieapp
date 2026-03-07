@@ -4,12 +4,10 @@ import App from './App.tsx';
 import './index.css';
 import { registerSW } from 'virtual:pwa-register';
 
-// Register service worker — auto-updates in background
-// Shows no prompt, just silently updates on next load
-registerSW({
+const updateSW = registerSW({
   onNeedRefresh() {
-    // Could show a toast here, but silent auto-update is fine for a family app
-    console.log('[PWA] New content available — will refresh on next load.');
+    window.dispatchEvent(new CustomEvent('fmn:pwa-update-available', { detail: updateSW }));
+    console.log('[PWA] New content available.');
   },
   onOfflineReady() {
     console.log('[PWA] App is ready to work offline!');
