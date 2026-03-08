@@ -13,6 +13,7 @@ const FILTERS_STORAGE_KEY = 'fmn_movie_filters';
 type SortMode = 'recent' | 'title' | 'rating';
 
 const SORT_MODES: SortMode[] = ['recent', 'title', 'rating'];
+const SORT_LABELS: Record<SortMode, string> = { recent: 'Recent', title: 'Title', rating: 'Rating' };
 
 const getStoredFilters = (): { pickerFilter: string; genreFilter: string; sortMode: SortMode } => {
   try {
@@ -206,7 +207,7 @@ export function MovieList() {
   const activeFilterCount = Number(pickerFilter !== 'all') + Number(genreFilter !== 'all') + Number(sortMode !== 'recent');
   const selectedPickerName = pickerFilter === 'all' ? 'All Pickers' : profiles.find(profile => profile.id === pickerFilter)?.name || 'Unknown Picker';
   const selectedGenreLabel = genreFilter === 'all' ? 'All Genres' : genreFilter;
-  const selectedSortLabel = sortMode === 'recent' ? 'Recent' : sortMode === 'title' ? 'Title' : 'Rating';
+  const selectedSortLabel = SORT_LABELS[sortMode];
 
   const scrollToTop = () => {
     hapticFeedback.light();
