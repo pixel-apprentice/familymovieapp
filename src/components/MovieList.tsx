@@ -213,110 +213,72 @@ export function MovieList() {
     }
   };
 
+  const togglePicker = (pickerId: string) => {
+    hapticFeedback.light();
+    setPickerFilter(prev => {
+      if (pickerId === 'all') return 'all';
+      if (prev === 'all') return pickerId;
+      return prev === pickerId ? 'all' : pickerId;
+    });
+  };
+
   return (
-    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-2">
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 relative">
-        <div className="hidden md:flex flex-wrap items-center gap-2 bg-theme-surface border border-theme-border rounded-xl p-2">
-          <Filter size={14} className="text-theme-muted" />
-          <select value={pickerFilter} onChange={(e) => setPickerFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
-            <option value="all">All Pickers</option>
-            {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-          <select value={genreFilter} onChange={(e) => setGenreFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
-            <option value="all">All Genres</option>
-            {uniqueGenres.map(g => <option key={g} value={g}>{g}</option>)}
-          </select>
-          <select value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
-            <option value="recent">Sort: Recent</option>
-            <option value="title">Sort: Title</option>
-            <option value="rating">Sort: Rating</option>
-          </select>
+    <div className="flex flex-col gap-8 w-full max-w-[2000px] mx-auto px-4 sm:px-8 py-4">
+      {/* High-End Filter Row */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-theme-surface/50 backdrop-blur-md border border-theme-border p-2 rounded-2xl sticky top-2 z-40 shadow-sm">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0">
           <button
-            onClick={resetFilters}
-            type="button"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-theme-border px-2 py-1 text-[10px] font-black uppercase tracking-widest text-theme-muted hover:text-theme-primary"
+            onClick={() => togglePicker('all')}
+            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${pickerFilter === 'all'
+                ? 'bg-theme-primary text-theme-base shadow-lg'
+                : 'bg-theme-base text-theme-muted hover:text-theme-text border border-theme-border'
+              }`}
           >
-            <RotateCcw size={12} /> Reset
+            Everyone
           </button>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setShowFilters(prev => !prev)}
-          aria-expanded={showFilters}
-          aria-controls="mobile-movie-filters"
-          className="md:hidden inline-flex items-center justify-center gap-2 bg-theme-surface border border-theme-border rounded-xl p-2 text-[10px] font-black uppercase tracking-widest text-theme-text"
-        >
-          <SlidersHorizontal size={12} />
-          Filters {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}
-        </button>
-
-        <div className="flex items-center gap-1 bg-theme-surface border border-theme-border rounded-xl p-1 justify-end">
-          <button onClick={() => changeViewMode('grid')} aria-label="Grid view" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'grid' ? 'bg-theme-primary text-theme-base shadow-sm' : 'text-theme-muted hover:text-theme-primary'}`}>
-            <LayoutGrid size={13} /><span>Grid</span>
-          </button>
-          <button onClick={() => changeViewMode('list')} aria-label="List view" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'list' ? 'bg-theme-primary text-theme-base shadow-sm' : 'text-theme-muted hover:text-theme-primary'}`}>
-            <List size={13} /><span>List</span>
-          </button>
-        </div>
-
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div
-              id="mobile-movie-filters"
-              ref={mobileFilterPanelRef}
-              initial={{ opacity: 0, y: -8, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.98 }}
-              className="absolute top-12 left-0 z-30 w-full md:w-auto bg-theme-surface border border-theme-border rounded-xl p-2 shadow-2xl md:hidden"
+          {profiles.map(p => (
+            <button
+              key={p.id}
+              onClick={() => togglePicker(p.id)}
+              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${pickerFilter === p.id
+                  ? 'bg-theme-primary text-theme-base shadow-lg border-theme-primary'
+                  : 'bg-theme-base text-theme-muted hover:text-theme-text border-theme-border'
+                }`}
+              style={pickerFilter === p.id ? { backgroundColor: p.color, borderColor: p.color } : {}}
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <select value={pickerFilter} onChange={(e) => setPickerFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
-                  <option value="all">All Pickers</option>
-                  {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
-                <select value={genreFilter} onChange={(e) => setGenreFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
-                  <option value="all">All Genres</option>
-                  {uniqueGenres.map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
-                <select value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
-                  <option value="recent">Sort: Recent</option>
-                  <option value="title">Sort: Title</option>
-                  <option value="rating">Sort: Rating</option>
-                </select>
-                <button
-                  onClick={resetFilters}
-                  type="button"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-theme-border px-2 py-1 text-[10px] font-black uppercase tracking-widest text-theme-muted hover:text-theme-primary"
-                >
-                  <RotateCcw size={12} /> Reset
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              {p.name}
+            </button>
+          ))}
+        </div>
 
-      <div className="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-widest text-theme-muted">
-        <span className="px-2 py-1 rounded-lg bg-theme-surface border border-theme-border">Wishlist: {filteredWishlist.length}</span>
-        <span className="px-2 py-1 rounded-lg bg-theme-surface border border-theme-border">Watched: {filteredWatched.length}</span>
-        {activeFilterCount > 0 && (
-          <span className="px-2 py-1 rounded-lg bg-theme-primary/15 border border-theme-primary/40 text-theme-primary">
-            {activeFilterCount} active filter{activeFilterCount === 1 ? '' : 's'}
-          </span>
-        )}
-      </div>
+        <div className="flex items-center gap-2 border-t md:border-t-0 md:border-l border-theme-border pt-2 md:pt-0 md:pl-4">
+          <div className="flex items-center gap-1 bg-theme-base p-1 rounded-xl border border-theme-border">
+            <button onClick={() => changeViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-theme-primary text-theme-base shadow-md' : 'text-theme-muted hover:text-theme-text'}`}>
+              <LayoutGrid size={16} />
+            </button>
+            <button onClick={() => changeViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-theme-primary text-theme-base shadow-md' : 'text-theme-muted hover:text-theme-text'}`}>
+              <List size={16} />
+            </button>
+          </div>
 
-      <div className="flex flex-wrap gap-2">
-        <button onClick={pickRandom} disabled={filteredWishlist.length === 0} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-theme-primary text-theme-base disabled:opacity-40">
-          <WandSparkles size={12} /> Smart Pick
-        </button>
-        <button onClick={runBulkMarkWatched} disabled={bulkBusy || filteredWishlist.length === 0} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 disabled:opacity-40">
-          <CircleCheck size={12} /> Mark Filtered Watched
-        </button>
-        <button onClick={runBulkRemove} disabled={bulkBusy || filteredWishlist.length === 0} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-red-500/20 text-red-400 disabled:opacity-40">
-          <Trash2 size={12} /> Remove Filtered
-        </button>
+          <div className="relative group">
+            <button className="p-3 bg-theme-base border border-theme-border rounded-xl text-theme-muted hover:text-theme-primary transition-all">
+              <SlidersHorizontal size={16} />
+            </button>
+            <div className="absolute right-0 top-full mt-2 w-48 bg-theme-surface border border-theme-border rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2 space-y-1">
+              <p className="text-[8px] font-black uppercase tracking-widest text-theme-muted p-2">Library Actions</p>
+              <button onClick={resetFilters} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-theme-base rounded-xl text-[10px] font-black uppercase tracking-widest text-theme-text">
+                <RotateCcw size={14} /> Reset Filters
+              </button>
+              <button onClick={runBulkMarkWatched} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-emerald-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-500">
+                <CircleCheck size={14} /> Mark All Watched
+              </button>
+              <button onClick={runBulkRemove} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-red-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500">
+                <Trash2 size={14} /> Delete Filtered
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <UpNextSection wishlistMovies={filteredWishlist} pickRandom={pickRandom} randomMovie={randomMovie} setRandomMovie={setRandomMovie} viewMode={viewMode} />

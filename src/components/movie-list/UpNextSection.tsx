@@ -5,6 +5,7 @@ import { MovieCard } from '../MovieCard';
 import { MovieListRow } from '../MovieListRow';
 import { hapticFeedback } from '../../utils/haptics';
 import { useTheme, useThemeText } from '../../contexts/ThemeContext';
+import { WandSparkles } from 'lucide-react';
 
 interface UpNextSectionProps {
   wishlistMovies: Movie[];
@@ -19,13 +20,20 @@ export function UpNextSection({ wishlistMovies, pickRandom, randomMovie, setRand
   const getThemeText = useThemeText();
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-black text-theme-primary uppercase tracking-tighter">
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-2xl md:text-3xl font-black text-theme-primary uppercase tracking-tighter">
           {getThemeText('upNextTitle')}
         </h2>
-        <span className="text-[10px] font-black uppercase tracking-widest text-theme-muted">
-          {wishlistMovies.length} {getThemeText('upNextUnit')}
-        </span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={pickRandom}
+            disabled={wishlistMovies.length === 0}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-theme-primary text-theme-base shadow-lg hover:shadow-theme-primary/20 transition-all disabled:opacity-40"
+          >
+            <WandSparkles size={14} />
+            <span className="hidden sm:inline">Smart Pick</span>
+          </button>
+        </div>
       </div>
 
       <AnimatePresence mode="popLayout">
@@ -65,7 +73,7 @@ export function UpNextSection({ wishlistMovies, pickRandom, randomMovie, setRand
           </p>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3 sm:gap-4">
           {wishlistMovies.map(movie => (
             <MovieCard key={movie.id} movie={movie} />
           ))}
