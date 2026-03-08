@@ -223,30 +223,42 @@ export function MovieList() {
   };
 
   return (
-    <div className="flex flex-col gap-8 w-full max-w-[2000px] mx-auto px-4 sm:px-8 py-4">
+    <div className="flex flex-col gap-4 w-full max-w-[2000px] mx-auto px-4 sm:px-8 py-4">
       {/* High-End Filter Row */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-theme-surface/50 backdrop-blur-md border border-theme-border p-2 rounded-2xl sticky top-2 z-40 shadow-sm">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-theme-surface/50 backdrop-blur-md border border-theme-border p-1.5 md:p-2 rounded-2xl sticky top-0 z-40 shadow-sm">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0 px-1">
           <button
             onClick={() => togglePicker('all')}
-            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${pickerFilter === 'all'
-                ? 'bg-theme-primary text-theme-base shadow-lg'
-                : 'bg-theme-base text-theme-muted hover:text-theme-text border border-theme-border'
+            className={`flex items-center justify-center transition-all whitespace-nowrap h-9 px-4 md:h-10 md:px-5 rounded-xl text-[10px] font-black uppercase tracking-widest ${pickerFilter === 'all'
+              ? 'bg-theme-primary text-theme-base shadow-lg scale-105'
+              : 'bg-theme-base text-theme-muted hover:text-theme-text border border-theme-border'
               }`}
           >
             Everyone
           </button>
+
+          <div className="w-[1px] h-6 bg-theme-border mx-1" />
+
           {profiles.map(p => (
             <button
               key={p.id}
               onClick={() => togglePicker(p.id)}
-              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${pickerFilter === p.id
-                  ? 'bg-theme-primary text-theme-base shadow-lg border-theme-primary'
-                  : 'bg-theme-base text-theme-muted hover:text-theme-text border-theme-border'
+              className={`relative flex items-center justify-center transition-all shrink-0 border h-9 w-9 md:h-10 md:w-auto md:px-5 rounded-full md:rounded-xl ${pickerFilter === p.id
+                ? 'scale-110 shadow-lg z-10'
+                : 'bg-theme-base text-theme-muted hover:text-theme-text border-theme-border'
                 }`}
-              style={pickerFilter === p.id ? { backgroundColor: p.color, borderColor: p.color } : {}}
+              style={pickerFilter === p.id ? { backgroundColor: p.color, borderColor: p.color, color: '#fff' } : {}}
+              title={p.name}
             >
-              {p.name}
+              {/* Desktop Text */}
+              <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest">{p.name}</span>
+              {/* Mobile Initial */}
+              <span className="md:hidden text-xs font-black uppercase">{p.name.charAt(0)}</span>
+
+              {/* Mobile Active Dot */}
+              {pickerFilter === p.id && (
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full md:hidden" />
+              )}
             </button>
           ))}
         </div>

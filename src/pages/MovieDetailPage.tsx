@@ -11,6 +11,7 @@ import { handleError } from '../utils/errorHandler';
 import { toast } from 'sonner';
 import { MovieEditForm } from '../components/movie/MovieEditForm';
 import { MovieActions } from '../components/movie/MovieActions';
+import { hapticFeedback } from '../utils/haptics';
 
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -73,6 +74,10 @@ export function MovieDetailPage() {
   }, [movie?.id]);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
+  useEffect(() => {
     // Auto-fetch metadata if missing
     if (movie && (!movie.poster_url || movie.poster_url.trim() === '') && !isRefreshing && !hasAttemptedFetch) {
       handleRefreshMetadata();
@@ -133,12 +138,12 @@ export function MovieDetailPage() {
     const genres = movie.genres || [];
     const snack = genres.includes('Animation') ? 'Colorful candy + popcorn mix' :
       genres.includes('Action') ? 'Spicy wings + fries' :
-      genres.includes('Sci-Fi') ? 'Galaxy popcorn + blue soda' :
-      genres.includes('Comedy') ? 'Pizza slices + cookies' :
-      'Classic popcorn + pizza';
+        genres.includes('Sci-Fi') ? 'Galaxy popcorn + blue soda' :
+          genres.includes('Comedy') ? 'Pizza slices + cookies' :
+            'Classic popcorn + pizza';
     const activity = genres.includes('Mystery') ? 'Solve-a-clue mini game before starting' :
       genres.includes('Adventure') ? 'Pick a travel destination inspired by the movie' :
-      'Vote on favorite scene after credits';
+        'Vote on favorite scene after credits';
     const prompt = `"${movie.title}" question: Which character made the boldest choice and why?`;
     setWatchPartyPack({ snack, activity, prompt });
   };
@@ -373,18 +378,18 @@ export function MovieDetailPage() {
                   <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${movie.status === 'watched' ? 'border-emerald-500/30 text-emerald-500 bg-emerald-500/10' : 'border-amber-500/30 text-amber-500 bg-amber-500/10'}`}>
                     {movie.status === 'watched' ? (
                       theme === 'mooooovies' ? 'Grazed' :
-                      theme === 'drive-in' ? 'Screened' :
-                      theme === 'blockbuster' ? 'Returned' :
-                      theme === 'sci-fi-hologram' ? 'Archived' :
-                      theme === 'golden-age' ? 'Wrapped' :
-                      'Watched'
+                        theme === 'drive-in' ? 'Screened' :
+                          theme === 'blockbuster' ? 'Returned' :
+                            theme === 'sci-fi-hologram' ? 'Archived' :
+                              theme === 'golden-age' ? 'Wrapped' :
+                                'Watched'
                     ) : (
                       theme === 'mooooovies' ? 'Pasture' :
-                      theme === 'drive-in' ? 'Marquee' :
-                      theme === 'blockbuster' ? 'Reserved' :
-                      theme === 'sci-fi-hologram' ? 'Pending' :
-                      theme === 'golden-age' ? 'Scheduled' :
-                      'Wishlist'
+                        theme === 'drive-in' ? 'Marquee' :
+                          theme === 'blockbuster' ? 'Reserved' :
+                            theme === 'sci-fi-hologram' ? 'Pending' :
+                              theme === 'golden-age' ? 'Scheduled' :
+                                'Wishlist'
                     )}
                   </span>
                   <button onClick={() => setIsEditing(true)} className="ml-2 text-theme-muted hover:text-theme-primary transition-colors opacity-50 hover:opacity-100">
@@ -394,22 +399,78 @@ export function MovieDetailPage() {
               )}
             </div>
 
-            {movie.genres && movie.genres.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-4">
-                {movie.genres.map(genre => (
-                  <span key={genre} className="px-2 py-1 text-[10px] font-black uppercase tracking-widest border border-theme-border rounded-md text-theme-muted">
-                    {genre}
-                  </span>
-                ))}
-              </div>
-            )}
-
             {movie.summary && (
               <p className="text-sm text-theme-muted leading-relaxed mt-6 max-w-2xl">
                 {movie.summary}
               </p>
             )}
           </div>
+
+          {/* Moved Rankings Section */}
+          <section className="bg-theme-surface/30 border border-theme-border rounded-2xl p-4 md:p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-theme-primary">
+                <Star size={16} />
+                <h2 className="text-[10px] font-black uppercase tracking-[0.2em]">Family Rankings</h2>
+              </div>
+              <div className="text-[10px] font-mono text-theme-muted uppercase">Tap stars for 0.5 increments</div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {profiles.map((profile) => (
+                <div
+                  key={profile.id}
+                  className="bg-theme-base/50 border border-theme-border/50 rounded-xl px-4 py-2 flex items-center justify-between group/rank"
+                >
+                  <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[80px]" style={{ color: profile.color }}>
+                    {profile.name}
+                  </span>
+
+                  <div className="flex items-center gap-1.5 overflow-hidden">
+                    <div className="flex items-center -space-x-1">
+                      {[1, 2, 3, 4, 5].map((star) => {
+                        const currentRating = movie.ratings[profile.id] || 0;
+                        const isFull = star <= currentRating;
+                        const isHalf = star - 0.5 === currentRating;
+
+                        return (
+                          <div key={star} className="relative flex items-center h-8 w-6 group/star select-none">
+                            {/* Half-star hitbox (Left side) */}
+                            <div
+                              onClick={() => { handleRatingChange(profile.id, star - 0.5); hapticFeedback.light(); }}
+                              className="absolute left-0 top-0 w-1/2 h-full z-20 cursor-pointer"
+                            />
+                            {/* Full-star hitbox (Right side) */}
+                            <div
+                              onClick={() => { handleRatingChange(profile.id, star); hapticFeedback.medium(); }}
+                              className="absolute right-0 top-0 w-1/2 h-full z-20 cursor-pointer"
+                            />
+
+                            <Star
+                              size={16}
+                              className={`transition-all ${isFull || isHalf ? 'text-amber-400' : 'text-theme-muted opacity-10'}`}
+                              fill={isFull ? 'currentColor' : isHalf ? 'url(#halfStar)' : 'none'}
+                            />
+                          </div>
+                        );
+                      })}
+                      <svg width="0" height="0" className="absolute">
+                        <defs>
+                          <linearGradient id="halfStar" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="50%" stopColor="currentColor" />
+                            <stop offset="50%" stopColor="transparent" stopOpacity="0" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                    </div>
+                    <span className="text-[10px] font-mono font-black text-theme-text w-6 text-right tabular-nums">
+                      {movie.ratings[profile.id] > 0 ? movie.ratings[profile.id] : '—'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
 
           {/* Actions */}
           <MovieActions
@@ -420,48 +481,8 @@ export function MovieDetailPage() {
             markWatched={markWatched}
             handleDelete={handleDelete}
           />
-
-          {/* Family Rankings Section */}
-          <section className="space-y-6">
-            <div className="flex items-center gap-2 text-theme-primary">
-              <Star size={18} />
-              <h2 className="text-sm font-black uppercase tracking-widest">Family Rankings</h2>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {profiles.map((profile) => (
-                <div
-                  key={profile.id}
-                  className="bg-theme-surface border border-theme-border rounded-2xl p-4 flex flex-col gap-3"
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: profile.color }}>
-                      {profile.name}
-                    </span>
-                    <span className="text-xs font-mono text-theme-muted">
-                      {movie.ratings[profile.id] > 0 ? `${movie.ratings[profile.id]}/5` : 'Not rated'}
-                    </span>
-                  </div>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        onClick={() => handleRatingChange(profile.id, star)}
-                        className={`p-1 transition-all hover:scale-125 ${star <= (movie.ratings[profile.id] || 0)
-                          ? 'text-theme-primary'
-                          : 'text-theme-muted opacity-20'
-                          }`}
-                      >
-                        <Star size={20} fill={star <= (movie.ratings[profile.id] || 0) ? 'currentColor' : 'none'} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        </motion.div>
-      </div>
-    </div>
+        </motion.div >
+      </div >
+    </div >
   );
 }
