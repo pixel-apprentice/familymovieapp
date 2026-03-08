@@ -1,26 +1,48 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useData, Movie } from '../contexts/DataContext';
 import { hapticFeedback } from '../utils/haptics';
 import { UpNextSection } from './movie-list/UpNextSection';
 import { HistorySection } from './movie-list/HistorySection';
 import { AnimatePresence, motion } from 'motion/react';
-import { LayoutGrid, List, ChevronUp, Filter, WandSparkles, Trash2, CircleCheck } from 'lucide-react';
+import { LayoutGrid, List, ChevronUp, Filter, WandSparkles, Trash2, CircleCheck, SlidersHorizontal, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 
 const STORAGE_KEY = 'fmn_view_mode';
+const FILTERS_STORAGE_KEY = 'fmn_movie_filters';
 
 type SortMode = 'recent' | 'title' | 'rating';
 
+const SORT_MODES: SortMode[] = ['recent', 'title', 'rating'];
+
+const getStoredFilters = (): { pickerFilter: string; genreFilter: string; sortMode: SortMode } => {
+  try {
+    const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
+    if (!raw) return { pickerFilter: 'all', genreFilter: 'all', sortMode: 'recent' };
+    const parsed = JSON.parse(raw) as { pickerFilter?: string; genreFilter?: string; sortMode?: string };
+    const sortMode = SORT_MODES.includes(parsed.sortMode as SortMode) ? (parsed.sortMode as SortMode) : 'recent';
+    return {
+      pickerFilter: parsed.pickerFilter || 'all',
+      genreFilter: parsed.genreFilter || 'all',
+      sortMode,
+    };
+  } catch {
+    return { pickerFilter: 'all', genreFilter: 'all', sortMode: 'recent' };
+  }
+};
+
 export function MovieList() {
   const { movies, profiles, markWatched, removeMovie } = useData();
+
   const [randomMovie, setRandomMovie] = useState<Movie | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
     try { return (localStorage.getItem(STORAGE_KEY) as 'grid' | 'list') || 'grid'; } catch { return 'grid'; }
   });
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [pickerFilter, setPickerFilter] = useState('all');
-  const [genreFilter, setGenreFilter] = useState('all');
-  const [sortMode, setSortMode] = useState<SortMode>('recent');
+  const [showFilters, setShowFilters] = useState(false);
+  const [pickerFilter, setPickerFilter] = useState(() => getStoredFilters().pickerFilter);
+  const [genreFilter, setGenreFilter] = useState(() => getStoredFilters().genreFilter);
+  const [sortMode, setSortMode] = useState<SortMode>(() => getStoredFilters().sortMode);
+  const mobileFilterPanelRef = useRef<HTMLDivElement | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
 
   const wishlistMovies = useMemo(() => movies.filter(m => m.status === 'wishlist'), [movies]);
@@ -37,6 +59,8 @@ export function MovieList() {
     movies.forEach(m => (m.genres || []).forEach(g => set.add(g)));
     return Array.from(set).sort();
   }, [movies]);
+
+  const pickerIds = useMemo(() => new Set(profiles.map(profile => profile.id)), [profiles]);
 
   const filteredWishlist = useMemo(() => {
     let list = [...wishlistMovies];
@@ -127,6 +151,61 @@ export function MovieList() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify({ pickerFilter, genreFilter, sortMode }));
+    } catch {
+      // ignore persisting preference failures
+    }
+  }, [pickerFilter, genreFilter, sortMode]);
+
+  useEffect(() => {
+    if (pickerFilter !== 'all' && !pickerIds.has(pickerFilter)) {
+      setPickerFilter('all');
+    }
+    if (genreFilter !== 'all' && !uniqueGenres.includes(genreFilter)) {
+      setGenreFilter('all');
+    }
+  }, [pickerFilter, genreFilter, pickerIds, uniqueGenres]);
+
+  useEffect(() => {
+    if (!showFilters) return;
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowFilters(false);
+    };
+
+    const closeOnOutsideClick = (event: MouseEvent | TouchEvent) => {
+      if (!mobileFilterPanelRef.current) return;
+      const target = event.target as Node | null;
+      if (target && !mobileFilterPanelRef.current.contains(target)) {
+        setShowFilters(false);
+      }
+    };
+
+    window.addEventListener('keydown', closeOnEscape);
+    document.addEventListener('mousedown', closeOnOutsideClick);
+    document.addEventListener('touchstart', closeOnOutsideClick);
+
+    return () => {
+      window.removeEventListener('keydown', closeOnEscape);
+      document.removeEventListener('mousedown', closeOnOutsideClick);
+      document.removeEventListener('touchstart', closeOnOutsideClick);
+    };
+  }, [showFilters]);
+
+  const resetFilters = () => {
+    hapticFeedback.light();
+    setPickerFilter('all');
+    setGenreFilter('all');
+    setSortMode('recent');
+  };
+
+  const activeFilterCount = Number(pickerFilter !== 'all') + Number(genreFilter !== 'all') + Number(sortMode !== 'recent');
+  const selectedPickerName = pickerFilter === 'all' ? 'All Pickers' : profiles.find(profile => profile.id === pickerFilter)?.name || 'Unknown Picker';
+  const selectedGenreLabel = genreFilter === 'all' ? 'All Genres' : genreFilter;
+  const selectedSortLabel = sortMode === 'recent' ? 'Recent' : sortMode === 'title' ? 'Title' : 'Rating';
+
   const scrollToTop = () => {
     hapticFeedback.light();
     try {
@@ -139,55 +218,105 @@ export function MovieList() {
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-2">
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
-        <div className="flex flex-wrap items-center gap-2 bg-theme-surface border border-theme-border rounded-xl p-2">
-          <Filter size={14} className="text-theme-muted" />
-          <select value={pickerFilter} onChange={(e) => setPickerFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
-            <option value="all">All Pickers</option>
-            {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-          <select value={genreFilter} onChange={(e) => setGenreFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
-            <option value="all">All Genres</option>
-            {uniqueGenres.map(g => <option key={g} value={g}>{g}</option>)}
-          </select>
-          <select value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
-            <option value="recent">Sort: Recent</option>
-            <option value="title">Sort: Title</option>
-            <option value="rating">Sort: Rating</option>
-          </select>
+      <div className="relative rounded-2xl border border-theme-border bg-theme-surface/80 p-3 sm:p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <span className="rounded-full border border-theme-border bg-theme-base px-2.5 py-1 text-theme-muted">Wishlist {filteredWishlist.length}</span>
+            <span className="rounded-full border border-theme-border bg-theme-base px-2.5 py-1 text-theme-muted">Watched {filteredWatched.length}</span>
+            {activeFilterCount > 0 && (
+              <span className="rounded-full border border-theme-primary/40 bg-theme-primary/15 px-2.5 py-1 text-theme-primary">
+                {activeFilterCount} active
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setShowFilters(prev => !prev)}
+              aria-expanded={showFilters}
+              aria-controls="mobile-movie-filters"
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition ${showFilters ? 'border-theme-primary text-theme-primary bg-theme-primary/10' : 'border-theme-border text-theme-muted hover:text-theme-primary'}`}
+            >
+              <SlidersHorizontal size={12} />
+              Filter
+            </button>
+
+            <div className="flex items-center gap-1 rounded-lg border border-theme-border bg-theme-base p-1">
+              <button onClick={() => changeViewMode('grid')} aria-label="Grid view" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'grid' ? 'bg-theme-primary text-theme-base shadow-sm' : 'text-theme-muted hover:text-theme-primary'}`}>
+                <LayoutGrid size={13} /><span>Grid</span>
+              </button>
+              <button onClick={() => changeViewMode('list')} aria-label="List view" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'list' ? 'bg-theme-primary text-theme-base shadow-sm' : 'text-theme-muted hover:text-theme-primary'}`}>
+                <List size={13} /><span>List</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1 bg-theme-surface border border-theme-border rounded-xl p-1 justify-end">
-          <button onClick={() => changeViewMode('grid')} aria-label="Grid view" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'grid' ? 'bg-theme-primary text-theme-base shadow-sm' : 'text-theme-muted hover:text-theme-primary'}`}>
-            <LayoutGrid size={13} /><span>Grid</span>
-          </button>
-          <button onClick={() => changeViewMode('list')} aria-label="List view" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'list' ? 'bg-theme-primary text-theme-base shadow-sm' : 'text-theme-muted hover:text-theme-primary'}`}>
-            <List size={13} /><span>List</span>
-          </button>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-theme-muted">
+          <span className="inline-flex items-center gap-1 rounded-lg border border-theme-border bg-theme-base px-2 py-1"><Filter size={11} /> {selectedPickerName}</span>
+          <span className="rounded-lg border border-theme-border bg-theme-base px-2 py-1">{selectedGenreLabel}</span>
+          <span className="rounded-lg border border-theme-border bg-theme-base px-2 py-1">Sort {selectedSortLabel}</span>
+          {activeFilterCount > 0 && (
+            <button
+              onClick={resetFilters}
+              type="button"
+              className="inline-flex items-center gap-1 rounded-lg border border-theme-border px-2 py-1 text-theme-muted hover:text-theme-primary"
+            >
+              <RotateCcw size={11} /> Reset
+            </button>
+          )}
         </div>
 
         <AnimatePresence>
           {showFilters && (
             <motion.div
-              initial={{ opacity: 0, y: -8, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.98 }}
-              className="absolute top-12 left-0 z-30 w-full md:w-auto bg-theme-surface border border-theme-border rounded-xl p-2 shadow-2xl"
+              id="mobile-movie-filters"
+              ref={mobileFilterPanelRef}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              className="mt-3 rounded-xl border border-theme-border bg-theme-base p-3"
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <select value={pickerFilter} onChange={(e) => setPickerFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
-                  <option value="all">All Pickers</option>
-                  {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
-                <select value={genreFilter} onChange={(e) => setGenreFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
-                  <option value="all">All Genres</option>
-                  {uniqueGenres.map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
-                <select value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
-                  <option value="recent">Sort: Recent</option>
-                  <option value="title">Sort: Title</option>
-                  <option value="rating">Sort: Rating</option>
-                </select>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <label className="flex flex-col gap-1 text-[10px] font-black uppercase tracking-widest text-theme-muted">
+                  Picker
+                  <select value={pickerFilter} onChange={(e) => setPickerFilter(e.target.value)} className="bg-theme-surface border border-theme-border rounded-lg px-2 py-2 text-xs font-black text-theme-text">
+                    <option value="all">All Pickers</option>
+                    {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1 text-[10px] font-black uppercase tracking-widest text-theme-muted">
+                  Genre
+                  <select value={genreFilter} onChange={(e) => setGenreFilter(e.target.value)} className="bg-theme-surface border border-theme-border rounded-lg px-2 py-2 text-xs font-black text-theme-text">
+                    <option value="all">All Genres</option>
+                    {uniqueGenres.map(g => <option key={g} value={g}>{g}</option>)}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1 text-[10px] font-black uppercase tracking-widest text-theme-muted">
+                  Sort
+                  <select value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)} className="bg-theme-surface border border-theme-border rounded-lg px-2 py-2 text-xs font-black text-theme-text">
+                    <option value="recent">Recent</option>
+                    <option value="title">Title</option>
+                    <option value="rating">Rating</option>
+                  </select>
+                </label>
+              </div>
+              <div className="mt-3 flex items-center justify-end gap-2">
+                <button
+                  onClick={resetFilters}
+                  type="button"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-theme-border px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-theme-muted hover:text-theme-primary"
+                >
+                  <RotateCcw size={12} /> Reset
+                </button>
+                <button
+                  onClick={() => setShowFilters(false)}
+                  type="button"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-theme-primary px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-theme-base"
+                >
+                  Done
+                </button>
               </div>
             </motion.div>
           )}
