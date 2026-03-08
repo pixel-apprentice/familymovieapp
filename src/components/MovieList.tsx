@@ -224,12 +224,13 @@ export function MovieList() {
 
   return (
     <div className="flex flex-col gap-4 w-full max-w-[2000px] mx-auto px-4 sm:px-8 py-4">
-      {/* High-End Filter Row */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-theme-surface/50 backdrop-blur-md border border-theme-border p-1.5 md:p-2 rounded-2xl sticky top-0 z-40 shadow-sm">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0 px-1">
+      {/* Unified Filter Bar Row */}
+      <div className="flex items-center gap-2 bg-theme-surface/50 backdrop-blur-md border border-theme-border p-1.5 md:p-2 rounded-2xl sticky top-0 z-40 shadow-sm overflow-hidden">
+        {/* Scrollable Filters */}
+        <div className="flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar px-1">
           <button
             onClick={() => togglePicker('all')}
-            className={`flex items-center justify-center transition-all whitespace-nowrap h-9 px-3 md:h-10 md:px-4 rounded-xl text-[10px] font-black uppercase tracking-widest ${pickerFilter === 'all'
+            className={`flex items-center justify-center transition-all whitespace-nowrap h-9 px-3 md:h-10 md:px-4 rounded-xl text-[10px] font-black uppercase tracking-widest shrink-0 ${pickerFilter === 'all'
               ? 'bg-theme-primary text-theme-base shadow-lg scale-105'
               : 'bg-theme-base text-theme-muted hover:text-theme-text border border-theme-border'
               }`}
@@ -237,7 +238,7 @@ export function MovieList() {
             All
           </button>
 
-          <div className="w-[1px] h-6 bg-theme-border mx-1" />
+          <div className="w-[1px] h-6 bg-theme-border mx-1 shrink-0" />
 
           {profiles.map(p => (
             <button
@@ -250,12 +251,8 @@ export function MovieList() {
               style={pickerFilter === p.id ? { backgroundColor: p.color, borderColor: p.color, color: '#fff' } : {}}
               title={p.name}
             >
-              {/* Desktop Text */}
               <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest">{p.name}</span>
-              {/* Mobile Initial */}
               <span className="md:hidden text-xs font-black uppercase">{p.name.charAt(0)}</span>
-
-              {/* Mobile Active Dot */}
               {pickerFilter === p.id && (
                 <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full md:hidden" />
               )}
@@ -263,18 +260,19 @@ export function MovieList() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2 border-t md:border-t-0 md:border-l border-theme-border pt-2 md:pt-0 md:pl-4">
-          <div className="flex items-center gap-1 bg-theme-base p-1 rounded-xl border border-theme-border">
-            <button onClick={() => changeViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-theme-primary text-theme-base shadow-md' : 'text-theme-muted hover:text-theme-text'}`}>
-              <LayoutGrid size={16} />
+        {/* Fixed Controls */}
+        <div className="flex items-center gap-1.5 shrink-0 pl-2 border-l border-theme-border/50">
+          <div className="hidden sm:flex items-center gap-1 bg-theme-base p-1 rounded-xl border border-theme-border">
+            <button onClick={() => changeViewMode('grid')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-theme-primary text-theme-base shadow-md' : 'text-theme-muted hover:text-theme-text'}`}>
+              <LayoutGrid size={14} />
             </button>
-            <button onClick={() => changeViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-theme-primary text-theme-base shadow-md' : 'text-theme-muted hover:text-theme-text'}`}>
-              <List size={16} />
+            <button onClick={() => changeViewMode('list')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-theme-primary text-theme-base shadow-md' : 'text-theme-muted hover:text-theme-text'}`}>
+              <List size={14} />
             </button>
           </div>
 
           <div className="relative group">
-            <button className="p-3 bg-theme-base border border-theme-border rounded-xl text-theme-muted hover:text-theme-primary transition-all">
+            <button className="p-2.5 bg-theme-base border border-theme-border rounded-xl text-theme-muted hover:text-theme-primary transition-all">
               <SlidersHorizontal size={16} />
             </button>
             <div className="absolute right-0 top-full mt-2 w-48 bg-theme-surface border border-theme-border rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2 space-y-1">
