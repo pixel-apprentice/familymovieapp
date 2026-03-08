@@ -13,7 +13,6 @@ const FILTERS_STORAGE_KEY = 'fmn_movie_filters';
 type SortMode = 'recent' | 'title' | 'rating';
 
 const SORT_MODES: SortMode[] = ['recent', 'title', 'rating'];
-const SORT_LABELS: Record<SortMode, string> = { recent: 'Recent', title: 'Title', rating: 'Rating' };
 
 const getStoredFilters = (): { pickerFilter: string; genreFilter: string; sortMode: SortMode } => {
   try {
@@ -34,17 +33,15 @@ const getStoredFilters = (): { pickerFilter: string; genreFilter: string; sortMo
 export function MovieList() {
   const { movies, profiles, markWatched, removeMovie } = useData();
 
-  const initialFilters = getStoredFilters();
-
   const [randomMovie, setRandomMovie] = useState<Movie | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
     try { return (localStorage.getItem(STORAGE_KEY) as 'grid' | 'list') || 'grid'; } catch { return 'grid'; }
   });
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [pickerFilter, setPickerFilter] = useState(initialFilters.pickerFilter);
-  const [genreFilter, setGenreFilter] = useState(initialFilters.genreFilter);
-  const [sortMode, setSortMode] = useState<SortMode>(initialFilters.sortMode);
+  const [pickerFilter, setPickerFilter] = useState(() => getStoredFilters().pickerFilter);
+  const [genreFilter, setGenreFilter] = useState(() => getStoredFilters().genreFilter);
+  const [sortMode, setSortMode] = useState<SortMode>(() => getStoredFilters().sortMode);
   const mobileFilterPanelRef = useRef<HTMLDivElement | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
 
@@ -205,9 +202,6 @@ export function MovieList() {
   };
 
   const activeFilterCount = Number(pickerFilter !== 'all') + Number(genreFilter !== 'all') + Number(sortMode !== 'recent');
-  const selectedPickerName = pickerFilter === 'all' ? 'All Pickers' : profiles.find(profile => profile.id === pickerFilter)?.name || 'Unknown Picker';
-  const selectedGenreLabel = genreFilter === 'all' ? 'All Genres' : genreFilter;
-  const selectedSortLabel = SORT_LABELS[sortMode];
 
   const scrollToTop = () => {
     hapticFeedback.light();
@@ -221,101 +215,96 @@ export function MovieList() {
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-2">
-      <div className="relative rounded-2xl border border-theme-border bg-theme-surface/80 p-3 sm:p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-widest">
-            <span className="rounded-full border border-theme-border bg-theme-base px-2.5 py-1 text-theme-muted">Wishlist {filteredWishlist.length}</span>
-            <span className="rounded-full border border-theme-border bg-theme-base px-2.5 py-1 text-theme-muted">Watched {filteredWatched.length}</span>
-            {activeFilterCount > 0 && (
-              <span className="rounded-full border border-theme-primary/40 bg-theme-primary/15 px-2.5 py-1 text-theme-primary">
-                {activeFilterCount} active
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setShowFilters(prev => !prev)}
-              aria-expanded={showFilters}
-              aria-controls="movie-filters-panel"
-              aria-label={showFilters ? "Hide filters" : "Show filters"}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition ${showFilters ? 'border-theme-primary text-theme-primary bg-theme-primary/10' : 'border-theme-border text-theme-muted hover:text-theme-primary'}`}
-            >
-              <SlidersHorizontal size={12} />
-              Filters
-            </button>
-
-            <div className="flex items-center gap-1 rounded-lg border border-theme-border bg-theme-base p-1">
-              <button onClick={() => changeViewMode('grid')} aria-label="Grid view" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'grid' ? 'bg-theme-primary text-theme-base shadow-sm' : 'text-theme-muted hover:text-theme-primary'}`}>
-                <LayoutGrid size={13} /><span>Grid</span>
-              </button>
-              <button onClick={() => changeViewMode('list')} aria-label="List view" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'list' ? 'bg-theme-primary text-theme-base shadow-sm' : 'text-theme-muted hover:text-theme-primary'}`}>
-                <List size={13} /><span>List</span>
-              </button>
-            </div>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 relative">
+        <div className="hidden md:flex flex-wrap items-center gap-2 bg-theme-surface border border-theme-border rounded-xl p-2">
+          <Filter size={14} className="text-theme-muted" />
+          <select value={pickerFilter} onChange={(e) => setPickerFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
+            <option value="all">All Pickers</option>
+            {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          <select value={genreFilter} onChange={(e) => setGenreFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
+            <option value="all">All Genres</option>
+            {uniqueGenres.map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
+          <select value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
+            <option value="recent">Sort: Recent</option>
+            <option value="title">Sort: Title</option>
+            <option value="rating">Sort: Rating</option>
+          </select>
+          <button
+            onClick={resetFilters}
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-theme-border px-2 py-1 text-[10px] font-black uppercase tracking-widest text-theme-muted hover:text-theme-primary"
+          >
+            <RotateCcw size={12} /> Reset
+          </button>
         </div>
 
-        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-theme-muted">
-          <span className="inline-flex items-center gap-1 rounded-lg border border-theme-border bg-theme-base px-2 py-1"><Filter size={11} /> {selectedPickerName}</span>
-          <span className="rounded-lg border border-theme-border bg-theme-base px-2 py-1">{selectedGenreLabel}</span>
-          <span className="rounded-lg border border-theme-border bg-theme-base px-2 py-1">Sort {selectedSortLabel}</span>
+        <button
+          type="button"
+          onClick={() => setShowFilters(prev => !prev)}
+          aria-expanded={showFilters}
+          aria-controls="mobile-movie-filters"
+          className="md:hidden inline-flex items-center justify-center gap-2 bg-theme-surface border border-theme-border rounded-xl p-2 text-[10px] font-black uppercase tracking-widest text-theme-text"
+        >
+          <SlidersHorizontal size={12} />
+          Filters {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}
+        </button>
+
+        <div className="flex items-center gap-1 bg-theme-surface border border-theme-border rounded-xl p-1 justify-end">
+          <button onClick={() => changeViewMode('grid')} aria-label="Grid view" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'grid' ? 'bg-theme-primary text-theme-base shadow-sm' : 'text-theme-muted hover:text-theme-primary'}`}>
+            <LayoutGrid size={13} /><span>Grid</span>
+          </button>
+          <button onClick={() => changeViewMode('list')} aria-label="List view" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'list' ? 'bg-theme-primary text-theme-base shadow-sm' : 'text-theme-muted hover:text-theme-primary'}`}>
+            <List size={13} /><span>List</span>
+          </button>
         </div>
 
         <AnimatePresence>
           {showFilters && (
             <motion.div
-              id="movie-filters-panel"
+              id="mobile-movie-filters"
               ref={mobileFilterPanelRef}
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              className="mt-3 rounded-xl border border-theme-border bg-theme-base p-3"
+              initial={{ opacity: 0, y: -8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.98 }}
+              className="absolute top-12 left-0 z-30 w-full md:w-auto bg-theme-surface border border-theme-border rounded-xl p-2 shadow-2xl md:hidden"
             >
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <label className="flex flex-col gap-1 text-[10px] font-black uppercase tracking-widest text-theme-muted">
-                  Picker
-                  <select value={pickerFilter} onChange={(e) => setPickerFilter(e.target.value)} className="bg-theme-surface border border-theme-border rounded-lg px-2 py-2 text-xs font-black text-theme-text">
-                    <option value="all">All Pickers</option>
-                    {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
-                </label>
-                <label className="flex flex-col gap-1 text-[10px] font-black uppercase tracking-widest text-theme-muted">
-                  Genre
-                  <select value={genreFilter} onChange={(e) => setGenreFilter(e.target.value)} className="bg-theme-surface border border-theme-border rounded-lg px-2 py-2 text-xs font-black text-theme-text">
-                    <option value="all">All Genres</option>
-                    {uniqueGenres.map(g => <option key={g} value={g}>{g}</option>)}
-                  </select>
-                </label>
-                <label className="flex flex-col gap-1 text-[10px] font-black uppercase tracking-widest text-theme-muted">
-                  Sort
-                  <select value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)} className="bg-theme-surface border border-theme-border rounded-lg px-2 py-2 text-xs font-black text-theme-text">
-                    <option value="recent">Recent</option>
-                    <option value="title">Title</option>
-                    <option value="rating">Rating</option>
-                  </select>
-                </label>
-              </div>
-              <div className="mt-3 flex items-center justify-end gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <select value={pickerFilter} onChange={(e) => setPickerFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
+                  <option value="all">All Pickers</option>
+                  {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+                <select value={genreFilter} onChange={(e) => setGenreFilter(e.target.value)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
+                  <option value="all">All Genres</option>
+                  {uniqueGenres.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+                <select value={sortMode} onChange={(e) => setSortMode(e.target.value as SortMode)} className="bg-theme-base border border-theme-border rounded-lg px-2 py-1 text-xs font-black text-theme-text">
+                  <option value="recent">Sort: Recent</option>
+                  <option value="title">Sort: Title</option>
+                  <option value="rating">Sort: Rating</option>
+                </select>
                 <button
                   onClick={resetFilters}
                   type="button"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-theme-border px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-theme-muted hover:text-theme-primary"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-theme-border px-2 py-1 text-[10px] font-black uppercase tracking-widest text-theme-muted hover:text-theme-primary"
                 >
                   <RotateCcw size={12} /> Reset
-                </button>
-                <button
-                  onClick={() => setShowFilters(false)}
-                  type="button"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-theme-primary px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-theme-base"
-                >
-                  Done
                 </button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-widest text-theme-muted">
+        <span className="px-2 py-1 rounded-lg bg-theme-surface border border-theme-border">Wishlist: {filteredWishlist.length}</span>
+        <span className="px-2 py-1 rounded-lg bg-theme-surface border border-theme-border">Watched: {filteredWatched.length}</span>
+        {activeFilterCount > 0 && (
+          <span className="px-2 py-1 rounded-lg bg-theme-primary/15 border border-theme-primary/40 text-theme-primary">
+            {activeFilterCount} active filter{activeFilterCount === 1 ? '' : 's'}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-2">
