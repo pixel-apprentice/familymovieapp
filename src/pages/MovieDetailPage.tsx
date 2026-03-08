@@ -12,6 +12,8 @@ import { toast } from 'sonner';
 import { MovieEditForm } from '../components/movie/MovieEditForm';
 import { MovieActions } from '../components/movie/MovieActions';
 import { hapticFeedback } from '../utils/haptics';
+import { getWatchPartyIdeas } from '../services/gemini';
+import { Sparkles } from 'lucide-react';
 
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +24,7 @@ export function MovieDetailPage() {
   const [isSending, setIsSending] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isGeneratingPack, setIsGeneratingPack] = useState(false);
   const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
   const [watchPartyPack, setWatchPartyPack] = useState<{ snack: string; activity: string; prompt: string } | null>(null);
   const [editForm, setEditForm] = useState({
@@ -133,19 +136,37 @@ export function MovieDetailPage() {
   };
 
 
-  const generateWatchPartyPack = () => {
+  const generateWatchPartyPack = async () => {
     if (!movie) return;
-    const genres = movie.genres || [];
-    const snack = genres.includes('Animation') ? 'Colorful candy + popcorn mix' :
-      genres.includes('Action') ? 'Spicy wings + fries' :
-        genres.includes('Sci-Fi') ? 'Galaxy popcorn + blue soda' :
-          genres.includes('Comedy') ? 'Pizza slices + cookies' :
-            'Classic popcorn + pizza';
-    const activity = genres.includes('Mystery') ? 'Solve-a-clue mini game before starting' :
-      genres.includes('Adventure') ? 'Pick a travel destination inspired by the movie' :
-        'Vote on favorite scene after credits';
-    const prompt = `"${movie.title}" question: Which character made the boldest choice and why?`;
-    setWatchPartyPack({ snack, activity, prompt });
+    setIsGeneratingPack(true);
+    try {
+      const pack = await getWatchPartyIdeas(movie.title, movie.genres, movie.summary);
+      setWatchPartyPack(pack);
+      toast.success("Watch Party Pack generated!");
+      hapticFeedback.success();
+    } catch (err) {
+      handleError(err, "Failed to generate party ideas");
+    } finally {
+      setIsGeneratingPack(false);
+    }
+  };
+
+  const handleRatingToggle = (profileId: string, star: number) => {
+    const currentRating = movie?.ratings[profileId] || 0;
+    let newRating = star;
+
+    // If tapping the SAME full star, toggle to half
+    if (currentRating === star) {
+      newRating = star - 0.5;
+    }
+    // If tapping the SAME half star, reset to 0
+    else if (currentRating === star - 0.5) {
+      newRating = 0;
+    }
+
+    handleRatingChange(profileId, newRating);
+    if (newRating % 1 !== 0) hapticFeedback.light();
+    else hapticFeedback.medium();
   };
 
   const getPosterSrc = (url: string) => {
@@ -240,8 +261,8 @@ export function MovieDetailPage() {
     : `https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' movie trailer')}`;
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="w-full max-w-4xl mx-auto px-4 py-2 md:py-4">
+      <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => navigate('/')}
           className="flex items-center gap-2 text-theme-muted hover:text-theme-primary transition-colors group"
@@ -323,40 +344,27 @@ export function MovieDetailPage() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="space-y-8"
+          className="space-y-4"
         >
-          <div className="space-y-2">
-            <div className="flex items-start justify-between gap-4">
-              <h1 className={`text-4xl md:text-6xl font-black leading-none text-theme-text ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
+          <div className="space-y-4">
+            <div className="flex flex-col gap-2">
+              <h1 className={`text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-theme-text leading-none ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
                 {movie.title}
               </h1>
 
-              <button
-                onClick={generateWatchPartyPack}
-                className="p-2 text-theme-muted hover:text-theme-primary transition-colors opacity-70 hover:opacity-100"
-                title="Generate Watch Party Pack"
-              >
-                🎉
-              </button>
-              <button
-                onClick={handleRefreshMetadata}
-                disabled={isRefreshing}
-                className="p-2 text-theme-muted hover:text-theme-primary transition-colors opacity-50 hover:opacity-100"
-                title="Refresh Metadata"
-              >
-                <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
-              </button>
+              {watchPartyPack && (
+                <div className="p-4 rounded-2xl border border-theme-border bg-theme-surface/40 space-y-2">
+                  <h3 className="text-xs font-black uppercase tracking-widest text-theme-primary flex items-center gap-2">
+                    <Sparkles size={14} className="animate-pulse" /> AI Watch Party Pack
+                  </h3>
+                  <p className="text-xs text-theme-text font-medium"><span className="opacity-50">Snack:</span> {watchPartyPack.snack}</p>
+                  <p className="text-xs text-theme-text font-medium"><span className="opacity-50">Activity:</span> {watchPartyPack.activity}</p>
+                  <p className="text-xs text-theme-text font-medium"><span className="opacity-50">Discussion:</span> {watchPartyPack.prompt}</p>
+                </div>
+              )}
             </div>
-            {watchPartyPack && (
-              <div className="p-4 rounded-2xl border border-theme-border bg-theme-surface/40 space-y-2 mb-3">
-                <h3 className="text-xs font-black uppercase tracking-widest text-theme-primary">🎉 Watch Party Pack</h3>
-                <p className="text-xs text-theme-text"><span className="font-black">Snack:</span> {watchPartyPack.snack}</p>
-                <p className="text-xs text-theme-text"><span className="font-black">Activity:</span> {watchPartyPack.activity}</p>
-                <p className="text-xs text-theme-text"><span className="font-black">Discussion:</span> {watchPartyPack.prompt}</p>
-              </div>
-            )}
 
-            <div className="flex flex-wrap gap-3 items-center">
+            <div className="flex flex-wrap gap-2 items-center">
               {isEditing ? (
                 <MovieEditForm
                   editForm={editForm}
@@ -367,53 +375,56 @@ export function MovieDetailPage() {
                 />
               ) : (
                 <>
+                  <button
+                    onClick={generateWatchPartyPack}
+                    disabled={isGeneratingPack}
+                    className="group flex items-center gap-2 px-3 py-1.5 rounded-xl bg-theme-primary text-theme-base font-black uppercase text-[10px] tracking-widest hover:scale-105 transition-all shadow-lg shadow-theme-primary/20 disabled:opacity-50"
+                  >
+                    <Sparkles size={14} className={isGeneratingPack ? 'animate-spin' : 'group-hover:rotate-12 transition-transform'} />
+                    {isGeneratingPack ? 'Thinking...' : 'Party Pack'}
+                  </button>
+                  <span className="w-1 h-1 rounded-full bg-theme-border mx-1" />
                   {movie.date && (
                     <span className="text-xs font-mono text-theme-muted uppercase tracking-widest">{movie.date}</span>
                   )}
-                  <span className="w-1 h-1 rounded-full bg-theme-border" />
+                  <span className="w-1 h-1 rounded-full bg-theme-border mx-1" />
                   <span className="text-xs font-black uppercase tracking-widest" style={{ color: profiles.find(p => p.id === movie.pickedBy)?.color || 'inherit' }}>
-                    Picked by {profiles.find(p => p.id === movie.pickedBy)?.name || movie.pickedBy}
+                    {profiles.find(p => p.id === movie.pickedBy)?.name || movie.pickedBy}
                   </span>
-                  <span className="w-1 h-1 rounded-full bg-theme-border" />
+                  <span className="w-1 h-1 rounded-full bg-theme-border mx-1" />
                   <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${movie.status === 'watched' ? 'border-emerald-500/30 text-emerald-500 bg-emerald-500/10' : 'border-amber-500/30 text-amber-500 bg-amber-500/10'}`}>
-                    {movie.status === 'watched' ? (
-                      theme === 'mooooovies' ? 'Grazed' :
-                        theme === 'drive-in' ? 'Screened' :
-                          theme === 'blockbuster' ? 'Returned' :
-                            theme === 'sci-fi-hologram' ? 'Archived' :
-                              theme === 'golden-age' ? 'Wrapped' :
-                                'Watched'
-                    ) : (
-                      theme === 'mooooovies' ? 'Pasture' :
-                        theme === 'drive-in' ? 'Marquee' :
-                          theme === 'blockbuster' ? 'Reserved' :
-                            theme === 'sci-fi-hologram' ? 'Pending' :
-                              theme === 'golden-age' ? 'Scheduled' :
-                                'Wishlist'
-                    )}
+                    {movie.status === 'watched' ? 'Watched' : 'Wishlist'}
                   </span>
                   <button onClick={() => setIsEditing(true)} className="ml-2 text-theme-muted hover:text-theme-primary transition-colors opacity-50 hover:opacity-100">
                     <Edit2 size={14} />
+                  </button>
+                  <button
+                    onClick={handleRefreshMetadata}
+                    disabled={isRefreshing}
+                    className="ml-2 text-theme-muted hover:text-theme-primary transition-colors opacity-50 hover:opacity-100"
+                    title="Refresh Metadata"
+                  >
+                    <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
                   </button>
                 </>
               )}
             </div>
 
             {movie.summary && (
-              <p className="text-sm text-theme-muted leading-relaxed mt-6 max-w-2xl">
+              <p className="text-sm text-theme-muted leading-relaxed mt-2 max-w-2xl">
                 {movie.summary}
               </p>
             )}
           </div>
 
-          {/* Moved Rankings Section */}
-          <section className="bg-theme-surface/30 border border-theme-border rounded-2xl p-4 md:p-6 space-y-4">
+          {/* Rankings Section */}
+          <section className="bg-theme-surface/30 border border-theme-border rounded-2xl p-4 md:p-6 space-y-3 mt-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-theme-primary">
                 <Star size={16} />
                 <h2 className="text-[10px] font-black uppercase tracking-[0.2em]">Family Rankings</h2>
               </div>
-              <div className="text-[10px] font-mono text-theme-muted uppercase">Tap stars for 0.5 increments</div>
+              <div className="text-[10px] font-mono text-theme-muted uppercase">Tap star again to toggle half</div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -434,29 +445,22 @@ export function MovieDetailPage() {
                         const isHalf = star - 0.5 === currentRating;
 
                         return (
-                          <div key={star} className="relative flex items-center h-8 w-6 group/star select-none">
-                            {/* Half-star hitbox (Left side) */}
-                            <div
-                              onClick={() => { handleRatingChange(profile.id, star - 0.5); hapticFeedback.light(); }}
-                              className="absolute left-0 top-0 w-1/2 h-full z-20 cursor-pointer"
+                          <div key={star} className="relative flex items-center h-10 w-8 group/star select-none">
+                            <button
+                              onClick={() => { hapticFeedback.light(); handleRatingToggle(profile.id, star); }}
+                              className="absolute inset-0 z-20 cursor-pointer"
                             />
-                            {/* Full-star hitbox (Right side) */}
-                            <div
-                              onClick={() => { handleRatingChange(profile.id, star); hapticFeedback.medium(); }}
-                              className="absolute right-0 top-0 w-1/2 h-full z-20 cursor-pointer"
-                            />
-
                             <Star
-                              size={16}
+                              size={24}
                               className={`transition-all ${isFull || isHalf ? 'text-amber-400' : 'text-theme-muted opacity-10'}`}
-                              fill={isFull ? 'currentColor' : isHalf ? 'url(#halfStar)' : 'none'}
+                              fill={isFull ? 'currentColor' : isHalf ? 'url(#halfStarDetail)' : 'none'}
                             />
                           </div>
                         );
                       })}
                       <svg width="0" height="0" className="absolute">
                         <defs>
-                          <linearGradient id="halfStar" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <linearGradient id="halfStarDetail" x1="0%" y1="0%" x2="100%" y2="0%">
                             <stop offset="50%" stopColor="currentColor" />
                             <stop offset="50%" stopColor="transparent" stopOpacity="0" />
                           </linearGradient>
@@ -473,14 +477,16 @@ export function MovieDetailPage() {
           </section>
 
           {/* Actions */}
-          <MovieActions
-            movie={movie}
-            trailerUrl={trailerUrl}
-            isSending={isSending}
-            handlePlexRequest={handlePlexRequest}
-            markWatched={markWatched}
-            handleDelete={handleDelete}
-          />
+          <div className="pt-2">
+            <MovieActions
+              movie={movie}
+              trailerUrl={trailerUrl}
+              isSending={isSending}
+              handlePlexRequest={handlePlexRequest}
+              markWatched={markWatched}
+              handleDelete={handleDelete}
+            />
+          </div>
         </motion.div >
       </div >
     </div >

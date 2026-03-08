@@ -91,13 +91,13 @@ export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
       <div className="p-2 md:p-3 flex-1 flex flex-col relative z-10">
         <div className="flex flex-col gap-1 mb-2">
           <Link to={`/movie/${movie.id}`} className="hover:underline">
-            <h3 className={`text-[10px] md:text-sm font-black leading-tight text-theme-text group-hover:text-theme-primary transition-colors line-clamp-2 ${theme === 'vintage-ticket' ? 'font-serif italic text-xs' : ''
+            <h3 className={`text-xs md:text-base font-black leading-tight text-theme-text group-hover:text-theme-primary transition-colors line-clamp-2 ${theme === 'vintage-ticket' ? 'font-serif italic text-sm' : ''
               }`}>
               {movie.title}
             </h3>
           </Link>
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[7px] md:text-[9px] font-black" style={{ color: pickerColor }}>{pickerName}</span>
+            <span className="text-[9px] md:text-xs font-black uppercase" style={{ color: pickerColor }}>{pickerName}</span>
             {movie.date && (
               <span className="text-[7px] md:text-[9px] text-theme-muted font-mono uppercase tracking-widest">
                 {movie.date.split('-')[0]}

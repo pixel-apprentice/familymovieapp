@@ -69,3 +69,20 @@ export async function getFamilyRecommendations(
   const data = await response.json();
   return data.recommendations || [];
 }
+
+/**
+ * Get AI-generated Watch Party Pack ideas.
+ */
+export async function getWatchPartyIdeas(title: string, genres?: string[], summary?: string): Promise<{ snack: string; activity: string; prompt: string }> {
+  const response = await fetch('/api/gemini/party', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, genres, summary }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Party Pack failed (${response.status})`);
+  }
+
+  return response.json();
+}

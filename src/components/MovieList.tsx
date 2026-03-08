@@ -229,12 +229,12 @@ export function MovieList() {
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0 px-1">
           <button
             onClick={() => togglePicker('all')}
-            className={`flex items-center justify-center transition-all whitespace-nowrap h-9 px-4 md:h-10 md:px-5 rounded-xl text-[10px] font-black uppercase tracking-widest ${pickerFilter === 'all'
+            className={`flex items-center justify-center transition-all whitespace-nowrap h-9 px-3 md:h-10 md:px-4 rounded-xl text-[10px] font-black uppercase tracking-widest ${pickerFilter === 'all'
               ? 'bg-theme-primary text-theme-base shadow-lg scale-105'
               : 'bg-theme-base text-theme-muted hover:text-theme-text border border-theme-border'
               }`}
           >
-            Everyone
+            All
           </button>
 
           <div className="w-[1px] h-6 bg-theme-border mx-1" />
