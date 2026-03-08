@@ -33,15 +33,17 @@ const getStoredFilters = (): { pickerFilter: string; genreFilter: string; sortMo
 export function MovieList() {
   const { movies, profiles, markWatched, removeMovie } = useData();
 
+  const initialFilters = getStoredFilters();
+
   const [randomMovie, setRandomMovie] = useState<Movie | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
     try { return (localStorage.getItem(STORAGE_KEY) as 'grid' | 'list') || 'grid'; } catch { return 'grid'; }
   });
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [pickerFilter, setPickerFilter] = useState(() => getStoredFilters().pickerFilter);
-  const [genreFilter, setGenreFilter] = useState(() => getStoredFilters().genreFilter);
-  const [sortMode, setSortMode] = useState<SortMode>(() => getStoredFilters().sortMode);
+  const [pickerFilter, setPickerFilter] = useState(initialFilters.pickerFilter);
+  const [genreFilter, setGenreFilter] = useState(initialFilters.genreFilter);
+  const [sortMode, setSortMode] = useState<SortMode>(initialFilters.sortMode);
   const mobileFilterPanelRef = useRef<HTMLDivElement | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
 
@@ -235,11 +237,12 @@ export function MovieList() {
               type="button"
               onClick={() => setShowFilters(prev => !prev)}
               aria-expanded={showFilters}
-              aria-controls="mobile-movie-filters"
+              aria-controls="movie-filters-panel"
+              aria-label={showFilters ? "Hide filters" : "Show filters"}
               className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition ${showFilters ? 'border-theme-primary text-theme-primary bg-theme-primary/10' : 'border-theme-border text-theme-muted hover:text-theme-primary'}`}
             >
               <SlidersHorizontal size={12} />
-              Filter
+              Filters
             </button>
 
             <div className="flex items-center gap-1 rounded-lg border border-theme-border bg-theme-base p-1">
@@ -257,21 +260,12 @@ export function MovieList() {
           <span className="inline-flex items-center gap-1 rounded-lg border border-theme-border bg-theme-base px-2 py-1"><Filter size={11} /> {selectedPickerName}</span>
           <span className="rounded-lg border border-theme-border bg-theme-base px-2 py-1">{selectedGenreLabel}</span>
           <span className="rounded-lg border border-theme-border bg-theme-base px-2 py-1">Sort {selectedSortLabel}</span>
-          {activeFilterCount > 0 && (
-            <button
-              onClick={resetFilters}
-              type="button"
-              className="inline-flex items-center gap-1 rounded-lg border border-theme-border px-2 py-1 text-theme-muted hover:text-theme-primary"
-            >
-              <RotateCcw size={11} /> Reset
-            </button>
-          )}
         </div>
 
         <AnimatePresence>
           {showFilters && (
             <motion.div
-              id="mobile-movie-filters"
+              id="movie-filters-panel"
               ref={mobileFilterPanelRef}
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
