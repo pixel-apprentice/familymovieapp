@@ -5,7 +5,7 @@ import { hapticFeedback } from '../utils/haptics';
 import { UpNextSection } from './movie-list/UpNextSection';
 import { HistorySection } from './movie-list/HistorySection';
 import { AnimatePresence, motion } from 'motion/react';
-import { LayoutGrid, List, ChevronUp, Filter, WandSparkles, Trash2, CircleCheck, SlidersHorizontal, RotateCcw, Settings, ArrowUpRight } from 'lucide-react';
+import { LayoutGrid, List, ChevronUp, WandSparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 const STORAGE_KEY = 'fmn_view_mode';
@@ -43,9 +43,7 @@ export function MovieList() {
   const [pickerFilter, setPickerFilter] = useState(() => getStoredFilters().pickerFilter);
   const [genreFilter, setGenreFilter] = useState(() => getStoredFilters().genreFilter);
   const [sortMode, setSortMode] = useState<SortMode>(() => getStoredFilters().sortMode);
-  const [mobileFilterPanelRef, setMobileFilterPanelRef] = useState<HTMLDivElement | null>(null);
-  const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
-  const [bulkBusy, setBulkBusy] = useState(false);
+  const mobileFilterPanelRef = useRef<HTMLDivElement>(null);
 
   const wishlistMovies = useMemo(() => movies.filter(m => m.status === 'wishlist'), [movies]);
   const watchedMoviesRaw = useMemo(() => movies.filter(m => m.status === 'watched'), [movies]);
@@ -119,32 +117,6 @@ export function MovieList() {
     hapticFeedback.light();
     setViewMode(mode);
     try { localStorage.setItem(STORAGE_KEY, mode); } catch { /* ignore */ }
-  };
-
-  const runBulkMarkWatched = async () => {
-    if (filteredWishlist.length === 0) return;
-    setBulkBusy(true);
-    try {
-      for (const movie of filteredWishlist) {
-        await markWatched(movie.id);
-      }
-      toast.success(`Marked ${filteredWishlist.length} movie(s) watched.`);
-    } finally {
-      setBulkBusy(false);
-    }
-  };
-
-  const runBulkRemove = async () => {
-    if (filteredWishlist.length === 0) return;
-    setBulkBusy(true);
-    try {
-      for (const movie of filteredWishlist) {
-        await removeMovie(movie.id);
-      }
-      toast.success(`Removed ${filteredWishlist.length} filtered wishlist movie(s).`);
-    } finally {
-      setBulkBusy(false);
-    }
   };
 
   useEffect(() => {
@@ -264,67 +236,29 @@ export function MovieList() {
 
         {/* Fixed Controls */}
         <div className="flex items-center gap-1.5 shrink-0 pl-2 border-l border-theme-border/50">
-          <div className="hidden sm:flex items-center gap-1 bg-theme-base p-1 rounded-xl border border-theme-border">
-            <button onClick={() => changeViewMode('grid')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-theme-primary text-theme-base shadow-md' : 'text-theme-muted hover:text-theme-text'}`}>
-              <LayoutGrid size={14} />
-            </button>
-            <button onClick={() => changeViewMode('list')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-theme-primary text-theme-base shadow-md' : 'text-theme-muted hover:text-theme-text'}`}>
-              <List size={14} />
-            </button>
-          </div>
+          <Link
+            to="/stats"
+            className="p-2.5 md:p-3 rounded-xl border border-theme-border bg-theme-base text-theme-muted hover:text-theme-primary transition-all active:scale-95 touch-manipulation"
+            title="Themes & AI"
+          >
+            <WandSparkles size={18} />
+          </Link>
 
-          <div className="relative z-50">
+          <div className="flex items-center gap-1 bg-theme-base p-1 rounded-xl border border-theme-border h-full">
             <button
-              onClick={() => { setIsActionsMenuOpen(!isActionsMenuOpen); hapticFeedback.light(); }}
-              className={`p-3 md:p-2.5 rounded-xl transition-all border outline-none active:scale-95 touch-manipulation ${isActionsMenuOpen ? 'bg-theme-primary text-theme-base border-theme-primary shadow-lg' : 'bg-theme-base border-theme-border text-theme-muted hover:text-theme-primary'}`}
-              aria-label="Settings"
+              onClick={() => changeViewMode('grid')}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-theme-primary text-theme-base shadow-md' : 'text-theme-muted hover:text-theme-text'}`}
+              aria-label="Grid View"
             >
-              <Settings size={20} className={isActionsMenuOpen ? 'animate-spin-slow' : ''} />
+              <LayoutGrid size={16} />
             </button>
-
-            {isActionsMenuOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsActionsMenuOpen(false)}
-                />
-                <div
-                  className="absolute right-0 top-full mt-2 w-52 bg-theme-base border border-theme-border rounded-2xl shadow-2xl z-50 p-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200"
-                  style={{ backgroundColor: 'var(--theme-base)', opacity: 1, backdropFilter: 'none' }}
-                >
-                  <div className="p-2">
-                    <p className="text-[8px] font-black uppercase tracking-widest text-theme-muted mb-1">Library Actions</p>
-                    <div className="space-y-1">
-                      <button onClick={() => { resetFilters(); setIsActionsMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-theme-base rounded-xl text-[10px] font-black uppercase tracking-widest text-theme-text transition-colors">
-                        <RotateCcw size={14} /> Reset Filters
-                      </button>
-                      <button onClick={() => { runBulkMarkWatched(); setIsActionsMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-emerald-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-500 transition-colors">
-                        <CircleCheck size={14} /> Mark All Watched
-                      </button>
-                      <button onClick={() => { runBulkRemove(); setIsActionsMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-red-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 transition-colors">
-                        <Trash2 size={14} /> Delete Filtered
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="h-px bg-theme-border/50 mx-2" />
-
-                  <div className="p-2">
-                    <p className="text-[8px] font-black uppercase tracking-widest text-theme-muted mb-1">Global Preferences</p>
-                    <Link
-                      to="/stats"
-                      onClick={() => setIsActionsMenuOpen(false)}
-                      className="w-full flex items-center justify-between px-3 py-2 hover:bg-theme-primary/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-theme-primary transition-colors"
-                    >
-                      <span className="flex items-center gap-2">
-                        <WandSparkles size={14} /> Themes & AI
-                      </span>
-                      <ArrowUpRight size={12} />
-                    </Link>
-                  </div>
-                </div>
-              </>
-            )}
+            <button
+              onClick={() => changeViewMode('list')}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-theme-primary text-theme-base shadow-md' : 'text-theme-muted hover:text-theme-text'}`}
+              aria-label="List View"
+            >
+              <List size={16} />
+            </button>
           </div>
         </div>
       </div>
