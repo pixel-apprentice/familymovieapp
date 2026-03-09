@@ -48,12 +48,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 F
               </div>
               <h1 className={`text-xl md:text-2xl font-black tracking-tighter text-theme-primary`}>
-                {theme === 'mooooovies' ? 'Family Mooovie Night' :
-                  theme === 'drive-in' ? 'Drive-In Movie Night' :
-                    theme === 'blockbuster' ? 'Blockbuster Night' :
-                      theme === 'sci-fi-hologram' ? 'Holo-Deck Cinema' :
-                        theme === 'golden-age' ? 'Golden Age Cinema' :
-                          'Family Movie Night'}
+                {theme === 'mooooovies' ? 'Pizza Mooovie Night' :
+                  theme === 'drive-in' ? 'Drive-In Pizza Night' :
+                    theme === 'blockbuster' ? 'Blockbuster Pizza' :
+                      theme === 'sci-fi-hologram' ? 'Holo-Deck Pizza' :
+                        theme === 'golden-age' ? 'Golden Age Pizza' :
+                          'Pizza Movie Night'}
               </h1>
             </Link>
 
@@ -67,16 +67,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </span>
             </div>
 
-            <nav className="flex items-center gap-1 md:gap-2">
+            <nav className="flex items-center gap-1">
               <Link
                 to="/"
                 onClick={() => hapticFeedback.light()}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${location.pathname === '/'
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${location.pathname === '/'
                   ? 'bg-theme-primary text-theme-base shadow-lg'
                   : 'text-theme-muted hover:text-theme-primary hover:bg-theme-primary/10'
                   }`}
+                title="Home"
               >
-                <Home size={14} />
+                <Home size={16} />
                 <span className="hidden sm:inline">Home</span>
               </Link>
               <PizzaButton />
@@ -84,12 +85,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Link
                 to="/stats"
                 onClick={() => hapticFeedback.light()}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${location.pathname === '/stats'
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${location.pathname === '/stats'
                   ? 'bg-theme-primary text-theme-base shadow-lg'
                   : 'text-theme-muted hover:text-theme-primary hover:bg-theme-primary/10'
                   }`}
+                title="Settings"
               >
-                <Settings size={14} />
+                <Settings size={16} />
                 <span className="hidden sm:inline">Settings</span>
               </Link>
             </nav>

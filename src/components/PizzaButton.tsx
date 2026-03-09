@@ -22,7 +22,7 @@ export function PizzaButton() {
 
     setIsSending(true);
     const success = await sendRequestEmail(
-      'pizza', 
+      'pizza',
       details,
       'Pizza request from Family Movie App'
     );
@@ -50,10 +50,10 @@ export function PizzaButton() {
       whileTap={{ scale: 0.95 }}
       onClick={() => { hapticFeedback.light(); handlePizzaRequest(); }}
       disabled={isSending}
-      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-theme-muted hover:text-amber-500 hover:bg-amber-500/10 disabled:opacity-50`}
+      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-theme-muted hover:text-amber-500 hover:bg-amber-500/10 disabled:opacity-50`}
       title="Request Pizza"
     >
-      <span className="text-sm">🍕</span>
+      <span className="text-base leading-none">🍕</span>
       <span className="hidden sm:inline">Pizza</span>
     </motion.button>
   );

@@ -4,6 +4,26 @@ import { motion, AnimatePresence } from 'motion/react';
 
 const CHANGELOG = [
   {
+    version: 'v0.9.0.1',
+    date: '2026-03-09',
+    items: [
+      'Renamed application to Pizza Movie Night',
+      'Refined navigation header icons layout',
+      'Restricted Google Cast discovery to video-capable devices strictly'
+    ]
+  },
+  {
+    version: 'v0.9.0',
+    date: '2026-03-09',
+    items: [
+      'Couch Mode (Native Casting) to Smart TVs',
+      'Real-time Firebase state synchronization for instant mirroring',
+      'Cinematic widescreen UI overrides and layout optimization',
+      'Unified single-row filter bar navigation',
+      'Deterministic exact-title similarity search re-ranking'
+    ]
+  },
+  {
     version: 'v0.8',
     date: '2026-03-07',
     items: [
@@ -63,7 +83,7 @@ export function AboutPanel() {
       </section>
 
       <div className="text-center py-4 opacity-30 border-t border-theme-border/10">
-        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-theme-muted">Family Movie Night {latestVersion}</p>
+        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-theme-muted">Pizza Movie Night {latestVersion}</p>
       </div>
 
       <AnimatePresence>
