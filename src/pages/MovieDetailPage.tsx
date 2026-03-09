@@ -142,7 +142,6 @@ export function MovieDetailPage() {
     try {
       const pack = await getWatchPartyIdeas(movie.title, movie.genres, movie.summary);
       setWatchPartyPack(pack);
-      toast.success("Watch Party Pack generated!");
       hapticFeedback.success();
     } catch (err) {
       handleError(err, "Failed to generate party ideas");
