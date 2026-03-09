@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Tv } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
+import { useLocation } from 'react-router-dom';
 import { hapticFeedback } from '../utils/haptics';
 
 declare global {
@@ -12,9 +13,12 @@ declare global {
 }
 
 export function CastButton() {
-    const { pushCouchState } = useData();
+    const { movies, pushCouchState } = useData();
+    const location = useLocation();
     const [castAvailable, setCastAvailable] = useState(false);
     const [isCasting, setIsCasting] = useState(false);
+
+    const hasCustomReceiver = !!import.meta.env.VITE_CAST_APP_ID;
 
     useEffect(() => {
         window.__onGCastApiAvailable = (isAvailable: boolean) => {
@@ -46,6 +50,44 @@ export function CastButton() {
             }
         };
     }, []);
+
+    // Fallback: If no custom receiver is set, we stream visual representations (posters) manually using the Default Media Receiver
+    useEffect(() => {
+        if (!isCasting || hasCustomReceiver) return;
+
+        const session = window.cast?.framework?.CastContext?.getInstance()?.getCurrentSession();
+        if (!session) return;
+
+        let mediaInfo: any = null;
+        const movieId = location.pathname.split('/movie/')[1];
+
+        if (movieId) {
+            const movie = movies.find(m => m.id === movieId);
+            if (movie && movie.poster_url) {
+                const imgUrl = movie.poster_url.startsWith('http') ? movie.poster_url : `https://image.tmdb.org/t/p/w500${movie.poster_url}`;
+                mediaInfo = new window.chrome.cast.media.MediaInfo(imgUrl, 'image/jpeg');
+                mediaInfo.metadata = new window.chrome.cast.media.GenericMediaMetadata();
+                mediaInfo.metadata.metadataType = window.chrome.cast.media.MetadataType.GENERIC;
+                mediaInfo.metadata.title = movie.title;
+                mediaInfo.metadata.subtitle = movie.summary ? movie.summary.substring(0, 100) + '...' : 'Movie Night';
+                mediaInfo.metadata.images = [{ url: imgUrl }];
+            }
+        } else {
+            // Home page fallback: cast the app icon
+            const pwaIcon = window.location.origin + '/pwa-512.png';
+            mediaInfo = new window.chrome.cast.media.MediaInfo(pwaIcon, 'image/png');
+            mediaInfo.metadata = new window.chrome.cast.media.GenericMediaMetadata();
+            mediaInfo.metadata.metadataType = window.chrome.cast.media.MetadataType.GENERIC;
+            mediaInfo.metadata.title = "Family Movie Night";
+            mediaInfo.metadata.images = [{ url: pwaIcon }];
+        }
+
+        if (mediaInfo) {
+            const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
+            // Autoplay is true by default, so images display indefinitely
+            session.loadMedia(request).catch((err: any) => console.log('Cast media load fallback errored:', err));
+        }
+    }, [isCasting, location.pathname, movies, hasCustomReceiver]);
 
     const handleCastClick = () => {
         hapticFeedback.medium();
