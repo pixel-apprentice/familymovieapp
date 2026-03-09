@@ -200,19 +200,46 @@ async function startServer() {
     }
 
     try {
-      const BASE_URL = "https://api.themoviedb.org/3";
-      let url = `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query as string)}&include_adult=false`;
-      if (year) {
-        url += `&primary_release_year=${year}`;
-      }
+      const [res1, res2] = await Promise.all([
+        fetch(url),
+        fetch(`${url}&page=2`).catch(() => null)
+      ]);
 
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`TMDB API error: ${response.status}`);
-      const data = await response.json();
+      if (!res1.ok) throw new Error(`TMDB API error: ${res1.status}`);
+      const data1 = await res1.json();
+      const data2 = res2 ? await res2.json() : { results: [] };
 
-      const results = data.results || [];
-      const topResults = results.slice(0, 15);
-      const filteredResults = [];
+      let allResults = [...(data1.results || []), ...(data2.results || [])];
+
+      // Dedupe by ID
+      const seen = new Set();
+      allResults = allResults.filter(m => {
+        if (seen.has(m.id)) return false;
+        seen.add(m.id);
+        return true;
+      });
+
+      // Internal Re-ranking: Move exact title matches to the very top
+      // This ensures "WALL-E" wins even if TMDB ranks it at #37
+      const normalize = (t: string) => t.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const normalizedQuery = normalize(query as string);
+
+      allResults.sort((a, b) => {
+        const normA = normalize(a.title);
+        const normB = normalize(b.title);
+
+        const isExactA = normA === normalizedQuery;
+        const isExactB = normB === normalizedQuery;
+
+        if (isExactA && !isExactB) return -1;
+        if (!isExactA && isExactB) return 1;
+
+        // Maintain relative TMDB order otherwise
+        return 0;
+      });
+
+      const topResults = allResults.slice(0, 30); // Inspect more for filtering
+      const filteredResults: any[] = [];
 
       // Filter out R-rated movies
       await Promise.all(topResults.map(async (movie: any) => {

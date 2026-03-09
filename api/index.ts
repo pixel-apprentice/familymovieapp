@@ -209,6 +209,25 @@ app.get("/api/tmdb/search", async (req, res) => {
             return true;
         });
 
+        // Re-ranking step: Force exact title matches to the top 
+        // especially important for "WALL-E" which TMDB ranks poorly for "wall-e"
+        const normalize = (t: string) => t.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const normalizedQuery = normalize(query as string);
+
+        allResults.sort((a, b) => {
+            const normA = normalize(a.title);
+            const normB = normalize(b.title);
+
+            const isExactA = normA === normalizedQuery;
+            const isExactB = normB === normalizedQuery;
+
+            if (isExactA && !isExactB) return -1;
+            if (!isExactA && isExactB) return 1;
+
+            // Maintain relative TMDB order
+            return 0;
+        });
+
         // When allowR is true, we just return the top 15 of the combined list
         if (!shouldFilterRated) {
             res.json({ results: allResults.slice(0, 15) });
