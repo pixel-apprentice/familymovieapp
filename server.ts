@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import { GoogleGenAI, Type } from "@google/genai";
+import "dotenv/config";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -14,7 +15,8 @@ async function startServer() {
 
   // API routes FIRST
   app.get("/api/health", (req, res) => {
-    res.json({ status: "ok" });
+    console.log("Health check. GEMINI_API_KEY present:", !!process.env.GEMINI_API_KEY);
+    res.json({ status: "ok", geminiKey: !!process.env.GEMINI_API_KEY });
   });
 
   // --- Gemini Routes ---
@@ -27,7 +29,7 @@ async function startServer() {
     try {
       const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-flash-latest",
         contents: "Test connection. Reply with 'OK'.",
       });
 
@@ -56,7 +58,7 @@ async function startServer() {
     try {
       const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-flash-latest",
         contents: `Suggest 10 movie titles that match this vibe: "${vibe}". 
         Do NOT include any R-rated, TV-MA, or NC-17 movies. Only return family-friendly, G, PG, or PG-13 movies.
         Return ONLY a JSON array of 10 movie titles.`,
@@ -102,7 +104,7 @@ async function startServer() {
       }).join('\n');
 
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-flash-latest",
         contents: `We are a family (${profileNames.join(', ')}) having a movie night. It's ${currentUser}'s turn to pick. 
         
         Here is our watch history, including summaries and how we rated them:
@@ -161,7 +163,7 @@ async function startServer() {
       Return ONLY a JSON object with properties: "snack", "activity", "prompt". Keep each response to 1 concise sentence.`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-flash-latest",
         contents: prompt,
         config: {
           responseMimeType: "application/json",

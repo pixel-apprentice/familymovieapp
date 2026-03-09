@@ -18,7 +18,7 @@ app.get("/api/gemini/test", async (_req, res) => {
     try {
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: "gemini-flash-latest",
             contents: "Test connection. Reply with 'OK'.",
         });
         if (response.text) {
@@ -47,7 +47,7 @@ app.post("/api/gemini/vibe", async (req, res) => {
     try {
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: "gemini-flash-latest",
             contents: `Suggest 10 movie titles that match this vibe: "${vibe}". 
       ${ratingInstruction}
       Return ONLY a JSON array of 10 movie titles.`,
@@ -90,7 +90,7 @@ app.post("/api/gemini/recommend", async (req, res) => {
         }).join('\n');
 
         const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: "gemini-flash-latest",
             contents: `We are a family (${profileNames.join(', ')}) having a movie night. It's ${currentUser}'s turn to pick. 
       
       Here is our watch history, including summaries and how we rated them:
@@ -121,6 +121,50 @@ app.post("/api/gemini/recommend", async (req, res) => {
         res.json({ recommendations });
     } catch (error: any) {
         console.error("Gemini Recommender error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post("/api/gemini/party", async (req, res) => {
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+    if (!GEMINI_API_KEY) {
+        return res.status(500).json({ error: "GEMINI_API_KEY not configured on server" });
+    }
+    const { title, genres, summary } = req.body;
+    if (!title) {
+        return res.status(400).json({ error: "Title is required" });
+    }
+    try {
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+        const prompt = `Create a "Watch Party Pack" for the movie "${title}"${genres ? ` (Genres: ${genres.join(', ')})` : ''}.${summary ? ` Summary: ${summary}` : ''}
+      
+      Generate context-relevant, themed ideas for:
+      1. A unique snack or drink idea.
+      2. A simple themed activity or game.
+      3. A thoughtful discussion question.
+      
+      Return ONLY a JSON object with properties: "snack", "activity", "prompt". Keep each response to 1 concise sentence.`;
+
+        const response = await ai.models.generateContent({
+            model: "gemini-flash-latest",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        snack: { type: Type.STRING },
+                        activity: { type: Type.STRING },
+                        prompt: { type: Type.STRING }
+                    },
+                    required: ["snack", "activity", "prompt"]
+                }
+            }
+        });
+        const partyPack = JSON.parse(response.text || '{}');
+        res.json(partyPack);
+    } catch (error: any) {
+        console.error("Gemini Party Pack error:", error);
         res.status(500).json({ error: error.message });
     }
 });

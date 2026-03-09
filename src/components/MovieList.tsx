@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useData, Movie } from '../contexts/DataContext';
+import { Link } from 'react-router-dom';
 import { hapticFeedback } from '../utils/haptics';
 import { UpNextSection } from './movie-list/UpNextSection';
 import { HistorySection } from './movie-list/HistorySection';
 import { AnimatePresence, motion } from 'motion/react';
-import { LayoutGrid, List, ChevronUp, Filter, WandSparkles, Trash2, CircleCheck, SlidersHorizontal, RotateCcw } from 'lucide-react';
+import { LayoutGrid, List, ChevronUp, Filter, WandSparkles, Trash2, CircleCheck, SlidersHorizontal, RotateCcw, Settings, ArrowUpRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 const STORAGE_KEY = 'fmn_view_mode';
@@ -42,7 +43,8 @@ export function MovieList() {
   const [pickerFilter, setPickerFilter] = useState(() => getStoredFilters().pickerFilter);
   const [genreFilter, setGenreFilter] = useState(() => getStoredFilters().genreFilter);
   const [sortMode, setSortMode] = useState<SortMode>(() => getStoredFilters().sortMode);
-  const mobileFilterPanelRef = useRef<HTMLDivElement | null>(null);
+  const [mobileFilterPanelRef, setMobileFilterPanelRef] = useState<HTMLDivElement | null>(null);
+  const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
 
   const wishlistMovies = useMemo(() => movies.filter(m => m.status === 'wishlist'), [movies]);
@@ -271,22 +273,54 @@ export function MovieList() {
             </button>
           </div>
 
-          <div className="relative group">
-            <button className="p-2.5 bg-theme-base border border-theme-border rounded-xl text-theme-muted hover:text-theme-primary transition-all">
-              <SlidersHorizontal size={16} />
+          <div className="relative">
+            <button
+              onClick={() => { setIsActionsMenuOpen(!isActionsMenuOpen); hapticFeedback.light(); }}
+              className={`p-2.5 rounded-xl transition-all border ${isActionsMenuOpen ? 'bg-theme-primary text-theme-base border-theme-primary shadow-lg' : 'bg-theme-base border-theme-border text-theme-muted hover:text-theme-primary'}`}
+            >
+              <Settings size={16} className={isActionsMenuOpen ? 'animate-spin-slow' : ''} />
             </button>
-            <div className="absolute right-0 top-full mt-2 w-48 bg-theme-surface border border-theme-border rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2 space-y-1">
-              <p className="text-[8px] font-black uppercase tracking-widest text-theme-muted p-2">Library Actions</p>
-              <button onClick={resetFilters} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-theme-base rounded-xl text-[10px] font-black uppercase tracking-widest text-theme-text">
-                <RotateCcw size={14} /> Reset Filters
-              </button>
-              <button onClick={runBulkMarkWatched} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-emerald-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-500">
-                <CircleCheck size={14} /> Mark All Watched
-              </button>
-              <button onClick={runBulkRemove} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-red-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500">
-                <Trash2 size={14} /> Delete Filtered
-              </button>
-            </div>
+
+            {isActionsMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsActionsMenuOpen(false)}
+                />
+                <div className="absolute right-0 top-full mt-2 w-52 bg-theme-surface border border-theme-border rounded-2xl shadow-2xl z-50 p-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="p-2">
+                    <p className="text-[8px] font-black uppercase tracking-widest text-theme-muted mb-1">Library Actions</p>
+                    <div className="space-y-1">
+                      <button onClick={() => { resetFilters(); setIsActionsMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-theme-base rounded-xl text-[10px] font-black uppercase tracking-widest text-theme-text transition-colors">
+                        <RotateCcw size={14} /> Reset Filters
+                      </button>
+                      <button onClick={() => { runBulkMarkWatched(); setIsActionsMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-emerald-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-500 transition-colors">
+                        <CircleCheck size={14} /> Mark All Watched
+                      </button>
+                      <button onClick={() => { runBulkRemove(); setIsActionsMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-red-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 transition-colors">
+                        <Trash2 size={14} /> Delete Filtered
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-theme-border/50 mx-2" />
+
+                  <div className="p-2">
+                    <p className="text-[8px] font-black uppercase tracking-widest text-theme-muted mb-1">Global Preferences</p>
+                    <Link
+                      to="/stats"
+                      onClick={() => setIsActionsMenuOpen(false)}
+                      className="w-full flex items-center justify-between px-3 py-2 hover:bg-theme-primary/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-theme-primary transition-colors"
+                    >
+                      <span className="flex items-center gap-2">
+                        <WandSparkles size={14} /> Themes & AI
+                      </span>
+                      <ArrowUpRight size={12} />
+                    </Link>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
