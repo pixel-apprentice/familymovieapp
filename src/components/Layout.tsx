@@ -6,6 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { motion } from 'motion/react';
 import { Home, Settings } from 'lucide-react';
 import { PizzaButton } from './PizzaButton';
+import { CastButton } from './CastButton';
 import { hapticFeedback } from '../utils/haptics';
 import { PWAStatusBar } from './PWAStatusBar';
 
@@ -79,6 +80,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <span className="hidden sm:inline">Home</span>
               </Link>
               <PizzaButton />
+              <CastButton />
               <Link
                 to="/stats"
                 onClick={() => hapticFeedback.light()}

@@ -5,7 +5,6 @@ import { hapticFeedback } from '../utils/haptics';
 import { UpNextSection } from './movie-list/UpNextSection';
 import { HistorySection } from './movie-list/HistorySection';
 import { AnimatePresence, motion } from 'motion/react';
-import { CastButton } from './CastButton';
 import { LayoutGrid, List, ChevronUp, WandSparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -235,7 +234,6 @@ export function MovieList() {
 
           {/* Fixed Controls */}
           <div className="flex items-center gap-1.5 shrink-0 pl-2 border-l border-theme-border/50">
-            <CastButton />
             <Link
               to="/stats"
               className="p-2.5 md:p-3 rounded-xl border border-theme-border bg-theme-base text-theme-muted hover:text-theme-primary transition-all active:scale-95 touch-manipulation"
