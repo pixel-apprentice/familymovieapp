@@ -22,7 +22,7 @@ export function CastButton() {
                 setCastAvailable(true);
                 const castContext = window.cast.framework.CastContext.getInstance();
                 castContext.setOptions({
-                    receiverApplicationId: window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+                    receiverApplicationId: import.meta.env.VITE_CAST_APP_ID || window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
                     autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGINAL_SCOPE
                 });
 
@@ -59,8 +59,8 @@ export function CastButton() {
         <button
             onClick={handleCastClick}
             className={`p-2.5 md:p-3 rounded-xl border transition-all active:scale-95 touch-manipulation ${isCasting
-                    ? 'bg-theme-primary text-theme-base border-theme-primary shadow-lg animate-pulse'
-                    : 'bg-theme-base border-theme-border text-theme-muted hover:text-theme-primary'
+                ? 'bg-theme-primary text-theme-base border-theme-primary shadow-lg animate-pulse'
+                : 'bg-theme-base border-theme-border text-theme-muted hover:text-theme-primary'
                 }`}
             title={isCasting ? "Casting to TV..." : "Cast to TV"}
         >
