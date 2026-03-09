@@ -200,6 +200,12 @@ async function startServer() {
     }
 
     try {
+      const BASE_URL = "https://api.themoviedb.org/3";
+      let url = `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query as string)}&include_adult=false`;
+      if (year) {
+        url += `&primary_release_year=${year}`;
+      }
+
       const [res1, res2] = await Promise.all([
         fetch(url),
         fetch(`${url}&page=2`).catch(() => null)
