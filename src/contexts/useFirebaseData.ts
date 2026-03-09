@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import { Movie, FamilyProfile, DEFAULT_PROFILES } from './DataContext';
+import { Movie, FamilyProfile, DEFAULT_PROFILES, CouchState } from './DataContext';
 import { useAuth } from './AuthContext';
 import { searchMovies, getMovieDetails, pickBestMovieMatch, GENRE_MAP } from '../services/tmdb';
 
@@ -12,6 +12,7 @@ export function useFirebaseData() {
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   const [isLocalMode, setIsLocalMode] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'offline' | 'local-only'>('syncing');
+  const [couchState, setCouchState] = useState<CouchState | null>(null);
 
   useEffect(() => {
     // Don't do anything while Firebase Auth is still initializing
@@ -44,9 +45,16 @@ export function useFirebaseData() {
       }
     });
 
+    const unsubscribeCouch = onSnapshot(doc(db, 'metadata', 'couch'), (docSnap) => {
+      if (docSnap.exists()) {
+        setCouchState(docSnap.data() as CouchState);
+      }
+    });
+
     return () => {
       unsubscribeMovies();
       unsubscribeConfig();
+      unsubscribeCouch();
     };
   }, [user, authLoading]);
 
@@ -78,7 +86,6 @@ export function useFirebaseData() {
       saveLocalMovies([...movies, newMovie]);
       return;
     }
-    // Strip undefined/null values — Firestore setDoc rejects undefined
     const sanitized = Object.fromEntries(
       Object.entries(movie).filter(([_, v]) => v !== undefined && v !== null)
     );
@@ -92,7 +99,6 @@ export function useFirebaseData() {
       saveLocalMovies(movies.map(m => m.id === id ? { ...m, ...updates } : m));
       return;
     }
-    // Strip undefined values — Firestore rejects them
     const sanitized = Object.fromEntries(
       Object.entries(updates).filter(([_, v]) => v !== undefined)
     );
@@ -150,16 +156,13 @@ export function useFirebaseData() {
   };
 
   const refreshMetadata = async (forceAll = false) => {
-    // Bulk-fetch TMDB posters.
-    // - default: only missing/broken posters
-    // - forceAll=true: refresh every movie (used by "Refresh All")
     const moviesToRefresh = forceAll
       ? movies
       : movies.filter(m =>
-          !m.poster_url ||
-          m.poster_url.trim() === '' ||
-          (!m.poster_url.startsWith('http') && m.poster_url.length < 5) // Catch broken short strings
-        );
+        !m.poster_url ||
+        m.poster_url.trim() === '' ||
+        (!m.poster_url.startsWith('http') && m.poster_url.length < 5)
+      );
 
     if (moviesToRefresh.length === 0) return;
 
@@ -167,24 +170,14 @@ export function useFirebaseData() {
     for (const movie of moviesToRefresh) {
       try {
         let best: any = null;
-
-        // If we already know the TMDB id, trust it first (same behavior users expect from detail refresh)
         if (movie.tmdbId && /^\d+$/.test(String(movie.tmdbId))) {
           best = await getMovieDetails(Number(movie.tmdbId));
         }
-
-        // Fallback to title search for older rows without tmdbId
         if (!best) {
-          // We do NOT use movie.date as the year, because movie.date is the date *watched*.
-          // We also pass allowRatedR=true so we can fetch posters for any movie already in the DB.
           const results = await searchMovies(movie.title, undefined, true);
           best = pickBestMovieMatch(movie.title, results);
         }
-
-        if (!best) {
-          console.warn(`No TMDB match found for ${movie.title}`);
-          continue;
-        }
+        if (!best) continue;
 
         const fullPosterUrl = best.poster_path
           ? `https://image.tmdb.org/t/p/w500${best.poster_path}`
@@ -205,6 +198,16 @@ export function useFirebaseData() {
     }
   };
 
+  const pushCouchState = async (updates: Partial<CouchState>) => {
+    if (isLocalMode) return;
+    const newState = {
+      ...couchState,
+      ...updates,
+      timestamp: Date.now()
+    } as CouchState;
+    await setDoc(doc(db, 'metadata', 'couch'), newState);
+  };
+
   return {
     movies,
     profiles,
@@ -218,6 +221,8 @@ export function useFirebaseData() {
     skipTurn,
     setTurn,
     updateProfiles,
-    refreshMetadata
+    refreshMetadata,
+    couchState,
+    pushCouchState
   };
 }

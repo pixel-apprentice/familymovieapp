@@ -18,7 +18,7 @@ import { Sparkles } from 'lucide-react';
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { movies, updateMovie, markWatched, removeMovie, profiles } = useData();
+  const { movies, updateMovie, markWatched, removeMovie, profiles, pushCouchState } = useData();
   const { theme } = useTheme();
   const { showModal } = useModal();
   const [isSending, setIsSending] = useState(false);
@@ -78,6 +78,10 @@ export function MovieDetailPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    // Push current movie state to TV
+    if (id) {
+      pushCouchState({ path: `/movie/${id}`, movieId: id });
+    }
   }, [id]);
 
   useEffect(() => {
@@ -433,7 +437,7 @@ export function MovieDetailPage() {
               <div className="text-[10px] font-mono text-theme-muted uppercase">Tap star again to toggle half</div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 FamilyRankings">
               {profiles.map((profile) => (
                 <div
                   key={profile.id}

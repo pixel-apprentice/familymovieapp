@@ -33,6 +33,13 @@ export interface Movie {
   ratings: Record<string, number>;
 }
 
+export interface CouchState {
+  path: string;
+  movieId?: string;
+  viewMode?: 'grid' | 'list';
+  timestamp: number;
+}
+
 interface DataContextType {
   movies: Movie[];
   profiles: FamilyProfile[];
@@ -48,6 +55,8 @@ interface DataContextType {
   resetDatabase: () => Promise<void>;
   updateProfiles: (profiles: FamilyProfile[]) => Promise<void>;
   refreshMetadata: (forceAll?: boolean) => Promise<void>;
+  couchState: CouchState | null;
+  pushCouchState: (state: Partial<CouchState>) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -69,7 +78,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     skipTurn,
     setTurn,
     updateProfiles,
-    refreshMetadata
+    refreshMetadata,
+    couchState,
+    pushCouchState
   } = useFirebaseData();
 
   const resetDatabase = async () => {
@@ -167,8 +178,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setTurn,
     resetDatabase,
     updateProfiles,
-    refreshMetadata
-  }), [movies, profiles, currentTurnIndex, isLocalMode, syncStatus]);
+    refreshMetadata,
+    couchState,
+    pushCouchState
+  }), [movies, profiles, currentTurnIndex, isLocalMode, syncStatus, couchState]);
 
   return (
     <DataContext.Provider value={value}>

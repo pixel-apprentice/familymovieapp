@@ -1,27 +1,34 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-    <!-- PWA / Theme -->
-    <meta name="theme-color" content="#1a1a2e" />
-    <meta name="application-name" content="Pizza &amp; Movie Night" />
-    <meta name="description" content="Family movie night tracker — pizza included 🍕🎬" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-    <!-- iOS PWA -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Movie Night" />
-    <link rel="apple-touch-icon" href="/pwa-192.png" />
+  <!-- PWA / Theme -->
+  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="application-name" content="Pizza &amp; Movie Night" />
+  <meta name="description" content="Family movie night tracker — pizza included 🍕🎬" />
 
-    <!-- Favicon — emoji fallback (vite-plugin-pwa injects manifest link automatically) -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍕</text></svg>" />
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Movie Night" />
+  <link rel="apple-touch-icon" href="/pwa-192.png" />
 
-    <title>Pizza &amp; Movie Night</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+  <!-- Favicon — emoji fallback (vite-plugin-pwa injects manifest link automatically) -->
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍕</text></svg>" />
+
+  <title>Pizza &amp; Movie Night</title>
+  <!-- Google Cast SDK -->
+  <script type="text/javascript"
+    src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

@@ -12,11 +12,27 @@ import { Layout } from './components/Layout';
 import { HomePage } from './pages/HomePage';
 import { StatsPage } from './pages/StatsPage';
 import { MovieDetailPage } from './pages/MovieDetailPage';
+import { CouchPage } from './pages/CouchPage';
 import { useDatabaseSeed } from './hooks/useDatabaseSeed';
+import { useData } from './contexts/DataContext';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 function AppContent() {
   useDatabaseSeed();
   const { loading: authLoading } = useAuth();
+  const { couchState } = useData();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true' || location.search.includes('couch=true');
+
+  // Global Sync Listener for TV
+  React.useEffect(() => {
+    if (isCouchMode && couchState && couchState.path !== location.pathname) {
+      console.log("[Couch Mode] Syncing navigation to:", couchState.path);
+      navigate(couchState.path);
+    }
+  }, [isCouchMode, couchState, location.pathname, navigate]);
 
   if (authLoading) {
     return (
@@ -37,6 +53,7 @@ function AppContent() {
         <Route path="/" element={<HomePage />} />
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/movie/:id" element={<MovieDetailPage />} />
+        <Route path="/couch" element={<CouchPage />} />
       </Routes>
       <Modal />
       <Toaster position="top-center" richColors />
