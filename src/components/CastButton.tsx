@@ -21,7 +21,7 @@ export function CastButton() {
     const hasCustomReceiver = !!import.meta.env.VITE_CAST_APP_ID;
 
     useEffect(() => {
-        window.__onGCastApiAvailable = (isAvailable: boolean) => {
+        const initializeCast = (isAvailable: boolean) => {
             if (isAvailable) {
                 setCastAvailable(true);
                 const castContext = window.cast.framework.CastContext.getInstance();
@@ -49,6 +49,15 @@ export function CastButton() {
                 );
             }
         };
+
+        // Set the global callback for future changes
+        window.__onGCastApiAvailable = initializeCast;
+
+        // Check if the API is already available right now
+        // Sometimes the SDK loads before the React component mounts
+        if (typeof window !== 'undefined' && window.chrome && window.chrome.cast && window.chrome.cast.isAvailable) {
+            initializeCast(true);
+        }
     }, []);
 
     // Fallback: If no custom receiver is set, we stream visual representations (posters) manually using the Default Media Receiver
