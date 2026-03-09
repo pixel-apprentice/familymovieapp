@@ -227,9 +227,9 @@ export function MovieList() {
   return (
     <div className="flex flex-col gap-4 w-full max-w-[2000px] mx-auto px-4 sm:px-8 py-4">
       {/* Unified Filter Bar Row */}
-      <div className="flex items-center gap-2 bg-theme-surface/50 backdrop-blur-md border border-theme-border p-1.5 md:p-2 rounded-2xl sticky top-0 z-40 shadow-sm overflow-hidden">
+      <div className="flex items-center gap-2 bg-theme-surface/60 backdrop-blur-xl border border-theme-border p-1 md:p-1.5 rounded-2xl sticky top-2 z-40 shadow-xl mx-auto w-full max-w-4xl">
         {/* Scrollable Filters */}
-        <div className="flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar px-1">
+        <div className="flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar py-2 px-1">
           <button
             onClick={() => togglePicker('all')}
             className={`flex items-center justify-center transition-all whitespace-nowrap h-9 px-3 md:h-10 md:px-4 rounded-xl text-[10px] font-black uppercase tracking-widest shrink-0 ${pickerFilter === 'all'
@@ -273,12 +273,13 @@ export function MovieList() {
             </button>
           </div>
 
-          <div className="relative">
+          <div className="relative z-50">
             <button
               onClick={() => { setIsActionsMenuOpen(!isActionsMenuOpen); hapticFeedback.light(); }}
-              className={`p-2.5 rounded-xl transition-all border ${isActionsMenuOpen ? 'bg-theme-primary text-theme-base border-theme-primary shadow-lg' : 'bg-theme-base border-theme-border text-theme-muted hover:text-theme-primary'}`}
+              className={`p-3 md:p-2.5 rounded-xl transition-all border outline-none active:scale-95 touch-manipulation ${isActionsMenuOpen ? 'bg-theme-primary text-theme-base border-theme-primary shadow-lg' : 'bg-theme-base border-theme-border text-theme-muted hover:text-theme-primary'}`}
+              aria-label="Settings"
             >
-              <Settings size={16} className={isActionsMenuOpen ? 'animate-spin-slow' : ''} />
+              <Settings size={20} className={isActionsMenuOpen ? 'animate-spin-slow' : ''} />
             </button>
 
             {isActionsMenuOpen && (
