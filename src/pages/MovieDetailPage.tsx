@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useData, Movie } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useModal } from '../contexts/ModalContext';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight, Star, Info, Edit2, RefreshCw } from 'lucide-react';
 import { sendRequestEmail } from '../services/emailService';
 import { searchMovies, getMovieDetails, pickBestMovieMatch, GENRE_MAP } from '../services/tmdb';
@@ -123,7 +123,7 @@ export function MovieDetailPage() {
           genres: bestMatch.genre_ids?.map(id => GENRE_MAP[id]).filter(Boolean),
           tmdbId: String(bestMatch.id)
         });
-        toast.success(`Metadata refreshed for ${movie.title}`);
+        // No toast needed as the UI updates with the new poster/data
       } else {
         toast.error(`No metadata found for "${movie.title}"`);
         console.warn("No results found for", movie.title);
@@ -351,16 +351,23 @@ export function MovieDetailPage() {
                 {movie.title}
               </h1>
 
-              {watchPartyPack && (
-                <div className="p-4 rounded-2xl border border-theme-border bg-theme-surface/40 space-y-2">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-theme-primary flex items-center gap-2">
-                    <Sparkles size={14} className="animate-pulse" /> AI Watch Party Pack
-                  </h3>
-                  <p className="text-xs text-theme-text font-medium"><span className="opacity-50">Snack:</span> {watchPartyPack.snack}</p>
-                  <p className="text-xs text-theme-text font-medium"><span className="opacity-50">Activity:</span> {watchPartyPack.activity}</p>
-                  <p className="text-xs text-theme-text font-medium"><span className="opacity-50">Discussion:</span> {watchPartyPack.prompt}</p>
-                </div>
-              )}
+              <AnimatePresence>
+                {watchPartyPack && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, y: -10 }}
+                    animate={{ opacity: 1, height: 'auto', y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -10 }}
+                    className="p-4 rounded-2xl border border-theme-border bg-theme-surface/40 space-y-2 overflow-hidden"
+                  >
+                    <h3 className="text-xs font-black uppercase tracking-widest text-theme-primary flex items-center gap-2">
+                      <Sparkles size={14} className="animate-pulse" /> AI Watch Party Pack
+                    </h3>
+                    <p className="text-xs text-theme-text font-medium"><span className="opacity-50">Snack:</span> {watchPartyPack.snack}</p>
+                    <p className="text-xs text-theme-text font-medium"><span className="opacity-50">Activity:</span> {watchPartyPack.activity}</p>
+                    <p className="text-xs text-theme-text font-medium"><span className="opacity-50">Discussion:</span> {watchPartyPack.prompt}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div className="flex flex-wrap gap-2 items-center">

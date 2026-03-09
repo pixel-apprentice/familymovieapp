@@ -288,7 +288,10 @@ export function MovieList() {
                   className="fixed inset-0 z-40"
                   onClick={() => setIsActionsMenuOpen(false)}
                 />
-                <div className="absolute right-0 top-full mt-2 w-52 bg-theme-surface border border-theme-border rounded-2xl shadow-2xl z-50 p-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div
+                  className="absolute right-0 top-full mt-2 w-52 bg-theme-surface border border-theme-border rounded-2xl shadow-2xl z-50 p-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200"
+                  style={{ backgroundColor: 'var(--theme-surface)', opacity: 1, backdropFilter: 'none' }}
+                >
                   <div className="p-2">
                     <p className="text-[8px] font-black uppercase tracking-widest text-theme-muted mb-1">Library Actions</p>
                     <div className="space-y-1">
