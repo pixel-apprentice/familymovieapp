@@ -25,21 +25,10 @@ export function CastButton() {
             if (isAvailable) {
                 setCastAvailable(true);
                 const castContext = window.cast.framework.CastContext.getInstance();
-                const sessionRequest = new window.chrome.cast.SessionRequest(
-                    import.meta.env.VITE_CAST_APP_ID || window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-                    [window.chrome.cast.Capability.VIDEO_OUT]
-                );
-
                 castContext.setOptions({
                     receiverApplicationId: import.meta.env.VITE_CAST_APP_ID || window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
                     autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGINAL_SCOPE
                 });
-
-                // Set the session request to include the VIDEO_OUT capability
-                // Note: The modern Cast Application Framework typically derives this from the application ID, 
-                // but setting a custom SessionRequest forces the capability check.
-                // We inject it into the implicit session request.
-                castContext.setSessionRequest(sessionRequest);
 
                 // Listen for session changes
                 castContext.addEventListener(
