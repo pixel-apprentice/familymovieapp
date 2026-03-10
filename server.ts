@@ -110,11 +110,12 @@ async function startServer() {
         Here is our watch history, including summaries and how we rated them:
         ${historyText}
         
-        Suggest 10 new movies that ${currentUser} would like, but also consider the family's general taste based on their ratings. 
-        Heavily prioritize genres and styles that received high ratings (4/5 or 5/5) and avoid those that were rated poorly.
-        Do NOT include any R-rated, TV-MA, or NC-17 movies. Only return family-friendly, G, PG, or PG-13 movies.
+        Suggest 10 new movies that ${currentUser} would specifically love. Since it is ${currentUser}'s turn, their personal tastes (based on movies they picked or rated highly) should be the PRIMARY driver for these suggestions. 
         
-        For each movie, provide a 1-sentence reason why it was recommended.
+        Also consider the rest of the family's general taste to ensure everyone will enjoy it, but ${currentUser}'s preference is the tie-breaker.
+        Heavily prioritize genres and styles that received high ratings (4/5 or 5/5) from ${currentUser} and the family, and strictly avoid those that were rated poorly.
+        
+        For each movie, provide a 1-sentence reason why it fits ${currentUser}'s taste specifically.
         Return ONLY a JSON array of objects with "title" and "reason" properties.`,
         config: {
           responseMimeType: "application/json",

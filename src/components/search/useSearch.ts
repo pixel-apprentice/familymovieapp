@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { searchMovies, TMDBMovie } from '../../services/tmdb';
+import { searchMovies, TMDBMovie, GENRE_MAP } from '../../services/tmdb';
 import { getVibeSearchTerms, getFamilyRecommendations } from '../../services/gemini';
 import { useData } from '../../contexts/DataContext';
 import { useSettings } from '../../contexts/SettingsContext';
+import { hapticFeedback } from '../../utils/haptics';
 import { toast } from 'sonner';
 
 const MATURE_KEYWORDS = ['gore', 'graphic', 'sexual', 'drug', 'abuse', 'torture', 'violence', 'nudity'];
@@ -24,16 +25,16 @@ function buildExistingSets(movies: ReturnType<typeof useData>['movies']): {
   return { existingTmdbIds, existingTitles };
 }
 
-function dedupeResults(
+function markExistingResults(
   results: TMDBMovie[],
   existingTmdbIds: Set<string>,
   existingTitles: Set<string>
 ): TMDBMovie[] {
-  return results.filter(
-    m =>
-      !existingTmdbIds.has(m.id.toString()) &&
-      !existingTitles.has((m.title || '').toLowerCase().trim())
-  );
+  return results.map(m => ({
+    ...m,
+    isExisting: existingTmdbIds.has(m.id.toString()) ||
+      existingTitles.has((m.title || '').toLowerCase().trim())
+  }));
 }
 
 function filterForSafety(results: TMDBMovie[], blockMatureThemes: boolean): TMDBMovie[] {
@@ -52,7 +53,7 @@ export function useSearch() {
   const [loadingMessage, setLoadingMessage] = useState('Processing...');
   const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
 
-  const { currentTurnIndex, movies, profiles } = useData();
+  const { currentTurnIndex, movies, profiles, addMovie } = useData();
   const { allowRatedR, recommendationMode, blockMatureThemes } = useSettings();
 
   useEffect(() => {
@@ -83,10 +84,11 @@ export function useSearch() {
     try {
       const res = await searchMovies(query.trim(), undefined, allowRatedR);
       const { existingTmdbIds, existingTitles } = buildExistingSets(movies);
-      const filtered = filterForSafety(dedupeResults(res, existingTmdbIds, existingTitles), blockMatureThemes);
+      const marked = markExistingResults(res, existingTmdbIds, existingTitles);
+      const filtered = filterForSafety(marked, blockMatureThemes);
 
       if (filtered.length === 0 && res.length > 0) {
-        toast.info('No safe/new results for that search.');
+        toast.info('No safe results for that search.');
       } else if (filtered.length === 0) {
         toast.info(`No results found for "${query}"`);
       } else {
@@ -127,9 +129,11 @@ export function useSearch() {
         }
       }
 
-      const filtered = filterForSafety(dedupeResults(found, existingTmdbIds, existingTitles), blockMatureThemes);
+      const marked = markExistingResults(found, existingTmdbIds, existingTitles);
+      const filtered = filterForSafety(marked, blockMatureThemes);
+
       if (filtered.length === 0) {
-        toast.info('All vibe suggestions were filtered or already watched.');
+        toast.info('All vibe suggestions were filtered.');
       } else {
         setResults(filtered);
       }
@@ -161,6 +165,8 @@ export function useSearch() {
         allowRatedR || recommendationMode !== 'safe'
       );
 
+      toast.info(`Generating personalized picks for ${currentUser}...`);
+
       const settled = await Promise.allSettled(
         recommendations.map(rec => searchMovies(rec.title, undefined, allowRatedR).then(res => {
           if (res[0]) { res[0].reason = rec.reason; }
@@ -175,7 +181,7 @@ export function useSearch() {
         if (result.status === 'fulfilled' && result.value) found.push(result.value);
       }
 
-      found = dedupeResults(found, existingTmdbIds, existingTitles);
+      found = markExistingResults(found, existingTmdbIds, existingTitles);
       found = filterForSafety(found, blockMatureThemes || recommendationMode === 'safe');
 
       if (recommendationMode === 'familiar') {
@@ -208,6 +214,31 @@ export function useSearch() {
     }
   };
 
+  const handleQuickAdd = async (movie: TMDBMovie) => {
+    try {
+      hapticFeedback.success();
+      const currentUserProfile = profiles[currentTurnIndex]?.id || 'Family';
+
+      const movieToAdd = {
+        tmdbId: String(movie.id),
+        title: movie.title,
+        status: 'wishlist' as const,
+        pickedBy: currentUserProfile,
+        poster_url: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : '',
+        summary: movie.overview,
+        genres: movie.genre_ids?.map(id => GENRE_MAP[id]).filter(Boolean),
+        ratings: {}
+      };
+
+      await addMovie(movieToAdd);
+      setResults(prev => prev.filter(r => r.id !== movie.id));
+      toast.success(`"${movie.title}" added to wishlist!`);
+    } catch (e) {
+      console.error('Quick add failed:', e);
+      toast.error('Failed to add movie quickly.');
+    }
+  };
+
   return {
     query, setQuery,
     vibe, setVibe,
@@ -218,6 +249,7 @@ export function useSearch() {
     handleVibeSearch,
     handleRecommend,
     handleAdd,
-    handleMovieAdded
+    handleMovieAdded,
+    handleQuickAdd
   };
 }

@@ -9,6 +9,7 @@ export interface TMDBMovie {
   genre_ids?: number[];
   reason?: string;
   trailerKey?: string;
+  isExisting?: boolean;
 }
 
 export const GENRE_MAP: Record<number, string> = {

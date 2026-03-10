@@ -25,9 +25,16 @@ export function CastButton() {
             if (isAvailable) {
                 setCastAvailable(true);
                 const castContext = window.cast.framework.CastContext.getInstance();
+                const appId = import.meta.env.VITE_CAST_APP_ID || window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
+
+                // Properly configure session request to hint for video-capable devices (TVs)
+                const sessionRequest = new window.chrome.cast.SessionRequest(appId);
+                sessionRequest.capabilities = [window.chrome.cast.Capability.VIDEO_OUT];
+
                 castContext.setOptions({
-                    receiverApplicationId: import.meta.env.VITE_CAST_APP_ID || window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-                    autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGINAL_SCOPE
+                    receiverApplicationId: appId,
+                    autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGINAL_SCOPE,
+                    sessionRequest: sessionRequest
                 });
 
                 // Listen for session changes
