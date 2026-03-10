@@ -5,7 +5,7 @@ import { hapticFeedback } from '../utils/haptics';
 import { UpNextSection } from './movie-list/UpNextSection';
 import { HistorySection } from './movie-list/HistorySection';
 import { AnimatePresence, motion } from 'motion/react';
-import { LayoutGrid, List, ChevronUp, WandSparkles } from 'lucide-react';
+import { LayoutGrid, List, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 
 const STORAGE_KEY = 'fmn_view_mode';
@@ -234,14 +234,6 @@ export function MovieList() {
 
           {/* Fixed Controls */}
           <div className="flex items-center gap-1.5 shrink-0 pl-2 border-l border-theme-border/50">
-            <Link
-              to="/stats"
-              className="p-2.5 md:p-3 rounded-xl border border-theme-border bg-theme-base text-theme-muted hover:text-theme-primary transition-all active:scale-95 touch-manipulation"
-              title="Themes & AI"
-            >
-              <WandSparkles size={18} />
-            </Link>
-
             <div className="flex items-center gap-1 bg-theme-base p-1 rounded-xl border border-theme-border h-full">
               <button
                 onClick={() => changeViewMode('grid')}

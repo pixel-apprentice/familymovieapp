@@ -8,8 +8,14 @@ import { searchMovies, getMovieDetails, pickBestMovieMatch, GENRE_MAP } from '..
 export function useFirebaseData() {
   const { user, loading: authLoading } = useAuth();
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [profiles, setProfiles] = useState<FamilyProfile[]>(DEFAULT_PROFILES);
-  const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
+  const [profiles, setProfiles] = useState<FamilyProfile[]>(() => {
+    const saved = localStorage.getItem('fmn_profiles_cache');
+    return saved ? JSON.parse(saved) : DEFAULT_PROFILES;
+  });
+  const [currentTurnIndex, setCurrentTurnIndex] = useState<number>(() => {
+    const saved = localStorage.getItem('fmn_turn_cache');
+    return saved ? parseInt(saved, 10) : 0;
+  });
   const [isLocalMode, setIsLocalMode] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'offline' | 'local-only'>('syncing');
   const [couchState, setCouchState] = useState<CouchState | null>(null);
@@ -40,8 +46,14 @@ export function useFirebaseData() {
     const unsubscribeConfig = onSnapshot(doc(db, 'metadata', 'config'), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.currentTurnIndex !== undefined) setCurrentTurnIndex(data.currentTurnIndex);
-        if (data.profiles) setProfiles(data.profiles);
+        if (data.currentTurnIndex !== undefined) {
+          setCurrentTurnIndex(data.currentTurnIndex);
+          localStorage.setItem('fmn_turn_cache', data.currentTurnIndex.toString());
+        }
+        if (data.profiles) {
+          setProfiles(data.profiles);
+          localStorage.setItem('fmn_profiles_cache', JSON.stringify(data.profiles));
+        }
       }
     });
 
