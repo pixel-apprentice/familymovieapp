@@ -40,10 +40,10 @@ test.describe('Advanced Features & UX', () => {
         await expect(page.getByTitle(/Settings|Themes/i).first()).toBeVisible({ timeout: 15000 });
     });
 
-    test('validates vibe search input element typeability field field', async ({ page }) => {
-        const vibeInput = page.getByPlaceholder(/Describe a mood/i);
-        await expect(vibeInput).toBeVisible({ timeout: 15000 });
-        await vibeInput.fill('something spooky');
+    test('validates smart search input element typeability field field', async ({ page }) => {
+        const smartSearchInput = page.getByPlaceholder(/Search title, actor, or vibe/i);
+        await expect(smartSearchInput).toBeVisible({ timeout: 15000 });
+        await smartSearchInput.fill('something spooky');
     });
 
     test('checks Refresh All button presence in Data site site data', async ({ page }) => {

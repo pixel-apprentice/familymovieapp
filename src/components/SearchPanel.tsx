@@ -12,8 +12,6 @@ export function SearchPanel() {
   const {
     query,
     setQuery,
-    vibe,
-    setVibe,
     results,
     setResults,
     loading,
@@ -21,7 +19,6 @@ export function SearchPanel() {
     selectedMovie,
     setSelectedMovie,
     handleSearch,
-    handleVibeSearch,
     handleRecommend,
     handleAdd,
     handleMovieAdded,
@@ -41,7 +38,7 @@ export function SearchPanel() {
 
       <div className="flex flex-col gap-8">
         <div className="space-y-2">
-          <h2 className={`text-2xl font-black text-theme-primary uppercase tracking-tighter ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
+          <h2 className={`text-2xl md:text-3xl font-black text-theme-primary uppercase tracking-tighter ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
             {theme === 'neon-cyberpunk' ? 'Acquisition Protocol' :
               theme === 'mooooovies' ? 'Graze for Movies' :
                 theme === 'drive-in' ? 'Tune In to Movies' :
@@ -50,25 +47,13 @@ export function SearchPanel() {
                       theme === 'golden-age' ? 'Search the Studio' :
                         'Find Movies'}
           </h2>
-          <p className="text-xs text-theme-muted font-mono uppercase tracking-widest">
-            {theme === 'neon-cyberpunk' ? 'Search or describe your desired cinematic experience' :
-              theme === 'mooooovies' ? 'Find the perfect pasture for your turn.' :
-                theme === 'drive-in' ? 'Find the perfect flick for the big screen.' :
-                  theme === 'blockbuster' ? 'Find the perfect rental for your turn.' :
-                    theme === 'sci-fi-hologram' ? 'Locate the optimal entertainment file.' :
-                      theme === 'golden-age' ? 'Find the perfect picture for your turn.' :
-                        'Search, describe a vibe, or get recommendations based on your favorite movies'}
-          </p>
         </div>
 
         <SearchForms
           query={query}
           setQuery={setQuery}
-          vibe={vibe}
-          setVibe={setVibe}
           loading={loading}
           handleSearch={handleSearch}
-          handleVibeSearch={handleVibeSearch}
           handleRecommend={handleRecommend}
         />
 

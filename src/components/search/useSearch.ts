@@ -47,7 +47,6 @@ function filterForSafety(results: TMDBMovie[], blockMatureThemes: boolean): TMDB
 
 export function useSearch() {
   const [query, setQuery] = useState('');
-  const [vibe, setVibe] = useState('');
   const [results, setResults] = useState<TMDBMovie[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Processing...');
@@ -77,69 +76,61 @@ export function useSearch() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
+    const cleanQuery = query.trim();
+    if (!cleanQuery) return;
 
     setLoading(true);
     setResults([]);
     try {
-      const res = await searchMovies(query.trim(), undefined, allowRatedR);
-      const { existingTmdbIds, existingTitles } = buildExistingSets(movies);
-      const marked = markExistingResults(res, existingTmdbIds, existingTitles);
-      const filtered = filterForSafety(marked, blockMatureThemes);
+      // 1. Always try direct search first
+      const directResults = await searchMovies(cleanQuery, undefined, allowRatedR);
 
-      if (filtered.length === 0 && res.length > 0) {
-        toast.info('No safe results for that search.');
-      } else if (filtered.length === 0) {
-        toast.info(`No results found for "${query}"`);
-      } else {
-        setResults(filtered);
-      }
-    } catch (error: any) {
-      console.error('Direct search error:', error);
-      toast.error(`Search failed: ${error.message || 'Unable to connect to movie database'}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+      // 2. If it's descriptive, also try vibe search
+      let vibeResults: TMDBMovie[] = [];
+      const isVibing = cleanQuery.split(' ').length > 2 || 
+                      cleanQuery.length > 20 || 
+                      /scary|funny|mood|vibe|like|style|about|pick/i.test(cleanQuery);
 
-  const handleVibeSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!vibe.trim()) return;
-
-    setLoading(true);
-    setResults([]);
-    try {
-      const titles = await getVibeSearchTerms(vibe.trim(), allowRatedR);
-
-      if (!titles.length) {
-        toast.info('No movies matched that vibe — try a different description');
-        return;
-      }
-
-      const settled = await Promise.allSettled(
-        titles.map(title => searchMovies(title, undefined, allowRatedR))
-      );
-
-      const { existingTmdbIds, existingTitles } = buildExistingSets(movies);
-      const found: TMDBMovie[] = [];
-
-      for (const result of settled) {
-        if (result.status === 'fulfilled' && result.value.length > 0) {
-          found.push(result.value[0]);
+      if (isVibing) {
+        setLoadingMessage('Analyzing the vibe...');
+        const titles = await getVibeSearchTerms(cleanQuery, allowRatedR);
+        if (titles.length > 0) {
+          const settled = await Promise.allSettled(
+            titles.map(title => searchMovies(title, undefined, allowRatedR))
+          );
+          for (const result of settled) {
+            if (result.status === 'fulfilled' && result.value.length > 0) {
+              vibeResults.push(result.value[0]);
+            }
+          }
         }
       }
 
-      const marked = markExistingResults(found, existingTmdbIds, existingTitles);
+      // Merge results
+      const allFound = [...directResults, ...vibeResults];
+      
+      // Deduplicate by ID
+      const seen = new Set();
+      const unique = allFound.filter(m => {
+        if (seen.has(m.id)) return false;
+        seen.add(m.id);
+        return true;
+      });
+
+      const { existingTmdbIds, existingTitles } = buildExistingSets(movies);
+      const marked = markExistingResults(unique, existingTmdbIds, existingTitles);
       const filtered = filterForSafety(marked, blockMatureThemes);
 
-      if (filtered.length === 0) {
-        toast.info('All vibe suggestions were filtered.');
+      if (filtered.length === 0 && allFound.length > 0) {
+        toast.info('Filtered results for safety guidelines.');
+      } else if (filtered.length === 0) {
+        toast.info(`No results found for "${cleanQuery}"`);
       } else {
         setResults(filtered);
       }
     } catch (error: any) {
-      console.error('Vibe search error:', error);
-      toast.error(`Vibe search failed: ${error.message || 'Could not reach the AI service'}`);
+      console.error('Smart search error:', error);
+      toast.error(`Search failed: ${error.message || 'Error connecting to services'}`);
     } finally {
       setLoading(false);
     }
@@ -241,12 +232,10 @@ export function useSearch() {
 
   return {
     query, setQuery,
-    vibe, setVibe,
     results, setResults,
     loading, loadingMessage,
     selectedMovie, setSelectedMovie,
     handleSearch,
-    handleVibeSearch,
     handleRecommend,
     handleAdd,
     handleMovieAdded,
