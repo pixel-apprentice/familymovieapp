@@ -210,6 +210,7 @@ export function MovieDetailPage() {
       const newRatings = { ...movie.ratings, [memberId]: rating };
       await updateMovie(movie.id, { ratings: newRatings });
     } catch (error) {
+      console.error(`Rating update failed for movie ID: ${movie.id} (${movie.title})`, error);
       handleError(error, "Failed to update rating");
     }
   };

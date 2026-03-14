@@ -112,10 +112,11 @@ export function useFirebaseData() {
       return;
     }
     const sanitized = Object.fromEntries(
-      Object.entries(updates).filter(([_, v]) => v !== undefined)
+      Object.entries(updates).filter(([_, v]) => v !== undefined && v !== null)
     );
     setSyncStatus('syncing');
-    await updateDoc(doc(db, 'movies', id), sanitized);
+    // Using setDoc with merge: true is safer than updateDoc as it won't fail if the doc mission
+    await setDoc(doc(db, 'movies', id), sanitized, { merge: true });
   };
 
   const removeMovie = async (id: string) => {
@@ -134,7 +135,7 @@ export function useFirebaseData() {
       return;
     }
     setSyncStatus('syncing');
-    await updateDoc(doc(db, 'movies', id), updates);
+    await setDoc(doc(db, 'movies', id), updates, { merge: true });
   };
 
   const skipTurn = async () => {

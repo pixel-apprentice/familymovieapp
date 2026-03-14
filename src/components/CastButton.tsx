@@ -81,11 +81,22 @@ export function CastButton() {
             const movie = movies.find(m => m.id === movieId);
             if (movie && movie.poster_url) {
                 const imgUrl = movie.poster_url.startsWith('http') ? movie.poster_url : `https://image.tmdb.org/t/p/w500${movie.poster_url}`;
+                
+                // Calculate average rating for the TV display
+                const ratings = Object.values(movie.ratings || {}).filter((r): r is number => typeof r === 'number' && r > 0);
+                const avgRating = ratings.length > 0 
+                    ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+                    : null;
+
+                const statusText = movie.status === 'watched' ? 'Watched' : 'Wishlist';
+                const pickedByText = movie.pickedBy || 'Family';
+                const subtitle = `${statusText} • Picked by ${pickedByText}${avgRating ? ` • Rating: ${avgRating}★` : ''}`;
+
                 mediaInfo = new window.chrome.cast.media.MediaInfo(imgUrl, 'image/jpeg');
                 mediaInfo.metadata = new window.chrome.cast.media.GenericMediaMetadata();
                 mediaInfo.metadata.metadataType = window.chrome.cast.media.MetadataType.GENERIC;
                 mediaInfo.metadata.title = movie.title;
-                mediaInfo.metadata.subtitle = movie.summary ? movie.summary.substring(0, 100) + '...' : 'Movie Night';
+                mediaInfo.metadata.subtitle = subtitle;
                 mediaInfo.metadata.images = [{ url: imgUrl }];
             }
         } else {
