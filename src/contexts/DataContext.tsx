@@ -37,6 +37,9 @@ export interface CouchState {
   path: string;
   movieId?: string;
   viewMode?: 'grid' | 'list';
+  pickerFilter?: string;
+  genreFilter?: string;
+  searchQuery?: string;
   timestamp: number;
 }
 

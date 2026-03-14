@@ -32,8 +32,9 @@ const getStoredFilters = (): { pickerFilter: string; genreFilter: string; sortMo
 };
 
 export function MovieList() {
-  const { movies, profiles, markWatched, removeMovie, pushCouchState } = useData();
+  const { movies, profiles, markWatched, removeMovie, pushCouchState, couchState } = useData();
   const location = useLocation();
+  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true' || location.search.includes('couch=true');
 
   const [randomMovie, setRandomMovie] = useState<Movie | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
@@ -134,8 +135,20 @@ export function MovieList() {
   }, [pickerFilter, genreFilter, sortMode]);
 
   useEffect(() => {
-    pushCouchState({ viewMode, path: '/' });
-  }, [viewMode]);
+    // Only push if we are NOT in couch mode (we are the "Master/Remote" device)
+    if (!isCouchMode) {
+      pushCouchState({ viewMode, pickerFilter, genreFilter, path: '/' });
+    }
+  }, [viewMode, pickerFilter, genreFilter, isCouchMode]);
+
+  useEffect(() => {
+    // Only pull if we ARE in couch mode (we are the "TV/Receiver" device)
+    if (isCouchMode && couchState) {
+      if (couchState.viewMode && couchState.viewMode !== viewMode) setViewMode(couchState.viewMode);
+      if (couchState.pickerFilter && couchState.pickerFilter !== pickerFilter) setPickerFilter(couchState.pickerFilter);
+      if (couchState.genreFilter && couchState.genreFilter !== genreFilter) setGenreFilter(couchState.genreFilter);
+    }
+  }, [isCouchMode, couchState]);
 
   useEffect(() => {
     if (pickerFilter !== 'all' && !pickerIds.has(pickerFilter)) {
@@ -191,7 +204,6 @@ export function MovieList() {
     });
   };
 
-  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true' || location.search.includes('couch=true');
 
   return (
     <div className="flex flex-col gap-4 w-full max-w-[2000px] mx-auto px-4 sm:px-8 py-4">

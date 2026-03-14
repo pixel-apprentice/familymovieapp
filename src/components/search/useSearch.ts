@@ -52,7 +52,7 @@ export function useSearch() {
   const [loadingMessage, setLoadingMessage] = useState('Processing...');
   const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
 
-  const { currentTurnIndex, movies, profiles, addMovie } = useData();
+  const { currentTurnIndex, movies, profiles, addMovie, couchState, pushCouchState } = useData();
   const { allowRatedR, recommendationMode, blockMatureThemes } = useSettings();
 
   useEffect(() => {
@@ -73,6 +73,20 @@ export function useSearch() {
     }, 3000);
     return () => clearInterval(interval);
   }, [loading]);
+
+  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true';
+
+  useEffect(() => {
+    if (!isCouchMode) {
+      pushCouchState({ searchQuery: query });
+    }
+  }, [query, isCouchMode]);
+
+  useEffect(() => {
+    if (isCouchMode && couchState?.searchQuery !== undefined && couchState.searchQuery !== query) {
+      setQuery(couchState.searchQuery);
+    }
+  }, [isCouchMode, couchState?.searchQuery]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();

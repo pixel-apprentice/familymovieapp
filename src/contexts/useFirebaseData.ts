@@ -213,11 +213,15 @@ export function useFirebaseData() {
 
   const pushCouchState = async (updates: Partial<CouchState>) => {
     if (isLocalMode) return;
+    
+    // Get latest state directly to avoid closure stale issues if possible, 
+    // but couchState from hook is usually sufficient as this is triggered by user action
     const newState = {
       ...couchState,
       ...updates,
       timestamp: Date.now()
     } as CouchState;
+    
     await setDoc(doc(db, 'metadata', 'couch'), newState);
   };
 

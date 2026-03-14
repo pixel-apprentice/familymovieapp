@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useData, Movie } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useModal } from '../contexts/ModalContext';
@@ -21,6 +21,10 @@ export function MovieDetailPage() {
   const { movies, updateMovie, markWatched, removeMovie, profiles, pushCouchState } = useData();
   const { theme } = useTheme();
   const { showModal } = useModal();
+  const location = useLocation();
+
+  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true' || location.search.includes('couch=true');
+
   const [isSending, setIsSending] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -265,8 +269,9 @@ export function MovieDetailPage() {
     : `https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' movie trailer')}`;
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-2 md:py-4">
-      <div className="flex items-center justify-between mb-4">
+    <div className={`w-full max-w-4xl mx-auto px-4 py-2 md:py-4 ${isCouchMode ? 'max-w-none px-0' : ''}`}>
+      {!isCouchMode && (
+        <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => navigate('/')}
           className="flex items-center gap-2 text-theme-muted hover:text-theme-primary transition-colors group"
@@ -298,6 +303,7 @@ export function MovieDetailPage() {
           </div>
         )}
       </div>
+    )}
 
       <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8">
         {/* Poster Section */}
@@ -444,7 +450,7 @@ export function MovieDetailPage() {
                   key={profile.id}
                   className="bg-theme-base/50 border border-theme-border/50 rounded-xl px-4 py-2 flex items-center justify-between group/rank"
                 >
-                  <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[80px]" style={{ color: profile.color }}>
+                  <span className="text-[10px] md:text-xs font-black uppercase tracking-widest truncate max-w-[80px] profile-name" style={{ color: profile.color }}>
                     {profile.name}
                   </span>
 

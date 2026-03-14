@@ -90,7 +90,14 @@ export function CastButton() {
 
                 const statusText = movie.status === 'watched' ? 'Watched' : 'Wishlist';
                 const pickedByText = movie.pickedBy || 'Family';
-                const subtitle = `${statusText} • Picked by ${pickedByText}${avgRating ? ` • Rating: ${avgRating}★` : ''}`;
+                
+                // Get individual ratings that are > 0
+                const individualRatings = Object.entries(movie.ratings || {})
+                    .filter(([_, r]) => typeof r === 'number' && r > 0)
+                    .map(([id, r]) => `${id.charAt(0)}: ${r}★`)
+                    .join(', ');
+
+                const subtitle = `${statusText} • Picked by ${pickedByText}${individualRatings ? ` • ${individualRatings}` : avgRating ? ` • Rating: ${avgRating}★` : ''}`;
 
                 mediaInfo = new window.chrome.cast.media.MediaInfo(imgUrl, 'image/jpeg');
                 mediaInfo.metadata = new window.chrome.cast.media.GenericMediaMetadata();
