@@ -1,6 +1,7 @@
 export const THEME_TEXT = {
   default: {
     appName: 'Family Movie Night',
+    appTitle: 'Pizza Movie Night',
     watched: 'Watched',
     wishlist: 'Wishlist',
     statsTitle: 'Advanced Family Stats',
@@ -54,6 +55,7 @@ export const THEME_TEXT = {
   },
   'mooooovies': {
     appName: 'Family Mooovie Night',
+    appTitle: 'Pizza Mooovie Night',
     watched: 'Grazed',
     wishlist: 'Pasture',
     statsTitle: 'Herd Stats',
@@ -102,6 +104,7 @@ export const THEME_TEXT = {
   },
   'drive-in': {
     appName: 'Drive-In Movie Night',
+    appTitle: 'Drive-In Pizza Night',
     watched: 'Screened',
     wishlist: 'Up Next',
     statsTitle: 'Crew Stats',
@@ -150,6 +153,7 @@ export const THEME_TEXT = {
   },
   'blockbuster': {
     appName: 'Blockbuster Night',
+    appTitle: 'Blockbuster Pizza',
     watched: 'Returned',
     wishlist: 'Reserved',
     statsTitle: 'Member Stats',
@@ -198,6 +202,7 @@ export const THEME_TEXT = {
   },
   'sci-fi-hologram': {
     appName: 'Holo-Deck Cinema',
+    appTitle: 'Holo-Deck Pizza',
     watched: 'Archived',
     wishlist: 'The Queue',
     statsTitle: 'Crew Metrics',
@@ -246,6 +251,7 @@ export const THEME_TEXT = {
   },
   'golden-age': {
     appName: 'Golden Age Cinema',
+    appTitle: 'Golden Age Pizza',
     watched: 'Wrapped',
     wishlist: 'In Production',
     statsTitle: 'Cast Stats',

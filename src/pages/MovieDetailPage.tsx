@@ -15,11 +15,12 @@ import { hapticFeedback } from '../utils/haptics';
 import { getWatchPartyIdeas } from '../services/gemini';
 import { Sparkles } from 'lucide-react';
 import { isCouchModeEnabled } from '../utils/isCouchMode';
+import { logger } from '../utils/logger';
 
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { movies, updateMovie, markWatched, removeMovie, profiles, pushCouchState } = useData();
+  const { movies, updateMovie, markWatched, removeMovie, profiles, pushCouchState, pushPulseEvent } = useData();
   const { theme } = useTheme();
   const { showModal } = useModal();
   const location = useLocation();
@@ -87,7 +88,7 @@ export function MovieDetailPage() {
     if (id) {
       pushCouchState({ path: `/movie/${id}`, movieId: id });
     }
-  }, [id]);
+  }, [id, pushCouchState]);
 
   useEffect(() => {
     // Auto-fetch metadata if missing
@@ -102,7 +103,7 @@ export function MovieDetailPage() {
     setIsRefreshing(true);
     setHasAttemptedFetch(true);
     try {
-      console.log(`Fetching metadata for ${movie.title}...`);
+      logger.log(`Fetching metadata for ${movie.title}...`);
       // Since this movie is already in our DB, we don't want to filter out R-rated movies
       // (in case we watched one), and we definitely DON'T want to use movie.date as the 
       // release year since movie.date is the date we *watched* it.
@@ -118,7 +119,7 @@ export function MovieDetailPage() {
       }
 
       if (bestMatch) {
-        console.log("Found match:", bestMatch);
+        logger.log("Found match:", bestMatch);
 
         // Always save as a full absolute URL for consistency
         const fullPosterUrl = bestMatch.poster_path
@@ -205,7 +206,7 @@ export function MovieDetailPage() {
       });
       setIsEditing(false);
       toast.success('Movie details updated successfully!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       handleError(error, "Failed to save changes");
     }
   };
@@ -214,8 +215,18 @@ export function MovieDetailPage() {
     try {
       const newRatings = { ...movie.ratings, [memberId]: rating };
       await updateMovie(movie.id, { ratings: newRatings });
+      
+      const profile = profiles.find(p => p.id === memberId);
+      if (profile && rating > 0) {
+        await pushPulseEvent({
+          type: 'rating',
+          userName: profile.name,
+          movieTitle: movie.title,
+          value: rating
+        });
+      }
     } catch (error) {
-      console.error(`Rating update failed for movie ID: ${movie.id} (${movie.title})`, error);
+      logger.error(`Rating update failed for movie ID: ${movie.id} (${movie.title})`, error);
       handleError(error, "Failed to update rating");
     }
   };
@@ -306,7 +317,7 @@ export function MovieDetailPage() {
       </div>
     )}
 
-      <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8">
+      <div className={`grid grid-cols-1 ${isCouchMode ? 'md:grid-cols-[450px_1fr] gap-16' : 'md:grid-cols-[240px_1fr] gap-8'}`}>
         {/* Poster Section */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -359,7 +370,7 @@ export function MovieDetailPage() {
         >
           <div className="space-y-4">
             <div className="flex flex-col gap-2">
-              <h1 className={`text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-theme-text leading-none ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
+              <h1 className={`${isCouchMode ? 'text-7xl md:text-8xl lg:text-9xl' : 'text-4xl md:text-5xl lg:text-6xl'} font-black tracking-tighter text-theme-text leading-tight ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
                 {movie.title}
               </h1>
 
@@ -429,20 +440,20 @@ export function MovieDetailPage() {
             </div>
 
             {movie.summary && (
-              <p className="text-sm text-theme-muted leading-relaxed mt-2 max-w-2xl">
+              <p className={`${isCouchMode ? 'text-2xl opacity-90' : 'text-sm text-theme-muted'} leading-relaxed mt-2 max-w-2xl`}>
                 {movie.summary}
               </p>
             )}
           </div>
 
           {/* Rankings Section */}
-          <section className="bg-theme-surface/30 border border-theme-border rounded-2xl p-4 md:p-6 space-y-3 mt-4">
+          <section className={`${isCouchMode ? 'bg-theme-surface/50 border-2 scale-105 origin-left' : 'bg-theme-surface/30 border'} border-theme-border rounded-2xl p-4 md:p-6 space-y-3 mt-4`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-theme-primary">
-                <Star size={16} />
-                <h2 className="text-[10px] font-black uppercase tracking-[0.2em]">Family Rankings</h2>
+                <Star size={isCouchMode ? 24 : 16} />
+                <h2 className={`${isCouchMode ? 'text-xl' : 'text-[10px]'} font-black uppercase tracking-[0.2em]`}>Family Rankings</h2>
               </div>
-              <div className="text-[10px] font-mono text-theme-muted uppercase">Tap star again to toggle half</div>
+              {!isCouchMode && <div className="text-[10px] font-mono text-theme-muted uppercase">Tap star again to toggle half</div>}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 FamilyRankings">
@@ -451,7 +462,7 @@ export function MovieDetailPage() {
                   key={profile.id}
                   className="bg-theme-base/50 border border-theme-border/50 rounded-xl px-4 py-2 flex items-center justify-between group/rank"
                 >
-                  <span className="text-[10px] md:text-xs font-black uppercase tracking-widest truncate max-w-[80px] profile-name" style={{ color: profile.color }}>
+                  <span className={`${isCouchMode ? 'text-lg' : 'text-[10px] md:text-xs'} font-black uppercase tracking-widest truncate max-w-[120px] profile-name`} style={{ color: profile.color }}>
                     {profile.name}
                   </span>
 
@@ -485,7 +496,7 @@ export function MovieDetailPage() {
                         </defs>
                       </svg>
                     </div>
-                    <span className="text-[10px] font-mono font-black text-theme-text w-6 text-right tabular-nums">
+                    <span className={`${isCouchMode ? 'text-xl' : 'text-[10px]'} font-mono font-black text-theme-text w-6 text-right tabular-nums`}>
                       {movie.ratings[profile.id] > 0 ? movie.ratings[profile.id] : '—'}
                     </span>
                   </div>
@@ -495,16 +506,18 @@ export function MovieDetailPage() {
           </section>
 
           {/* Actions */}
-          <div className="pt-2">
-            <MovieActions
-              movie={movie}
-              trailerUrl={trailerUrl}
-              isSending={isSending}
-              handlePlexRequest={handlePlexRequest}
-              markWatched={markWatched}
-              handleDelete={handleDelete}
-            />
-          </div>
+          {!isCouchMode && (
+            <div className="pt-2">
+              <MovieActions
+                movie={movie}
+                trailerUrl={trailerUrl}
+                isSending={isSending}
+                handlePlexRequest={handlePlexRequest}
+                markWatched={markWatched}
+                handleDelete={handleDelete}
+              />
+            </div>
+          )}
         </motion.div >
       </div >
     </div >

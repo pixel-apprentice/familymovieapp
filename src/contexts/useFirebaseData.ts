@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import { Movie, FamilyProfile, DEFAULT_PROFILES, CouchState } from './DataContext';
+import { Movie, FamilyProfile, DEFAULT_PROFILES, CouchState, PulseEvent } from './DataContext';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useAuth } from './AuthContext';
 import { searchMovies, getMovieDetails, pickBestMovieMatch, GENRE_MAP } from '../services/tmdb';
 
@@ -19,6 +20,7 @@ export function useFirebaseData() {
   const [isLocalMode, setIsLocalMode] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'offline' | 'local-only'>('syncing');
   const [couchState, setCouchState] = useState<CouchState | null>(null);
+  const [pulseEvent, setPulseEvent] = useState<PulseEvent | null>(null);
   const couchStateRef = useRef<CouchState | null>(null);
 
   useEffect(() => {
@@ -64,10 +66,21 @@ export function useFirebaseData() {
       }
     });
 
+    const unsubPulse = onSnapshot(doc(db, "metadata", "pulse"), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data() as PulseEvent;
+        // Only trigger if it's "fresh" (within last 5 seconds)
+        if (Date.now() - data.timestamp < 5000) {
+          setPulseEvent(data);
+        }
+      }
+    });
+
     return () => {
       unsubscribeMovies();
       unsubscribeConfig();
       unsubscribeCouch();
+      unsubPulse();
     };
   }, [user, authLoading]);
 
@@ -185,6 +198,9 @@ export function useFirebaseData() {
     if (moviesToRefresh.length === 0) return;
 
     setSyncStatus('syncing');
+    const batch = writeBatch(db);
+    let updatedCount = 0;
+
     for (const movie of moviesToRefresh) {
       try {
         let best: any = null;
@@ -209,10 +225,16 @@ export function useFirebaseData() {
             tmdbId: String(best.id),
           }).filter(([_, v]) => v !== undefined && v !== null)
         );
-        await updateDoc(doc(db, 'movies', movie.id), sanitized);
+        
+        batch.update(doc(db, 'movies', movie.id), sanitized);
+        updatedCount++;
       } catch (e) {
-        console.warn(`Failed to refresh metadata for ${movie.title}:`, e);
+        console.warn(`Failed to package metadata for ${movie.title}:`, e);
       }
+    }
+
+    if (updatedCount > 0) {
+      await batch.commit();
     }
   };
 
@@ -226,6 +248,17 @@ export function useFirebaseData() {
     } as CouchState;
     
     await setDoc(doc(db, 'metadata', 'couch'), newState);
+  };
+
+  const pushPulseEvent = async (event: Omit<PulseEvent, 'timestamp'>) => {
+    if (isLocalMode) return;
+    const fullEvent: PulseEvent = { ...event, timestamp: Date.now() };
+    await setDoc(doc(db, 'metadata', 'pulse'), fullEvent);
+  };
+
+  const clearData = () => {
+    setMovies([]);
+    setProfiles(DEFAULT_PROFILES);
   };
 
   return {
@@ -243,6 +276,9 @@ export function useFirebaseData() {
     updateProfiles,
     refreshMetadata,
     couchState,
-    pushCouchState
+    pulseEvent,
+    pushCouchState,
+    pushPulseEvent,
+    clearData
   };
 }

@@ -10,16 +10,21 @@ import { CastButton } from './CastButton';
 import { hapticFeedback } from '../utils/haptics';
 import { PWAStatusBar } from './PWAStatusBar';
 import { isCouchModeEnabled } from '../utils/isCouchMode';
+import { PulseNotification } from './PulseNotification';
+import { getThemeText } from '../utils/themeDictionary';
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { isLocalMode, syncStatus } = useData();
+  const { isLocalMode, syncStatus, pulseEvent } = useData();
   const { theme } = useTheme();
   const location = useLocation();
 
   const isCouchMode = isCouchModeEnabled(location.search);
 
   return (
-    <div className={`min-h-screen flex flex-col relative overflow-hidden transition-colors duration-700 ${isCouchMode ? `couch-mode-active couch-theme-${theme}` : ''}`}>
+    <div className={`min-h-screen flex flex-col relative overflow-hidden transition-colors duration-700 ${isCouchMode ? `couch-mode-active couch-theme-${theme}` : ''}`} data-testid="app-ready">
+      {/* ... existing theme backgrounds ... */}
+      
+      {isCouchMode && <PulseNotification event={pulseEvent} />}
       {theme === 'modern-pinnacle' && (
         <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full" />
@@ -49,12 +54,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 F
               </div>
               <h1 className={`text-xl md:text-2xl font-black tracking-tighter text-theme-primary`}>
-                {theme === 'mooooovies' ? 'Pizza Mooovie Night' :
-                  theme === 'drive-in' ? 'Drive-In Pizza Night' :
-                    theme === 'blockbuster' ? 'Blockbuster Pizza' :
-                      theme === 'sci-fi-hologram' ? 'Holo-Deck Pizza' :
-                        theme === 'golden-age' ? 'Golden Age Pizza' :
-                          'Pizza Movie Night'}
+                {getThemeText(theme, 'appTitle')}
               </h1>
             </Link>
 

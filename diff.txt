@@ -1,0 +1,662 @@
+diff --git a/functions/src/index.ts b/functions/src/index.ts
+index 2a511af..b0225d3 100644
+--- a/functions/src/index.ts
++++ b/functions/src/index.ts
+@@ -1,7 +1,7 @@
+ import { onRequest } from "firebase-functions/v2/https";
+ import express from "express";
+ import cors from "cors";
+-import { GoogleGenAI, SchemaType } from "@google/genai";
++import { GoogleGenAI, Type } from "@google/genai";
+ 
+ const app = express();
+ 
+@@ -28,24 +28,22 @@ app.post("/gemini/vibe", async (req, res) => {
+         ? ""
+         : "Do NOT include any R-rated, TV-MA, or NC-17 movies. Only return family-friendly, G, PG, or PG-13 movies.";
+     try {
+-        const ai = new GoogleGenAI(GEMINI_API_KEY);
+-        const model = ai.getGenerativeModel({
++        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
++        const response = await ai.models.generateContent({
+             model: "gemini-1.5-flash",
+-            generationConfig: {
++            contents: `Suggest 10 movie titles that match this vibe: "${vibe}".
++${ratingInstruction}
++Return ONLY a JSON array of 10 movie titles.`,
++            config: {
+                 responseMimeType: "application/json",
+                 responseSchema: {
+-                    type: SchemaType.ARRAY,
+-                    items: { type: SchemaType.STRING },
++                    type: Type.ARRAY,
++                    items: { type: Type.STRING },
+                 },
+             },
+         });
+ 
+-        const result = await model.generateContent(`Suggest 10 movie titles that match this vibe: "${vibe}". 
+-      ${ratingInstruction}
+-      Return ONLY a JSON array of 10 movie titles.`);
+-
+-        const response = await result.response;
+-        const titles = JSON.parse(response.text() || "[]");
++        const titles = JSON.parse(response.text || "[]");
+         res.json({ titles });
+     } catch (error: any) {
+         console.error("Gemini Vibe Search error:", error);
+@@ -66,18 +64,38 @@ app.post("/gemini/recommend", async (req, res) => {
+         ? ""
+         : "Do NOT include any R-rated, TV-MA, or NC-17 movies. Only return family-friendly, G, PG, or PG-13 movies.";
+     try {
+-        const ai = new GoogleGenAI(GEMINI_API_KEY);
+-        const model = ai.getGenerativeModel({
++        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
++
++        const historyText = (history as any[]).map((h) => {
++            const ratings = Object.entries(h.ratings || {})
++                .filter(([_, r]) => (r as number) > 0)
++                .map(([name, r]) => `${name}: ${r}/5`)
++                .join(", ");
++            return `- ${h.title} (Picked by: ${h.pickedBy}, Ratings: ${ratings || "No ratings"}${h.summary ? `, Summary: ${h.summary}` : ""})`;
++        }).join("\n");
++        const response = await ai.models.generateContent({
+             model: "gemini-1.5-flash",
+-            generationConfig: {
++            contents: `We are a family (${profileNames.join(", ")}) having a movie night. It's ${currentUser}'s turn to pick.
++
++Here is our watch history, including summaries and how we rated them:
++${historyText}
++
++Suggest 10 new movies that ${currentUser} would specifically love. Since it is ${currentUser}'s turn, their personal tastes (based on movies they picked or rated highly) should be the PRIMARY driver for these suggestions.
++Also consider the rest of the family's general taste to ensure everyone will enjoy it, but ${currentUser}'s preference is the tie-breaker.
++Heavily prioritize genres and styles that received high ratings (4/5 or 5/5) from ${currentUser} and the family, and strictly avoid those that were rated poorly.
++${ratingInstruction}
++
++For each movie, provide a 1-sentence reason why it fits ${currentUser}'s taste specifically.
++Return ONLY a JSON array of objects with "title" and "reason" properties.`,
++            config: {
+                 responseMimeType: "application/json",
+                 responseSchema: {
+-                    type: SchemaType.ARRAY,
++                    type: Type.ARRAY,
+                     items: {
+-                        type: SchemaType.OBJECT,
++                        type: Type.OBJECT,
+                         properties: {
+-                            title: { type: SchemaType.STRING },
+-                            reason: { type: SchemaType.STRING },
++                            title: { type: Type.STRING },
++                            reason: { type: Type.STRING },
+                         },
+                         required: ["title", "reason"],
+                     },
+@@ -85,30 +103,7 @@ app.post("/gemini/recommend", async (req, res) => {
+             },
+         });
+ 
+-        const historyText = (history as any[]).map((h) => {
+-            const ratings = Object.entries(h.ratings || {})
+-                .filter(([_, r]) => (r as number) > 0)
+-                .map(([name, r]) => `${name}: ${r}/5`)
+-                .join(", ");
+-            return `- ${h.title} (Picked by: ${h.pickedBy}, Ratings: ${ratings || "No ratings"}${h.summary ? `, Summary: ${h.summary}` : ""})`;
+-        }).join("\n");
+-
+-        const result = await model.generateContent(`We are a family (${profileNames.join(", ")}) having a movie night. It's ${currentUser}'s turn to pick. 
+-      
+-      Here is our watch history, including summaries and how we rated them:
+-      ${historyText}
+-      
+-      Suggest 10 new movies that ${currentUser} would specifically love. Since it is ${currentUser}'s turn, their personal tastes (based on movies they picked or rated highly) should be the PRIMARY driver for these suggestions. 
+-        
+-      Also consider the rest of the family's general taste to ensure everyone will enjoy it, but ${currentUser}'s preference is the tie-breaker.
+-      Heavily prioritize genres and styles that received high ratings (4/5 or 5/5) from ${currentUser} and the family, and strictly avoid those that were rated poorly.
+-      ${ratingInstruction}
+-      
+-      For each movie, provide a 1-sentence reason why it fits ${currentUser}'s taste specifically.
+-      Return ONLY a JSON array of objects with "title" and "reason" properties.`);
+-
+-        const response = await result.response;
+-        const recommendations = JSON.parse(response.text() || "[]");
++        const recommendations = JSON.parse(response.text || "[]");
+         res.json({ recommendations });
+     } catch (error: any) {
+         console.error("Gemini Recommender error:", error);
+@@ -126,35 +121,34 @@ app.post("/gemini/party", async (req, res) => {
+         return res.status(400).json({ error: "Title is required" });
+     }
+     try {
+-        const ai = new GoogleGenAI(GEMINI_API_KEY);
+-        const model = ai.getGenerativeModel({
++        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
++        const promptText = `Create a "Watch Party Pack" for the movie "${title}"${genres ? ` (Genres: ${genres.join(", ")})` : ""}.${summary ? ` Summary: ${summary}` : ""}
++
++Generate context-relevant, themed ideas for:
++1. A unique snack or drink idea.
++2. A simple themed activity or game.
++3. A thoughtful discussion question.
++
++Return ONLY a JSON object with properties: "snack", "activity", "prompt". Keep each response to 1 concise sentence.`;
++
++        const response = await ai.models.generateContent({
+             model: "gemini-1.5-flash",
+-            generationConfig: {
++            contents: promptText,
++            config: {
+                 responseMimeType: "application/json",
+                 responseSchema: {
+-                    type: SchemaType.OBJECT,
++                    type: Type.OBJECT,
+                     properties: {
+-                        snack: { type: SchemaType.STRING },
+-                        activity: { type: SchemaType.STRING },
+-                        prompt: { type: SchemaType.STRING },
++                        snack: { type: Type.STRING },
++                        activity: { type: Type.STRING },
++                        prompt: { type: Type.STRING },
+                     },
+                     required: ["snack", "activity", "prompt"],
+                 },
+             },
+         });
+ 
+-        const promptText = `Create a "Watch Party Pack" for the movie "${title}"${genres ? ` (Genres: ${genres.join(", ")})` : ""}.${summary ? ` Summary: ${summary}` : ""}
+-      
+-      Generate context-relevant, themed ideas for:
+-      1. A unique snack or drink idea.
+-      2. A simple themed activity or game.
+-      3. A thoughtful discussion question.
+-      
+-      Return ONLY a JSON object with properties: "snack", "activity", "prompt". Keep each response to 1 concise sentence.`;
+-
+-        const result = await model.generateContent(promptText);
+-        const response = await result.response;
+-        const partyPack = JSON.parse(response.text() || "{}");
++        const partyPack = JSON.parse(response.text || "{}");
+         res.json(partyPack);
+     } catch (error: any) {
+         console.error("Gemini Party Pack error:", error);
+diff --git a/src/App.tsx b/src/App.tsx
+index 913ca0e..1db6f4d 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -15,6 +15,7 @@ import { MovieDetailPage } from './pages/MovieDetailPage';
+ import { CouchPage } from './pages/CouchPage';
+ import { useDatabaseSeed } from './hooks/useDatabaseSeed';
+ import { useData } from './contexts/DataContext';
++import { isCouchModeEnabled } from './utils/isCouchMode';
+ import { useLocation, useNavigate } from 'react-router-dom';
+ 
+ function AppContent() {
+@@ -24,7 +25,7 @@ function AppContent() {
+   const location = useLocation();
+   const navigate = useNavigate();
+ 
+-  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true' || location.search.includes('couch=true');
++  const isCouchMode = isCouchModeEnabled(location.search);
+ 
+   // Global Sync Listener for TV
+   React.useEffect(() => {
+diff --git a/src/components/CastButton.tsx b/src/components/CastButton.tsx
+index 8102aa9..945ebf2 100644
+--- a/src/components/CastButton.tsx
++++ b/src/components/CastButton.tsx
+@@ -1,147 +1,161 @@
+-import React, { useEffect, useState } from 'react';
++import React, { useEffect, useRef, useState } from 'react';
+ import { Tv } from 'lucide-react';
+ import { useData } from '../contexts/DataContext';
+ import { useLocation } from 'react-router-dom';
+ import { hapticFeedback } from '../utils/haptics';
+ 
+ declare global {
+-    interface Window {
+-        chrome: any;
+-        cast: any;
+-        __onGCastApiAvailable: (isAvailable: boolean) => void;
+-    }
++  interface Window {
++    chrome: any;
++    cast: any;
++    __onGCastApiAvailable: (isAvailable: boolean) => void;
++  }
+ }
+ 
+ export function CastButton() {
+-    const { movies, pushCouchState } = useData();
+-    const location = useLocation();
+-    const [castAvailable, setCastAvailable] = useState(false);
+-    const [isCasting, setIsCasting] = useState(false);
+-
+-    const hasCustomReceiver = !!import.meta.env.VITE_CAST_APP_ID;
+-
+-    useEffect(() => {
+-        const initializeCast = (isAvailable: boolean) => {
+-            if (isAvailable) {
+-                setCastAvailable(true);
+-                const castContext = window.cast.framework.CastContext.getInstance();
+-                const appId = import.meta.env.VITE_CAST_APP_ID || window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
+-
+-                // Properly configure session request to hint for video-capable devices (TVs)
+-                const sessionRequest = new window.chrome.cast.SessionRequest(appId);
+-                sessionRequest.capabilities = [window.chrome.cast.Capability.VIDEO_OUT];
+-
+-                castContext.setOptions({
+-                    receiverApplicationId: appId,
+-                    autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGINAL_SCOPE,
+-                    sessionRequest: sessionRequest
+-                });
+-
+-                // Listen for session changes
+-                castContext.addEventListener(
+-                    window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+-                    (event: any) => {
+-                        const state = event.sessionState;
+-                        if (state === 'SESSION_STARTED' || state === 'SESSION_RESUMED') {
+-                            setIsCasting(true);
+-                            // Broadcast current location to the TV
+-                            pushCouchState({
+-                                path: window.location.pathname,
+-                                timestamp: Date.now()
+-                            });
+-                        } else if (state === 'SESSION_ENDED') {
+-                            setIsCasting(false);
+-                        }
+-                    }
+-                );
+-            }
+-        };
+-
+-        // Set the global callback for future changes
+-        window.__onGCastApiAvailable = initializeCast;
+-
+-        // Check if the API is already available right now
+-        // Sometimes the SDK loads before the React component mounts
+-        if (typeof window !== 'undefined' && window.chrome && window.chrome.cast && window.chrome.cast.isAvailable) {
+-            initializeCast(true);
+-        }
+-    }, []);
+-
+-    // Fallback: If no custom receiver is set, we stream visual representations (posters) manually using the Default Media Receiver
+-    useEffect(() => {
+-        if (!isCasting || hasCustomReceiver) return;
+-
+-        const session = window.cast?.framework?.CastContext?.getInstance()?.getCurrentSession();
+-        if (!session) return;
+-
+-        let mediaInfo: any = null;
+-        const movieId = location.pathname.split('/movie/')[1];
+-
+-        if (movieId) {
+-            const movie = movies.find(m => m.id === movieId);
+-            if (movie && movie.poster_url) {
+-                const imgUrl = movie.poster_url.startsWith('http') ? movie.poster_url : `https://image.tmdb.org/t/p/w500${movie.poster_url}`;
+-                
+-                // Calculate average rating for the TV display
+-                const ratings = Object.values(movie.ratings || {}).filter((r): r is number => typeof r === 'number' && r > 0);
+-                const avgRating = ratings.length > 0 
+-                    ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+-                    : null;
+-
+-                const statusText = movie.status === 'watched' ? 'Watched' : 'Wishlist';
+-                const pickedByText = movie.pickedBy || 'Family';
+-                
+-                // Get individual ratings that are > 0
+-                const individualRatings = Object.entries(movie.ratings || {})
+-                    .filter(([_, r]) => typeof r === 'number' && r > 0)
+-                    .map(([id, r]) => `${id.charAt(0)}: ${r}★`)
+-                    .join(', ');
+-
+-                const subtitle = `${statusText} • Picked by ${pickedByText}${individualRatings ? ` • ${individualRatings}` : avgRating ? ` • Rating: ${avgRating}★` : ''}`;
+-
+-                mediaInfo = new window.chrome.cast.media.MediaInfo(imgUrl, 'image/jpeg');
+-                mediaInfo.metadata = new window.chrome.cast.media.GenericMediaMetadata();
+-                mediaInfo.metadata.metadataType = window.chrome.cast.media.MetadataType.GENERIC;
+-                mediaInfo.metadata.title = movie.title;
+-                mediaInfo.metadata.subtitle = subtitle;
+-                mediaInfo.metadata.images = [{ url: imgUrl }];
+-            }
+-        } else {
+-            // Home page fallback: cast the app icon
+-            const pwaIcon = window.location.origin + '/pwa-512.png';
+-            mediaInfo = new window.chrome.cast.media.MediaInfo(pwaIcon, 'image/png');
+-            mediaInfo.metadata = new window.chrome.cast.media.GenericMediaMetadata();
+-            mediaInfo.metadata.metadataType = window.chrome.cast.media.MetadataType.GENERIC;
+-            mediaInfo.metadata.title = "Family Movie Night";
+-            mediaInfo.metadata.images = [{ url: pwaIcon }];
+-        }
+-
+-        if (mediaInfo) {
+-            const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
+-            // Autoplay is true by default, so images display indefinitely
+-            session.loadMedia(request).catch((err: any) => console.log('Cast media load fallback errored:', err));
+-        }
+-    }, [isCasting, location.pathname, movies, hasCustomReceiver]);
+-
+-    const handleCastClick = () => {
+-        hapticFeedback.medium();
+-        const castContext = window.cast.framework.CastContext.getInstance();
+-        castContext.requestSession();
++  const { movies, pushCouchState } = useData();
++  const location = useLocation();
++  const [castAvailable, setCastAvailable] = useState(false);
++  const [isCasting, setIsCasting] = useState(false);
++  const isInitializedRef = useRef(false);
++  const lastFallbackMediaKeyRef = useRef<string | null>(null);
++
++  const hasCustomReceiver = !!import.meta.env.VITE_CAST_APP_ID;
++
++  useEffect(() => {
++    const onSessionStateChanged = (event: any) => {
++      const state = event?.sessionState;
++      const casting = state === 'SESSION_STARTED' || state === 'SESSION_RESUMED';
++
++      if (casting) {
++        setIsCasting(true);
++        pushCouchState({ path: window.location.pathname, timestamp: Date.now() });
++      } else if (state === 'SESSION_ENDED') {
++        setIsCasting(false);
++        lastFallbackMediaKeyRef.current = null;
++      }
++    };
++
++    const initializeCast = (isAvailable: boolean) => {
++      if (!isAvailable || isInitializedRef.current) return;
++
++      setCastAvailable(true);
++      const castContext = window.cast?.framework?.CastContext?.getInstance?.();
++      if (!castContext) return;
++
++      const appId = import.meta.env.VITE_CAST_APP_ID || window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
++      const sessionRequest = new window.chrome.cast.SessionRequest(appId);
++      sessionRequest.capabilities = [window.chrome.cast.Capability.VIDEO_OUT];
++
++      castContext.setOptions({
++        receiverApplicationId: appId,
++        autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGINAL_SCOPE,
++        sessionRequest,
++      });
++
++      castContext.addEventListener(
++        window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
++        onSessionStateChanged
++      );
++
++      isInitializedRef.current = true;
++      setIsCasting(Boolean(castContext.getCurrentSession()));
+     };
+ 
+-    if (!castAvailable) return null;
+-
+-    return (
+-        <button
+-            onClick={handleCastClick}
+-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all active:scale-95 touch-manipulation text-[10px] font-black uppercase tracking-widest ${isCasting
+-                ? 'bg-theme-primary text-theme-base shadow-lg animate-pulse'
+-                : 'text-theme-muted hover:text-theme-primary hover:bg-theme-primary/10'
+-                }`}
+-            title={isCasting ? "Casting to TV..." : "Cast to TV"}
+-        >
+-            <Tv size={16} />
+-            <span className="hidden sm:inline">Cast</span>
+-        </button>
+-    );
++    window.__onGCastApiAvailable = initializeCast;
++
++    if (typeof window !== 'undefined' && window.chrome?.cast?.isAvailable) {
++      initializeCast(true);
++    }
++
++    return () => {
++      const castContext = window.cast?.framework?.CastContext?.getInstance?.();
++      if (castContext && isInitializedRef.current) {
++        castContext.removeEventListener(
++          window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
++          onSessionStateChanged
++        );
++      }
++      isInitializedRef.current = false;
++    };
++  }, [pushCouchState]);
++
++  // Fallback: If no custom receiver is set, stream posters manually via Default Media Receiver.
++  useEffect(() => {
++    if (!isCasting || hasCustomReceiver) return;
++
++    const session = window.cast?.framework?.CastContext?.getInstance?.()?.getCurrentSession?.();
++    if (!session) return;
++
++    const movieId = location.pathname.split('/movie/')[1];
++    let mediaInfo: any = null;
++    let mediaKey = location.pathname;
++
++    if (movieId) {
++      const movie = movies.find(m => m.id === movieId);
++      if (movie && movie.poster_url) {
++        const imgUrl = movie.poster_url.startsWith('http') ? movie.poster_url : `https://image.tmdb.org/t/p/w500${movie.poster_url}`;
++
++        const ratings = Object.entries(movie.ratings || {})
++          .filter(([_, r]) => typeof r === 'number' && r > 0)
++          .map(([id, r]) => `${id.charAt(0)}: ${r}★`)
++          .join(', ');
++
++        const statusText = movie.status === 'watched' ? 'Watched' : 'Wishlist';
++        const pickedByText = movie.pickedBy || 'Family';
++        const subtitle = `${statusText} • Picked by ${pickedByText}${ratings ? ` • ${ratings}` : ''}`;
++
++        mediaInfo = new window.chrome.cast.media.MediaInfo(imgUrl, 'image/jpeg');
++        mediaInfo.metadata = new window.chrome.cast.media.GenericMediaMetadata();
++        mediaInfo.metadata.metadataType = window.chrome.cast.media.MetadataType.GENERIC;
++        mediaInfo.metadata.title = movie.title;
++        mediaInfo.metadata.subtitle = subtitle;
++        mediaInfo.metadata.images = [{ url: imgUrl }];
++        mediaKey = `${movie.id}:${imgUrl}:${subtitle}`;
++      }
++    } else {
++      const pwaIcon = `${window.location.origin}/pwa-512.png`;
++      mediaInfo = new window.chrome.cast.media.MediaInfo(pwaIcon, 'image/png');
++      mediaInfo.metadata = new window.chrome.cast.media.GenericMediaMetadata();
++      mediaInfo.metadata.metadataType = window.chrome.cast.media.MetadataType.GENERIC;
++      mediaInfo.metadata.title = 'Family Movie Night';
++      mediaInfo.metadata.images = [{ url: pwaIcon }];
++      mediaKey = `home:${pwaIcon}`;
++    }
++
++    if (!mediaInfo || lastFallbackMediaKeyRef.current === mediaKey) return;
++
++    const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
++    session.loadMedia(request)
++      .then(() => {
++        lastFallbackMediaKeyRef.current = mediaKey;
++      })
++      .catch((err: any) => console.log('Cast media load fallback errored:', err));
++  }, [isCasting, location.pathname, movies, hasCustomReceiver]);
++
++  const handleCastClick = async () => {
++    hapticFeedback.medium();
++    try {
++      const castContext = window.cast?.framework?.CastContext?.getInstance?.();
++      await castContext?.requestSession?.();
++    } catch (error) {
++      console.log('Cast session request failed:', error);
++    }
++  };
++
++  if (!castAvailable) return null;
++
++  return (
++    <button
++      onClick={handleCastClick}
++      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all active:scale-95 touch-manipulation text-[10px] font-black uppercase tracking-widest ${isCasting
++        ? 'bg-theme-primary text-theme-base shadow-lg animate-pulse'
++        : 'text-theme-muted hover:text-theme-primary hover:bg-theme-primary/10'
++        }`}
++      title={isCasting ? 'Casting to TV...' : 'Cast to TV'}
++    >
++      <Tv size={16} />
++      <span className="hidden sm:inline">Cast</span>
++    </button>
++  );
+ }
+diff --git a/src/components/Layout.tsx b/src/components/Layout.tsx
+index 258a3ec..350af70 100644
+--- a/src/components/Layout.tsx
++++ b/src/components/Layout.tsx
+@@ -9,13 +9,14 @@ import { PizzaButton } from './PizzaButton';
+ import { CastButton } from './CastButton';
+ import { hapticFeedback } from '../utils/haptics';
+ import { PWAStatusBar } from './PWAStatusBar';
++import { isCouchModeEnabled } from '../utils/isCouchMode';
+ 
+ export function Layout({ children }: { children: React.ReactNode }) {
+   const { isLocalMode, syncStatus } = useData();
+   const { theme } = useTheme();
+   const location = useLocation();
+ 
+-  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true' || location.search.includes('couch=true');
++  const isCouchMode = isCouchModeEnabled(location.search);
+ 
+   return (
+     <div className={`min-h-screen flex flex-col relative overflow-hidden transition-colors duration-700 ${isCouchMode ? `couch-mode-active couch-theme-${theme}` : ''}`}>
+diff --git a/src/components/MovieList.tsx b/src/components/MovieList.tsx
+index a0aa251..cdf393b 100644
+--- a/src/components/MovieList.tsx
++++ b/src/components/MovieList.tsx
+@@ -7,6 +7,7 @@ import { HistorySection } from './movie-list/HistorySection';
+ import { AnimatePresence, motion } from 'motion/react';
+ import { LayoutGrid, List, ChevronUp } from 'lucide-react';
+ import { toast } from 'sonner';
++import { isCouchModeEnabled } from '../utils/isCouchMode';
+ 
+ const STORAGE_KEY = 'fmn_view_mode';
+ const FILTERS_STORAGE_KEY = 'fmn_movie_filters';
+@@ -34,7 +35,7 @@ const getStoredFilters = (): { pickerFilter: string; genreFilter: string; sortMo
+ export function MovieList() {
+   const { movies, profiles, markWatched, removeMovie, pushCouchState, couchState } = useData();
+   const location = useLocation();
+-  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true' || location.search.includes('couch=true');
++  const isCouchMode = isCouchModeEnabled(location.search);
+ 
+   const [randomMovie, setRandomMovie] = useState<Movie | null>(null);
+   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+@@ -144,11 +145,11 @@ export function MovieList() {
+   useEffect(() => {
+     // Only pull if we ARE in couch mode (we are the "TV/Receiver" device)
+     if (isCouchMode && couchState) {
+-      if (couchState.viewMode && couchState.viewMode !== viewMode) setViewMode(couchState.viewMode);
+-      if (couchState.pickerFilter && couchState.pickerFilter !== pickerFilter) setPickerFilter(couchState.pickerFilter);
+-      if (couchState.genreFilter && couchState.genreFilter !== genreFilter) setGenreFilter(couchState.genreFilter);
++      if (couchState.viewMode !== undefined && couchState.viewMode !== viewMode) setViewMode(couchState.viewMode);
++      if (couchState.pickerFilter !== undefined && couchState.pickerFilter !== pickerFilter) setPickerFilter(couchState.pickerFilter);
++      if (couchState.genreFilter !== undefined && couchState.genreFilter !== genreFilter) setGenreFilter(couchState.genreFilter);
+     }
+-  }, [isCouchMode, couchState]);
++  }, [isCouchMode, couchState, viewMode, pickerFilter, genreFilter]);
+ 
+   useEffect(() => {
+     if (pickerFilter !== 'all' && !pickerIds.has(pickerFilter)) {
+diff --git a/src/components/search/useSearch.ts b/src/components/search/useSearch.ts
+index 1abf0ac..7e94c82 100644
+--- a/src/components/search/useSearch.ts
++++ b/src/components/search/useSearch.ts
+@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
+ import { searchMovies, TMDBMovie, GENRE_MAP } from '../../services/tmdb';
+ import { getVibeSearchTerms, getFamilyRecommendations } from '../../services/gemini';
+ import { useData } from '../../contexts/DataContext';
++import { isCouchModeEnabled } from '../../utils/isCouchMode';
+ import { useSettings } from '../../contexts/SettingsContext';
+ import { hapticFeedback } from '../../utils/haptics';
+ import { toast } from 'sonner';
++import { useLocation } from 'react-router-dom';
+ 
+ const MATURE_KEYWORDS = ['gore', 'graphic', 'sexual', 'drug', 'abuse', 'torture', 'violence', 'nudity'];
+ 
+@@ -53,6 +55,7 @@ export function useSearch() {
+   const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
+ 
+   const { currentTurnIndex, movies, profiles, addMovie, couchState, pushCouchState } = useData();
++  const location = useLocation();
+   const { allowRatedR, recommendationMode, blockMatureThemes } = useSettings();
+ 
+   useEffect(() => {
+@@ -74,7 +77,7 @@ export function useSearch() {
+     return () => clearInterval(interval);
+   }, [loading]);
+ 
+-  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true';
++  const isCouchMode = isCouchModeEnabled(location.search);
+ 
+   useEffect(() => {
+     if (!isCouchMode) {
+diff --git a/src/contexts/useFirebaseData.ts b/src/contexts/useFirebaseData.ts
+index 8063ab6..35dc7f4 100644
+--- a/src/contexts/useFirebaseData.ts
++++ b/src/contexts/useFirebaseData.ts
+@@ -1,4 +1,4 @@
+-import { useState, useEffect } from 'react';
++import { useState, useEffect, useRef } from 'react';
+ import { collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+ import { db } from '../services/firebase';
+ import { Movie, FamilyProfile, DEFAULT_PROFILES, CouchState } from './DataContext';
+@@ -19,6 +19,7 @@ export function useFirebaseData() {
+   const [isLocalMode, setIsLocalMode] = useState(false);
+   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'offline' | 'local-only'>('syncing');
+   const [couchState, setCouchState] = useState<CouchState | null>(null);
++  const couchStateRef = useRef<CouchState | null>(null);
+ 
+   useEffect(() => {
+     // Don't do anything while Firebase Auth is still initializing
+@@ -70,6 +71,10 @@ export function useFirebaseData() {
+     };
+   }, [user, authLoading]);
+ 
++  useEffect(() => {
++    couchStateRef.current = couchState;
++  }, [couchState]);
++
+ 
+   useEffect(() => {
+     const onOnline = () => {
+@@ -214,10 +219,8 @@ export function useFirebaseData() {
+   const pushCouchState = async (updates: Partial<CouchState>) => {
+     if (isLocalMode) return;
+     
+-    // Get latest state directly to avoid closure stale issues if possible, 
+-    // but couchState from hook is usually sufficient as this is triggered by user action
+     const newState = {
+-      ...couchState,
++      ...(couchStateRef.current || {}),
+       ...updates,
+       timestamp: Date.now()
+     } as CouchState;
+diff --git a/src/pages/MovieDetailPage.tsx b/src/pages/MovieDetailPage.tsx
+index 98b783f..45b7fdf 100644
+--- a/src/pages/MovieDetailPage.tsx
++++ b/src/pages/MovieDetailPage.tsx
+@@ -14,6 +14,7 @@ import { MovieActions } from '../components/movie/MovieActions';
+ import { hapticFeedback } from '../utils/haptics';
+ import { getWatchPartyIdeas } from '../services/gemini';
+ import { Sparkles } from 'lucide-react';
++import { isCouchModeEnabled } from '../utils/isCouchMode';
+ 
+ export function MovieDetailPage() {
+   const { id } = useParams<{ id: string }>();
+@@ -23,7 +24,7 @@ export function MovieDetailPage() {
+   const { showModal } = useModal();
+   const location = useLocation();
+ 
+-  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true' || location.search.includes('couch=true');
++  const isCouchMode = isCouchModeEnabled(location.search);
+ 
+   const [isSending, setIsSending] = useState(false);
+   const [isEditing, setIsEditing] = useState(false);
+diff --git a/src/utils/isCouchMode.ts b/src/utils/isCouchMode.ts
+new file mode 100644
+index 0000000..a570b89
+--- /dev/null
++++ b/src/utils/isCouchMode.ts
+@@ -0,0 +1,3 @@
++export function isCouchModeEnabled(search: string): boolean {
++  return sessionStorage.getItem('fmn_couch_mode') === 'true' || search.includes('couch=true');
++}

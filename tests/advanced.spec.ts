@@ -15,7 +15,7 @@ test.describe('Advanced Features & UX', () => {
         }
     });
 
-    test('checks search preference toggles in stats panel area area', async ({ page }) => {
+    test('checks search preference toggles in stats panel', async ({ page }) => {
         await page.goto('/stats');
         await page.waitForLoadState('domcontentloaded');
         const adultToggle = page.getByLabel(/Allow Rated R/i).or(page.locator('button:has-text("Allow Rated R")'));
@@ -36,17 +36,17 @@ test.describe('Advanced Features & UX', () => {
         }
     });
 
-    test('verifies Cast Button exists within layout context layout', async ({ page }) => {
-        await expect(page.getByTitle(/Settings|Themes/i).first()).toBeVisible({ timeout: 15000 });
+    test('verifies Cast Button exists within layout', async ({ page }) => {
+        await expect(page.getByTitle(/Connect to TV/i).or(page.getByRole('button', { name: /Connect TV/i })).first()).toBeVisible({ timeout: 15000 });
     });
 
-    test('validates smart search input element typeability field field', async ({ page }) => {
+    test('validates smart search input element typeability', async ({ page }) => {
         const smartSearchInput = page.getByPlaceholder(/Search title, actor, or vibe/i);
         await expect(smartSearchInput).toBeVisible({ timeout: 15000 });
         await smartSearchInput.fill('something spooky');
     });
 
-    test('checks Refresh All button presence in Data site site data', async ({ page }) => {
+    test('checks Refresh All button presence in Data site', async ({ page }) => {
         await page.goto('/stats');
         await page.waitForLoadState('domcontentloaded');
         const refreshBtn = page.getByRole('button', { name: /Refresh All/i });
@@ -60,13 +60,13 @@ test.describe('Advanced Features & UX', () => {
         await expect(themeBtn).toBeVisible({ timeout: 15000 });
     });
 
-    test('verifies Data Management header presence in stats page info info', async ({ page }) => {
+    test('verifies Data Management header presence in stats page', async ({ page }) => {
         await page.goto('/stats');
         await page.waitForLoadState('domcontentloaded');
         await expect(page.getByRole('heading', { name: /Data Management|Lot Management|Archive|Inventory|Pasture/i }).first()).toBeVisible({ timeout: 15000 });
     });
 
-    test('verifies theme switcher displays labels in stats context area section label', async ({ page }) => {
+    test('verifies theme switcher displays labels in stats context', async ({ page }) => {
         await page.goto('/stats');
         await page.waitForLoadState('domcontentloaded');
         await expect(page.locator('button').filter({ hasText: /Pinnacle/i }).first()).toBeVisible({ timeout: 15000 });

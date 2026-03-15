@@ -1,10 +1,12 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { db } from '../services/firebase';
 import { collection, doc, setDoc, writeBatch, getDocs, deleteDoc } from 'firebase/firestore';
 import { seedData } from '../utils/seedData';
 import { useAuth } from './AuthContext';
 import { useModal } from './ModalContext';
 import { useFirebaseData } from './useFirebaseData';
+import { logger } from '../utils/logger';
 
 export interface FamilyProfile {
   id: string;
@@ -43,6 +45,17 @@ export interface CouchState {
   timestamp: number;
 }
 
+export interface PulseEvent {
+  type: 'rating' | 'watched' | 'added' | 'status';
+  userName?: string;
+  movieTitle?: string;
+  message?: string;
+  title?: string;
+  value?: string | number;
+  timestamp: number;
+  onAction?: () => void;
+}
+
 interface DataContextType {
   movies: Movie[];
   profiles: FamilyProfile[];
@@ -59,7 +72,9 @@ interface DataContextType {
   updateProfiles: (profiles: FamilyProfile[]) => Promise<void>;
   refreshMetadata: (forceAll?: boolean) => Promise<void>;
   couchState: CouchState | null;
-  pushCouchState: (state: Partial<CouchState>) => Promise<void>;
+  pulseEvent: PulseEvent | null;
+  pushCouchState: (updates: Partial<CouchState>) => Promise<void>;
+  pushPulseEvent: (event: Omit<PulseEvent, 'timestamp'>) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -67,6 +82,7 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { showModal } = useModal();
+  const navigate = useNavigate();
 
   const {
     movies,
@@ -83,15 +99,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     updateProfiles,
     refreshMetadata,
     couchState,
-    pushCouchState
+    pulseEvent,
+    pushCouchState,
+    pushPulseEvent,
+    clearData
   } = useFirebaseData();
 
   const resetDatabase = async () => {
     try {
+      clearData();
       if (isLocalMode) {
         localStorage.removeItem('localMovies');
         localStorage.removeItem('localTurn');
-        window.location.reload();
+        navigate('/');
+        setTimeout(() => window.location.reload(), 100); // Small fallback for local storage sync
       } else {
         if (!user) {
           throw new Error("User not authenticated. Please wait for connection or switch to local mode.");
@@ -141,7 +162,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           });
           await seedBatch.commit();
         } catch (seedError) {
-          console.error("Seeding failed:", seedError);
+          logger.error("Seeding failed:", seedError);
           throw new Error("Failed to re-seed database. " + (seedError as Error).message);
         }
 
@@ -150,14 +171,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           const configBatch = writeBatch(db);
           configBatch.set(doc(db, 'metadata', 'config'), { isSeeded: false, currentTurnIndex: 0 }, { merge: true });
           await configBatch.commit();
+          
+          // Trigger a silent metadata refresh to fill in posters
+          refreshMetadata(true).catch(e => logger.error("Post-seed refresh failed:", e));
         } catch (configError) {
           console.warn("Config reset failed (non-critical):", configError);
         }
 
-        window.location.reload();
+        navigate('/');
       }
     } catch (error) {
-      console.error("Reset failed:", error);
+      logger.error("Reset failed:", error);
       await showModal({
         type: 'alert',
         title: 'Reset Failed',
@@ -167,24 +191,26 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const value = React.useMemo(() => ({
+  const value = useMemo(() => ({
     movies,
     profiles,
     currentTurnIndex,
     isLocalMode,
     syncStatus,
+    couchState,
+    pulseEvent,
     addMovie,
     updateMovie,
     removeMovie,
     markWatched,
     skipTurn,
-    setTurn,
     resetDatabase,
+    pushCouchState,
+    pushPulseEvent,
+    setTurn,
     updateProfiles,
-    refreshMetadata,
-    couchState,
-    pushCouchState
-  }), [movies, profiles, currentTurnIndex, isLocalMode, syncStatus, couchState]);
+    clearData
+  }), [movies, profiles, currentTurnIndex, isLocalMode, syncStatus, couchState, pulseEvent, resetDatabase, addMovie, updateMovie, removeMovie, markWatched, skipTurn, pushCouchState, pushPulseEvent, setTurn, updateProfiles, clearData]);
 
   return (
     <DataContext.Provider value={value}>

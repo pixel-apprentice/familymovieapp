@@ -5,6 +5,7 @@ import { UserStatsPanel } from '../components/stats/UserStatsPanel';
 import { AboutPanel } from '../components/stats/AboutPanel';
 import { SearchPreferencesPanel } from '../components/stats/SearchPreferencesPanel';
 import { DataManagementPanel } from '../components/stats/DataManagementPanel';
+import { AlertCircle, Terminal } from 'lucide-react';
 
 export function StatsPage() {
   const { theme } = useTheme();
@@ -49,6 +50,36 @@ export function StatsPage() {
 
       <UserStatsPanel />
       <AboutPanel />
+
+      {/* Debug Section (Hidden unless error exists) */}
+      {sessionStorage.getItem('fmn_last_error') && (
+        <section className="mt-8 opacity-50 hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-4 mb-4">
+            <h2 className="text-xl font-black uppercase tracking-widest text-red-500 flex items-center gap-2">
+              <Terminal size={20} />
+              Crash Debugger
+            </h2>
+            <div className="h-px flex-1 bg-red-500/20" />
+          </div>
+          <div className="p-6 bg-red-500/5 border border-red-500/20 rounded-3xl font-mono text-[10px] space-y-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle size={14} className="text-red-500 shrink-0" />
+              <div className="space-y-2">
+                <p className="text-red-400 font-black">LAST CAPTURED ERROR:</p>
+                <div className="p-3 bg-black/40 rounded-xl text-red-300 break-all border border-red-500/10">
+                  {sessionStorage.getItem('fmn_last_error')}
+                </div>
+                <button 
+                  onClick={() => { sessionStorage.removeItem('fmn_last_error'); window.location.reload(); }}
+                  className="px-3 py-1 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors uppercase font-black"
+                >
+                  Clear Debug Log
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

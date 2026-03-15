@@ -7,7 +7,8 @@ test.describe('Navigation & Performance', () => {
     });
 
     test('verifies primary branding logo F visibility', async ({ page }) => {
-        await expect(page.getByText('F', { exact: true })).toBeVisible({ timeout: 15000 });
+        await page.waitForSelector('[data-testid="app-ready"]');
+        await expect(page.getByText('F', { exact: true })).toBeVisible();
     });
 
     test('toggles successfully between view modes if visible', async ({ page }) => {
@@ -16,8 +17,9 @@ test.describe('Navigation & Performance', () => {
     });
 
     test('opens the Pizza request modal from layout header', async ({ page }) => {
+        await page.waitForSelector('[data-testid="app-ready"]');
         await page.getByRole('button', { name: /pizza/i }).click();
-        await expect(page.getByText(/Pizza Request/i)).toBeVisible({ timeout: 15000 });
+        await expect(page.getByText(/Pizza Request/i)).toBeVisible();
     });
 
     test('navigates to Settings page via Settings nav link', async ({ page }) => {
@@ -25,32 +27,33 @@ test.describe('Navigation & Performance', () => {
         await expect(page).toHaveURL(/.*\/stats/);
     });
 
-    test('verifies App Version string in About section area', async ({ page }) => {
+    test('verifies App Version string in About section', async ({ page }) => {
         await page.goto('/stats');
-        await page.waitForLoadState('domcontentloaded');
-        await expect(page.locator('section:has-text("About")')).toContainText(/v\d+\.\d+\./i, { timeout: 20000 });
+        await page.waitForSelector('[data-testid="app-ready"]');
+        await expect(page.locator('section:has-text("About")')).toContainText(/v\d+\.\d+\./i);
     });
 
-    test('checks Appearance header presence in stats page info area', async ({ page }) => {
+    test('checks Appearance header presence in stats page', async ({ page }) => {
         await page.goto('/stats');
-        await page.waitForLoadState('domcontentloaded');
-        await expect(page.getByRole('heading', { name: /appearance/i }).or(page.getByRole('heading', { name: /Appearance/ }))).toBeVisible({ timeout: 10000 });
+        await page.waitForSelector('[data-testid="app-ready"]');
+        await expect(page.getByRole('heading', { name: /appearance/i }).or(page.getByRole('heading', { name: /Appearance/ }))).toBeVisible();
     });
 
     test('verifies family filter "All" existence in movie list control', async ({ page }) => {
         await expect(page.getByRole('button', { name: /^All$/i })).toBeVisible({ timeout: 15000 });
     });
 
-    test('closes Pizza modal with backdrop click simulation trigger', async ({ page }) => {
+    test('closes Pizza modal with backdrop click', async ({ page }) => {
+        await page.waitForSelector('[data-testid="app-ready"]');
         await page.getByRole('button', { name: /pizza/i }).click();
-        await expect(page.getByText(/Pizza Request/i)).toBeVisible({ timeout: 10000 });
+        await expect(page.getByText(/Pizza Request/i)).toBeVisible();
 
         // Modal.tsx backdrop click
         await page.mouse.click(10, 10);
-        await expect(page.getByText(/Pizza Request/i)).not.toBeVisible({ timeout: 10000 });
+        await expect(page.getByText(/Pizza Request/i)).not.toBeVisible();
     });
 
-    test('verifies Current Turn layout banner exists on home page', async ({ page }) => {
+    test('verifies Current Turn layout banner exists', async ({ page }) => {
         await expect(page.locator('section').or(page.locator('div')).filter({ hasText: /Next|Turn/i }).first()).toBeVisible({ timeout: 15000 });
     });
 
