@@ -84,11 +84,11 @@ export function MovieDetailPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    // Push current movie state to TV
-    if (id) {
+    // Push current movie state to TV (only if NOT already in couch mode)
+    if (id && !isCouchMode) {
       pushCouchState({ path: `/movie/${id}`, movieId: id });
     }
-  }, [id, pushCouchState]);
+  }, [id, pushCouchState, isCouchMode]);
 
   useEffect(() => {
     // Auto-fetch metadata if missing
