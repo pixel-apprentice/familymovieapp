@@ -7,6 +7,7 @@ import { HistorySection } from './movie-list/HistorySection';
 import { AnimatePresence, motion } from 'motion/react';
 import { LayoutGrid, List, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { isCouchModeEnabled } from '../utils/isCouchMode';
 
 const STORAGE_KEY = 'fmn_view_mode';
 const FILTERS_STORAGE_KEY = 'fmn_movie_filters';
@@ -34,7 +35,7 @@ const getStoredFilters = (): { pickerFilter: string; genreFilter: string; sortMo
 export function MovieList() {
   const { movies, profiles, markWatched, removeMovie, pushCouchState, couchState } = useData();
   const location = useLocation();
-  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true' || location.search.includes('couch=true');
+  const isCouchMode = isCouchModeEnabled(location.search);
 
   const [randomMovie, setRandomMovie] = useState<Movie | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
@@ -144,11 +145,11 @@ export function MovieList() {
   useEffect(() => {
     // Only pull if we ARE in couch mode (we are the "TV/Receiver" device)
     if (isCouchMode && couchState) {
-      if (couchState.viewMode && couchState.viewMode !== viewMode) setViewMode(couchState.viewMode);
-      if (couchState.pickerFilter && couchState.pickerFilter !== pickerFilter) setPickerFilter(couchState.pickerFilter);
-      if (couchState.genreFilter && couchState.genreFilter !== genreFilter) setGenreFilter(couchState.genreFilter);
+      if (couchState.viewMode !== undefined && couchState.viewMode !== viewMode) setViewMode(couchState.viewMode);
+      if (couchState.pickerFilter !== undefined && couchState.pickerFilter !== pickerFilter) setPickerFilter(couchState.pickerFilter);
+      if (couchState.genreFilter !== undefined && couchState.genreFilter !== genreFilter) setGenreFilter(couchState.genreFilter);
     }
-  }, [isCouchMode, couchState]);
+  }, [isCouchMode, couchState, viewMode, pickerFilter, genreFilter]);
 
   useEffect(() => {
     if (pickerFilter !== 'all' && !pickerIds.has(pickerFilter)) {

@@ -9,13 +9,14 @@ import { PizzaButton } from './PizzaButton';
 import { CastButton } from './CastButton';
 import { hapticFeedback } from '../utils/haptics';
 import { PWAStatusBar } from './PWAStatusBar';
+import { isCouchModeEnabled } from '../utils/isCouchMode';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { isLocalMode, syncStatus } = useData();
   const { theme } = useTheme();
   const location = useLocation();
 
-  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true' || location.search.includes('couch=true');
+  const isCouchMode = isCouchModeEnabled(location.search);
 
   return (
     <div className={`min-h-screen flex flex-col relative overflow-hidden transition-colors duration-700 ${isCouchMode ? `couch-mode-active couch-theme-${theme}` : ''}`}>

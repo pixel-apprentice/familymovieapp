@@ -15,6 +15,7 @@ import { MovieDetailPage } from './pages/MovieDetailPage';
 import { CouchPage } from './pages/CouchPage';
 import { useDatabaseSeed } from './hooks/useDatabaseSeed';
 import { useData } from './contexts/DataContext';
+import { isCouchModeEnabled } from './utils/isCouchMode';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 function AppContent() {
@@ -24,7 +25,7 @@ function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true' || location.search.includes('couch=true');
+  const isCouchMode = isCouchModeEnabled(location.search);
 
   // Global Sync Listener for TV
   React.useEffect(() => {
