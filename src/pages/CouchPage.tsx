@@ -9,27 +9,44 @@ export function CouchPage() {
         // Set a flag in session storage so we know this device is a TV (Receiver)
         sessionStorage.setItem('fmn_couch_mode', 'true');
 
-        // Initialize Cast Receiver SDK if available
-        if (typeof window !== 'undefined' && 'cast' in window) {
-            try {
-                // @ts-expect-error - Receiver SDK types are not in @types/chromecast-caf-sender
-                const context = window.cast?.framework?.CastReceiverContext?.getInstance();
-                if (context) {
-                    context.start();
-                    logger.log("[Couch Mode] Cast Receiver Context started.");
+        let retryCount = 0;
+        const maxRetries = 20; // 8 seconds total (20 * 400ms)
+        const retryInterval = 400;
+
+        const initSDK = () => {
+            if (typeof window !== 'undefined' && 'cast' in window) {
+                try {
+                    // @ts-expect-error - Receiver SDK types are not in @types/chromecast-caf-sender
+                    const context = window.cast?.framework?.CastReceiverContext?.getInstance();
+                    if (context) {
+                        context.start();
+                        logger.log("[Couch Mode] Cast Receiver Context started.");
+                        
+                        // Small delay to let the underlying WebSocket stabilize
+                        // But now we know the SDK is at least started.
+                        setTimeout(() => navigate('/?couch=true', { replace: true }), 300);
+                        return true;
+                    }
+                } catch (error) {
+                    logger.error("[Couch Mode] Failed to start Cast Receiver:", error);
                 }
-            } catch (error) {
-                logger.error("[Couch Mode] Failed to start Cast Receiver:", error);
             }
+            return false;
+        };
+
+        if (!initSDK()) {
+            const timer = setInterval(() => {
+                retryCount++;
+                if (initSDK() || retryCount >= maxRetries) {
+                    clearInterval(timer);
+                    if (retryCount >= maxRetries) {
+                        logger.warn("[Couch Mode] Cast SDK not found after retries. Manual navigation fall-through.");
+                        navigate('/?couch=true', { replace: true });
+                    }
+                }
+            }, retryInterval);
+            return () => clearInterval(timer);
         }
-
-        // Use client-side navigation to preserve the Cast Context!
-        // We add a slight delay to ensure the Receiver Context handshake completes
-        const timer = setTimeout(() => {
-            navigate('/', { replace: true });
-        }, 500);
-
-        return () => clearTimeout(timer);
     }, [navigate]);
 
     return (

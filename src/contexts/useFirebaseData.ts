@@ -6,6 +6,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useAuth } from './AuthContext';
 import { searchMovies, getMovieDetails, pickBestMovieMatch, GENRE_MAP } from '../services/tmdb';
 import { logger } from '../utils/logger';
+import { isCouchModeEnabled } from '../utils/isCouchMode';
 
 export function useFirebaseData() {
   const { user, loading: authLoading } = useAuth();
@@ -28,7 +29,7 @@ export function useFirebaseData() {
     // Don't do anything while Firebase Auth is still initializing
     if (authLoading) return;
 
-    if (!user) {
+    if (!user && !isCouchModeEnabled(window.location.search)) {
       setIsLocalMode(true);
       setSyncStatus('local-only');
       const localMovies = localStorage.getItem('localMovies');
@@ -41,31 +42,40 @@ export function useFirebaseData() {
     setIsLocalMode(false);
     setSyncStatus(navigator.onLine ? 'synced' : 'offline');
 
-    const unsubscribeMovies = onSnapshot(collection(db, 'movies'), (snapshot) => {
-      const moviesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Movie));
-      setMovies(moviesData);
-      setSyncStatus(navigator.onLine ? 'synced' : 'offline');
-    }, (error) => {
-      logger.error('Firestore movies sync failed:', error);
-      setSyncStatus('offline');
-    });
+    // These listeners require a user session for standard users, 
+    // but the TV receiver (Couch Mode) must be able to see them even if unauthenticated
+    // assuming Firestore Security Rules allow global read for metadata/couch.
+    let unsubscribeMovies = () => {};
+    let unsubscribeConfig = () => {};
 
-    const unsubscribeConfig = onSnapshot(doc(db, 'metadata', 'config'), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.currentTurnIndex !== undefined) {
-          setCurrentTurnIndex(data.currentTurnIndex);
-          localStorage.setItem('fmn_turn_cache', data.currentTurnIndex.toString());
-        }
-        if (data.profiles) {
-          setProfiles(data.profiles);
-          localStorage.setItem('fmn_profiles_cache', JSON.stringify(data.profiles));
-        }
-      }
-    }, (error) => {
-      logger.error('Firestore config sync failed:', error);
-    });
+    if (user) {
+      unsubscribeMovies = onSnapshot(collection(db, 'movies'), (snapshot) => {
+        const moviesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Movie));
+        setMovies(moviesData);
+        setSyncStatus(navigator.onLine ? 'synced' : 'offline');
+      }, (error) => {
+        logger.error('Firestore movies sync failed:', error);
+        setSyncStatus('offline');
+      });
 
+      unsubscribeConfig = onSnapshot(doc(db, 'metadata', 'config'), (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.currentTurnIndex !== undefined) {
+            setCurrentTurnIndex(data.currentTurnIndex);
+            localStorage.setItem('fmn_turn_cache', data.currentTurnIndex.toString());
+          }
+          if (data.profiles) {
+            setProfiles(data.profiles);
+            localStorage.setItem('fmn_profiles_cache', JSON.stringify(data.profiles));
+          }
+        }
+      }, (error) => {
+        logger.error('Firestore config sync failed:', error);
+      });
+    }
+
+    // Couch and Pulse listeners are ALWAYS active in Couch Mode or for logged in users
     const unsubscribeCouch = onSnapshot(doc(db, 'metadata', 'couch'), (docSnap) => {
       if (docSnap.exists()) {
         setCouchState(docSnap.data() as CouchState);
