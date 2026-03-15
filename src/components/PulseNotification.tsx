@@ -3,10 +3,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Star, CheckCircle, PlusCircle, User, Info, RefreshCcw } from 'lucide-react';
 import { PulseEvent } from '../contexts/DataContext';
 import { hapticFeedback } from '../utils/haptics';
+import { useLocation } from 'react-router-dom';
+import { isCouchModeEnabled } from '../utils/isCouchMode';
 
 export function PulseNotification({ event }: { event: PulseEvent | null }) {
   const [isVisible, setIsVisible] = useState(false);
   const [activeEvent, setActiveEvent] = useState<PulseEvent | null>(null);
+  const location = useLocation();
+  const isCouchMode = isCouchModeEnabled(location.search);
 
   useEffect(() => {
     if (event && (!activeEvent || event.timestamp !== activeEvent.timestamp)) {
@@ -37,7 +41,7 @@ export function PulseNotification({ event }: { event: PulseEvent | null }) {
           initial={{ opacity: 0, scale: 0.8, y: 50 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.8, y: -20 }}
-          className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[200] w-full max-w-lg px-6"
+          className={`fixed bottom-12 left-1/2 -translate-x-1/2 z-[200] w-full max-w-lg px-6 transition-all duration-500 ${isCouchMode ? 'scale-150 bottom-24' : ''}`}
           onClick={activeEvent.onAction ? handleAction : undefined}
           role={activeEvent.onAction ? 'button' : undefined}
         >

@@ -33,7 +33,7 @@ export const MovieListRow: React.FC<MovieListRowProps> = ({ movie }) => {
     const posterSrc = movie.poster_url ? getPosterSrc(movie.poster_url) : null;
 
     return (
-        <div className="py-3 bg-transparent border-b border-theme-border group hover:bg-theme-surface/30 transition-colors first:border-t-0 last:border-b-0 px-2 sm:px-4">
+        <div className="py-3 bg-transparent border-b border-theme-border group hover:bg-theme-surface/30 transition-colors first:border-t-0 last:border-b-0 px-2 sm:px-4" data-testid="movie-card">
             <div className="flex gap-4 items-center">
                 {/* Poster - Kept at 64px tall (h-16) as requested */}
                 <Link to={`/movie/${movie.id}`} className="shrink-0 block">

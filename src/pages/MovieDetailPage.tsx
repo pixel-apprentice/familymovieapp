@@ -281,7 +281,23 @@ export function MovieDetailPage() {
     : `https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' movie trailer')}`;
 
   return (
-    <div className={`w-full max-w-4xl mx-auto px-4 py-2 md:py-4 ${isCouchMode ? 'max-w-none px-0' : ''}`}>
+    <div className={`w-full max-w-4xl mx-auto px-4 py-2 md:py-4 transition-all duration-1000 ${isCouchMode ? 'max-w-none px-0' : ''}`}>
+      {/* Cinematic TV Backdrop */}
+      {isCouchMode && movie.poster_url && (
+        <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+          <motion.img
+            key={movie.poster_url}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.5 }}
+            src={getPosterSrc(movie.poster_url)}
+            className="w-full h-full object-cover blur-[80px] brightness-[0.4] scale-110"
+            aria-hidden="true"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-theme-base via-transparent to-theme-base/50" />
+        </div>
+      )}
+
       {!isCouchMode && (
         <div className="flex items-center justify-between mb-4">
         <button
@@ -421,20 +437,30 @@ export function MovieDetailPage() {
                     {profiles.find(p => p.id === movie.pickedBy)?.name || movie.pickedBy}
                   </span>
                   <span className="w-1 h-1 rounded-full bg-theme-border mx-1" />
-                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${movie.status === 'watched' ? 'border-emerald-500/30 text-emerald-500 bg-emerald-500/10' : 'border-amber-500/30 text-amber-500 bg-amber-500/10'}`}>
+                  <span className="w-1 h-1 rounded-full bg-theme-border mx-1" />
+                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-lg border transition-all ${
+                    movie.status === 'watched' 
+                      ? 'border-emerald-500/50 text-emerald-400 bg-emerald-500/10 backdrop-blur-md' 
+                      : 'border-amber-500/50 text-amber-400 bg-amber-500/10 backdrop-blur-md'
+                  } ${isCouchMode ? 'text-lg px-4 py-1.5' : ''}`}>
                     {movie.status === 'watched' ? 'Watched' : 'Wishlist'}
                   </span>
-                  <button onClick={() => setIsEditing(true)} className="ml-2 text-theme-muted hover:text-theme-primary transition-colors opacity-50 hover:opacity-100">
-                    <Edit2 size={14} />
-                  </button>
-                  <button
-                    onClick={handleRefreshMetadata}
-                    disabled={isRefreshing}
-                    className="ml-2 text-theme-muted hover:text-theme-primary transition-colors opacity-50 hover:opacity-100"
-                    title="Refresh Metadata"
-                  >
-                    <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
-                  </button>
+                  {!isCouchMode && (
+                    <button onClick={() => setIsEditing(true)} className="ml-2 text-theme-muted hover:text-theme-primary transition-colors opacity-50 hover:opacity-100">
+                      <Edit2 size={14} />
+                    </button>
+                  )}
+                  {!isCouchMode && (
+                    <button
+                      onClick={handleRefreshMetadata}
+                      disabled={isRefreshing}
+                      className="ml-2 text-theme-muted hover:text-theme-primary transition-colors opacity-50 hover:opacity-100"
+                      title="Refresh Metadata"
+                    >
+                      <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+                    </button>
+                  )}
+
                 </>
               )}
             </div>
@@ -447,24 +473,34 @@ export function MovieDetailPage() {
           </div>
 
           {/* Rankings Section */}
-          <section className={`${isCouchMode ? 'bg-theme-surface/50 border-2 scale-105 origin-left' : 'bg-theme-surface/30 border'} border-theme-border rounded-2xl p-4 md:p-6 space-y-3 mt-4`}>
+          <section className={`${isCouchMode ? 'bg-black/20 backdrop-blur-2xl border-2 border-white/10 scale-105 origin-left shadow-2xl' : 'bg-theme-surface/30 border'} border-theme-border rounded-3xl p-4 md:p-8 space-y-4 mt-4`}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-theme-primary">
-                <Star size={isCouchMode ? 24 : 16} />
-                <h2 className={`${isCouchMode ? 'text-xl' : 'text-[10px]'} font-black uppercase tracking-[0.2em]`}>Family Rankings</h2>
+              <div className="flex items-center gap-3 text-theme-primary">
+                <Star size={isCouchMode ? 32 : 16} className={isCouchMode ? 'drop-shadow-[0_0_10px_rgba(var(--color-primary),0.5)]' : ''} />
+                <h2 className={`${isCouchMode ? 'text-2xl' : 'text-[10px]'} font-black uppercase tracking-[0.3em]`}>Family Rankings</h2>
               </div>
               {!isCouchMode && <div className="text-[10px] font-mono text-theme-muted uppercase">Tap star again to toggle half</div>}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 FamilyRankings">
+            <div className={`grid grid-cols-1 gap-4 ${isCouchMode ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2'} FamilyRankings`}>
               {profiles.map((profile) => (
-                <div
+                <motion.div
                   key={profile.id}
-                  className="bg-theme-base/50 border border-theme-border/50 rounded-xl px-4 py-2 flex items-center justify-between group/rank"
+                  layout
+                  className={`bg-theme-base/40 backdrop-blur-md border border-theme-border/50 rounded-2xl px-5 py-3 flex flex-col gap-2 group/rank transition-all ${
+                    isCouchMode ? 'hover:bg-white/5 hover:scale-105' : 'items-center justify-between flex-row'
+                  }`}
                 >
-                  <span className={`${isCouchMode ? 'text-lg' : 'text-[10px] md:text-xs'} font-black uppercase tracking-widest truncate max-w-[120px] profile-name`} style={{ color: profile.color }}>
-                    {profile.name}
-                  </span>
+                  <div className="flex items-center justify-between w-full">
+                    <span className={`${isCouchMode ? 'text-xl' : 'text-[10px] md:text-xs'} font-black uppercase tracking-widest truncate profile-name`} style={{ color: profile.color }}>
+                      {profile.name}
+                    </span>
+                    {isCouchMode && (
+                      <span className="text-2xl font-mono font-black text-theme-text tabular-nums opacity-50">
+                        {movie.ratings[profile.id] > 0 ? movie.ratings[profile.id] : '—'}
+                      </span>
+                    )}
+                  </div>
 
                   <div className="flex items-center gap-1.5 overflow-hidden">
                     <div className="flex items-center -space-x-1">
@@ -474,16 +510,27 @@ export function MovieDetailPage() {
                         const isHalf = star - 0.5 === currentRating;
 
                         return (
-                          <div key={star} className="relative flex items-center h-10 w-8 group/star select-none">
-                            <button
-                              onClick={() => { hapticFeedback.light(); handleRatingToggle(profile.id, star); }}
-                              className="absolute inset-0 z-20 cursor-pointer"
-                            />
-                            <Star
-                              size={24}
-                              className={`transition-all ${isFull || isHalf ? 'text-amber-400' : 'text-theme-muted opacity-10'}`}
-                              fill={isFull ? 'currentColor' : isHalf ? 'url(#halfStarDetail)' : 'none'}
-                            />
+                          <div key={star} className={`relative flex items-center select-none ${isCouchMode ? 'h-12 w-10' : 'h-10 w-8'}`}>
+                            {!isCouchMode && (
+                              <button
+                                onClick={() => { hapticFeedback.light(); handleRatingToggle(profile.id, star); }}
+                                className="absolute inset-0 z-20 cursor-pointer"
+                              />
+                            )}
+                            <motion.div
+                              animate={isCouchMode && (isFull || isHalf) ? { 
+                                scale: [1, 1.2, 1],
+                                rotate: [0, 5, -5, 0] 
+                              } : {}}
+                              transition={{ duration: 0.5, ease: "easeInOut" }}
+                            >
+                              <Star
+                                size={isCouchMode ? 32 : 24}
+                                className={`transition-all ${isFull || isHalf ? 'text-amber-400' : 'text-theme-muted opacity-10'}`}
+                                fill={isFull ? 'currentColor' : isHalf ? 'url(#halfStarDetail)' : 'none'}
+                                style={isCouchMode && (isFull || isHalf) ? { filter: 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.4))' } : {}}
+                              />
+                            </motion.div>
                           </div>
                         );
                       })}
@@ -496,14 +543,17 @@ export function MovieDetailPage() {
                         </defs>
                       </svg>
                     </div>
-                    <span className={`${isCouchMode ? 'text-xl' : 'text-[10px]'} font-mono font-black text-theme-text w-6 text-right tabular-nums`}>
-                      {movie.ratings[profile.id] > 0 ? movie.ratings[profile.id] : '—'}
-                    </span>
+                    {!isCouchMode && (
+                      <span className="text-[10px] font-mono font-black text-theme-text w-6 text-right tabular-nums">
+                        {movie.ratings[profile.id] > 0 ? movie.ratings[profile.id] : '—'}
+                      </span>
+                    )}
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </section>
+
 
           {/* Actions */}
           {!isCouchMode && (

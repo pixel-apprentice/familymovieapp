@@ -39,6 +39,7 @@ export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
       className={`relative group bg-theme-surface rounded-2xl overflow-hidden border border-theme-border shadow-md transition-all duration-500 hover:shadow-2xl hover:border-theme-primary/30 flex flex-col ${theme === 'modern-pinnacle' ? 'rounded-3xl border-white/10 bg-white/[0.02]' : ''
         } ${theme === 'modern-luminous' ? 'rounded-3xl border-black/5 bg-black/[0.02]' : ''} ${theme === 'vintage-ticket' ? 'rounded-xl overflow-visible' : ''
         }`}
+      data-testid="movie-card"
     >
       <Link to={`/movie/${movie.id}`} className="block relative group/poster">
         {movie.poster_url && movie.poster_url.trim() !== '' && !imageError ? (
