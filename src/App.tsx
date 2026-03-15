@@ -29,9 +29,12 @@ function AppContent() {
   // Global Sync Listener for TV
   React.useEffect(() => {
     if (isCouchMode && couchState && (couchState.path !== location.pathname || couchState.timestamp > lastSyncTimestampRef.current)) {
-      logger.log("[Couch Mode] Syncing navigation to:", couchState.path);
-      lastSyncTimestampRef.current = couchState.timestamp;
-      navigate(couchState.path);
+      // Only navigate if we're not actually there yet
+      if (location.pathname !== couchState.path) {
+        logger.log("[Couch Mode] Syncing navigation to:", couchState.path);
+        lastSyncTimestampRef.current = couchState.timestamp;
+        navigate(couchState.path);
+      }
     }
   }, [isCouchMode, couchState, location.pathname, navigate]);
 
