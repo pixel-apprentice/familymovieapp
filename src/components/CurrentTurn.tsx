@@ -23,7 +23,7 @@ export function CurrentTurn() {
     }`;
 
   return (
-    <div className="relative w-full max-w-xl mx-auto flex flex-col gap-3">
+    <div className="relative w-full max-w-xl mx-auto flex flex-col gap-1 md:gap-2">
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -53,7 +53,13 @@ export function CurrentTurn() {
               whileTap={{ scale: 0.95 }}
               key={profile.id}
               onClick={() => { hapticFeedback.light(); setTurn(index); }}
-              className={`relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-xs md:text-sm font-black transition-all ${theme === 'modern-pinnacle' ? 'border border-white/10' : ''
+              onFocus={(e) => {
+              // Ensure the search bar is at the top of the viewport when focused (good for mobile keyboard)
+              setTimeout(() => {
+                e.target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 300); // Small delay for keyboard animation
+            }}
+            className={`relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-xs md:text-sm font-black transition-all ${theme === 'modern-pinnacle' ? 'border border-white/10' : ''
                 } ${theme === 'modern-luminous' ? 'border border-black/5' : ''
                 } ${theme === 'vintage-ticket' ? 'ticket-stub rounded-none bg-amber-100 text-amber-900 border-none shadow-sm' : ''
                 } ${index === currentTurnIndex

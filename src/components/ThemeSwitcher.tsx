@@ -8,9 +8,7 @@ export const themes: { id: Theme; label: string }[] = [
   { id: 'modern-pinnacle', label: 'Pinnacle' },
   { id: 'modern-luminous', label: 'Luminous' },
   { id: 'cinematic-glass', label: 'Glass' },
-  { id: 'film-noir', label: 'Noir' },
   { id: 'matinee-popcorn', label: 'Popcorn' },
-  { id: 'vintage-ticket', label: 'Vintage' },
   { id: 'velvet-theater', label: 'Velvet' },
   { id: 'sci-fi-hologram', label: 'Sci-Fi' },
   { id: 'drive-in', label: 'Drive-In' },
@@ -26,12 +24,10 @@ export function ThemeSwitcher() {
     <div className={`flex flex-wrap gap-2 md:gap-3 p-4 md:p-5 m-2 md:m-4 transition-all duration-500 rounded-2xl md:rounded-3xl border-2 bg-theme-surface ${theme === 'modern-pinnacle' ? 'shadow-[0_8px_32px_rgba(0,0,0,0.8)] border-white/10 backdrop-blur-xl' :
         theme === 'modern-luminous' ? 'shadow-[0_8px_32px_rgba(0,0,0,0.06)] border-black/5 backdrop-blur-xl' :
           theme === 'cinematic-glass' ? 'shadow-[0_8px_32px_rgba(0,0,0,0.5)] border-white/10 backdrop-blur-2xl bg-slate-900/40' :
-            theme === 'film-noir' ? 'border-white/20 bg-black text-white' :
-              theme === 'matinee-popcorn' ? 'border-red-500 bg-white shadow-[0_8px_32px_rgba(239,68,68,0.2)]' :
-                theme === 'velvet-theater' ? 'border-amber-600 bg-rose-950/50' :
-                  theme === 'vintage-ticket' ? 'shadow-inner border-amber-900/20' :
-                    theme === 'mooooovies' ? 'border-black bg-white shadow-[0_4px_0_rgba(0,0,0,1)]' :
-                      'border-theme-border shadow-xl'
+            theme === 'matinee-popcorn' ? 'border-theme-primary bg-white shadow-[0_8px_32px_rgba(239,68,68,0.2)]' :
+              theme === 'velvet-theater' ? 'border-amber-600 bg-rose-950/50' :
+                theme === 'mooooovies' ? 'border-black bg-white shadow-[0_4px_0_rgba(0,0,0,1)]' :
+                  'border-theme-border shadow-xl'
       }`}>
       {themes.map(t => (
         <motion.button
@@ -44,13 +40,11 @@ export function ThemeSwitcher() {
             } ${theme === 'modern-pinnacle' ? 'rounded-xl border border-white/5 hover:border-white/20' : ''
             } ${theme === 'modern-luminous' ? 'rounded-xl border border-black/5 hover:border-black/10' : ''
             } ${theme === 'cinematic-glass' ? 'rounded-xl border border-white/10 hover:border-white/30 backdrop-blur-md' : ''
-            } ${theme === 'film-noir' ? 'rounded-none border border-white/20 hover:bg-white/10' : ''
-            } ${theme === 'matinee-popcorn' ? 'rounded-full border-2 border-red-500/30 hover:border-red-500 hover:bg-red-50' : ''
+            } ${theme === 'matinee-popcorn' ? 'rounded-full border-2 border-theme-primary opacity-80' : ''
             } ${theme === 'velvet-theater' ? 'rounded-none mx-0.5 border border-amber-700/30' : ''
             } ${theme === 'sci-fi-hologram' ? 'rounded-full hover:shadow-[0_0_15px_currentColor]' : ''
-            } ${theme === 'vintage-ticket' ? 'ticket-stub rounded-none border border-amber-900/20 shadow-sm' : ''
             } ${theme === 'mooooovies' ? 'rounded-2xl border-2 border-black/20 hover:border-black/50 bg-white text-black' : ''
-            }`}
+            } shadow-sm`}
         >
           <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-theme-text text-theme-base text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
             {t.label}
@@ -68,4 +62,3 @@ export function ThemeSwitcher() {
     </div>
   );
 }
-

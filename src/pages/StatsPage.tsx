@@ -14,7 +14,7 @@ export function StatsPage() {
   return (
     <div className="flex flex-col gap-12 w-full max-w-7xl mx-auto px-4 py-8">
 
-      <DataStatusPanel />
+
 
       {/* Theme Picker Section */}
       <section className="space-y-6">
@@ -83,6 +83,8 @@ export function StatsPage() {
           </div>
         </section>
       )}
+      
+      <DataStatusPanel />
     </div>
   );
 }

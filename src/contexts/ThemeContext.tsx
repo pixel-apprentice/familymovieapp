@@ -5,9 +5,7 @@ export type Theme =
   | 'modern-pinnacle'
   | 'modern-luminous'
   | 'cinematic-glass'
-  | 'film-noir'
   | 'matinee-popcorn'
-  | 'vintage-ticket'
   | 'velvet-theater'
   | 'sci-fi-hologram'
   | 'drive-in'
@@ -25,7 +23,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem('activeTheme');
-    return (saved as Theme) || 'modern-pinnacle';
+    return (saved as Theme) || 'modern-luminous';
   });
 
   useEffect(() => {

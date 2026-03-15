@@ -34,12 +34,12 @@ export function DataStatusPanel() {
 
                 {/* Storage Mode Tile */}
                 <div className="bg-theme-surface/50 border border-theme-border rounded-3xl p-5 flex items-center gap-4 shadow-lg">
-                    <div className={`p-3 rounded-2xl ${isLocalMode ? 'bg-amber-500/20 text-amber-500' : 'bg-blue-500/20 text-blue-500'}`}>
+                    <div className={`p-3 rounded-2xl ${isLocalMode ? 'bg-amber-500/20 text-amber-500' : 'bg-emerald-500/20 text-emerald-500'}`}>
                         <Database size={24} />
                     </div>
                     <div>
                         <p className="text-[10px] font-black uppercase tracking-widest text-theme-muted">Storage</p>
-                        <p className={`text-sm font-black uppercase ${isLocalMode ? 'text-amber-500' : 'text-blue-500'}`}>
+                        <p className={`text-sm font-black uppercase ${isLocalMode ? 'text-amber-500' : 'text-emerald-500'}`}>
                             {isLocalMode ? 'Local Mode' : 'Cloud Syncing'}
                         </p>
                     </div>

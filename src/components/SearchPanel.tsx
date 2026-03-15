@@ -26,7 +26,7 @@ export function SearchPanel() {
   } = useSearch();
 
   return (
-    <div className={`w-full max-w-4xl mx-auto px-6 py-5 bg-theme-surface rounded-[2.5rem] border-2 border-theme-border shadow-2xl relative overflow-hidden ${theme === 'modern-pinnacle' ? 'rounded-3xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl bg-white/[0.02]' : ''
+    <div className={`w-full max-w-4xl mx-auto px-6 py-2 bg-theme-surface rounded-[2.5rem] border-2 border-theme-border shadow-2xl relative overflow-hidden ${theme === 'modern-pinnacle' ? 'rounded-3xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl bg-white/[0.02]' : ''
       } ${theme === 'modern-luminous' ? 'rounded-3xl border-black/5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl bg-black/[0.02]' : ''
       }`}>
       {theme === 'neon-cyberpunk' && (
@@ -36,18 +36,7 @@ export function SearchPanel() {
         </>
       )}
 
-      <div className="flex flex-col gap-4">
-        <div className="space-y-2">
-          <h2 className={`text-2xl md:text-3xl font-black text-theme-primary uppercase tracking-tighter ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
-            {theme === 'neon-cyberpunk' ? 'Acquisition Protocol' :
-              theme === 'mooooovies' ? 'Graze for Movies' :
-                theme === 'drive-in' ? 'Tune In to Movies' :
-                  theme === 'blockbuster' ? 'Browse the Aisles' :
-                    theme === 'sci-fi-hologram' ? 'Scan Database' :
-                      theme === 'golden-age' ? 'Search the Studio' :
-                        'Find Movies'}
-          </h2>
-        </div>
+      <div className="flex flex-col gap-2">
 
         <SearchForms
           query={query}

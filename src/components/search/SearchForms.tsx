@@ -39,6 +39,12 @@ export function SearchForms({
                       theme === 'golden-age' ? 'Script title...' :
                         'Search title, actor, or vibe...'
             }
+            onFocus={(e) => {
+              // Ensure the search bar is at the top of the viewport when focused (good for mobile keyboard)
+              setTimeout(() => {
+                e.target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 300); // Small delay for keyboard animation
+            }}
             className="w-full bg-theme-base border border-theme-border rounded-xl px-4 py-3 text-sm text-theme-text focus:outline-none focus:border-theme-primary focus:ring-1 focus:ring-theme-primary transition-all shadow-inner placeholder:opacity-50"
           />
         </div>

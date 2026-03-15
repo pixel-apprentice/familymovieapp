@@ -100,14 +100,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </header>
       )}
 
-      <main className={`flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-6 flex flex-col gap-6 md:gap-8 ${isCouchMode ? 'max-w-none px-12 md:px-24' : ''}`}>
+      <main className={`flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-6 flex flex-col gap-3 md:gap-4 ${isCouchMode ? 'max-w-none px-12 md:px-24' : ''}`}>
         {location.pathname === '/' && !isCouchMode && (
           <section className="w-full flex justify-center">
             <CurrentTurn />
           </section>
         )}
 
-        <div className="space-y-8 md:space-y-12">
+        <div className="space-y-4 md:space-y-6">
           {children}
         </div>
       </main>
