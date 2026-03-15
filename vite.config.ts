@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
+        manifestFilename: 'manifest.json',
         // Don't inject dev SW — avoids confusion with HMR in dev
         devOptions: { enabled: false },
         includeAssets: ['pwa-192.png', 'pwa-512.png', 'favicon.ico'],
