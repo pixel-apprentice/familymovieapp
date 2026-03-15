@@ -14,6 +14,7 @@ import { MovieActions } from '../components/movie/MovieActions';
 import { hapticFeedback } from '../utils/haptics';
 import { getWatchPartyIdeas } from '../services/gemini';
 import { Sparkles } from 'lucide-react';
+import { isCouchModeEnabled } from '../utils/isCouchMode';
 
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -23,7 +24,7 @@ export function MovieDetailPage() {
   const { showModal } = useModal();
   const location = useLocation();
 
-  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true' || location.search.includes('couch=true');
+  const isCouchMode = isCouchModeEnabled(location.search);
 
   const [isSending, setIsSending] = useState(false);
   const [isEditing, setIsEditing] = useState(false);

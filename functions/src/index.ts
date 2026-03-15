@@ -1,7 +1,7 @@
 import { onRequest } from "firebase-functions/v2/https";
 import express from "express";
 import cors from "cors";
-import { GoogleGenAI, SchemaType } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
 const app = express();
 
@@ -28,24 +28,22 @@ app.post("/gemini/vibe", async (req, res) => {
         ? ""
         : "Do NOT include any R-rated, TV-MA, or NC-17 movies. Only return family-friendly, G, PG, or PG-13 movies.";
     try {
-        const ai = new GoogleGenAI(GEMINI_API_KEY);
-        const model = ai.getGenerativeModel({
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+        const response = await ai.models.generateContent({
             model: "gemini-1.5-flash",
-            generationConfig: {
+            contents: `Suggest 10 movie titles that match this vibe: "${vibe}".
+${ratingInstruction}
+Return ONLY a JSON array of 10 movie titles.`,
+            config: {
                 responseMimeType: "application/json",
                 responseSchema: {
-                    type: SchemaType.ARRAY,
-                    items: { type: SchemaType.STRING },
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING },
                 },
             },
         });
 
-        const result = await model.generateContent(`Suggest 10 movie titles that match this vibe: "${vibe}". 
-      ${ratingInstruction}
-      Return ONLY a JSON array of 10 movie titles.`);
-
-        const response = await result.response;
-        const titles = JSON.parse(response.text() || "[]");
+        const titles = JSON.parse(response.text || "[]");
         res.json({ titles });
     } catch (error: any) {
         console.error("Gemini Vibe Search error:", error);
@@ -66,24 +64,7 @@ app.post("/gemini/recommend", async (req, res) => {
         ? ""
         : "Do NOT include any R-rated, TV-MA, or NC-17 movies. Only return family-friendly, G, PG, or PG-13 movies.";
     try {
-        const ai = new GoogleGenAI(GEMINI_API_KEY);
-        const model = ai.getGenerativeModel({
-            model: "gemini-1.5-flash",
-            generationConfig: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: SchemaType.ARRAY,
-                    items: {
-                        type: SchemaType.OBJECT,
-                        properties: {
-                            title: { type: SchemaType.STRING },
-                            reason: { type: SchemaType.STRING },
-                        },
-                        required: ["title", "reason"],
-                    },
-                },
-            },
-        });
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
         const historyText = (history as any[]).map((h) => {
             const ratings = Object.entries(h.ratings || {})
@@ -92,23 +73,37 @@ app.post("/gemini/recommend", async (req, res) => {
                 .join(", ");
             return `- ${h.title} (Picked by: ${h.pickedBy}, Ratings: ${ratings || "No ratings"}${h.summary ? `, Summary: ${h.summary}` : ""})`;
         }).join("\n");
+        const response = await ai.models.generateContent({
+            model: "gemini-1.5-flash",
+            contents: `We are a family (${profileNames.join(", ")}) having a movie night. It's ${currentUser}'s turn to pick.
 
-        const result = await model.generateContent(`We are a family (${profileNames.join(", ")}) having a movie night. It's ${currentUser}'s turn to pick. 
-      
-      Here is our watch history, including summaries and how we rated them:
-      ${historyText}
-      
-      Suggest 10 new movies that ${currentUser} would specifically love. Since it is ${currentUser}'s turn, their personal tastes (based on movies they picked or rated highly) should be the PRIMARY driver for these suggestions. 
-        
-      Also consider the rest of the family's general taste to ensure everyone will enjoy it, but ${currentUser}'s preference is the tie-breaker.
-      Heavily prioritize genres and styles that received high ratings (4/5 or 5/5) from ${currentUser} and the family, and strictly avoid those that were rated poorly.
-      ${ratingInstruction}
-      
-      For each movie, provide a 1-sentence reason why it fits ${currentUser}'s taste specifically.
-      Return ONLY a JSON array of objects with "title" and "reason" properties.`);
+Here is our watch history, including summaries and how we rated them:
+${historyText}
 
-        const response = await result.response;
-        const recommendations = JSON.parse(response.text() || "[]");
+Suggest 10 new movies that ${currentUser} would specifically love. Since it is ${currentUser}'s turn, their personal tastes (based on movies they picked or rated highly) should be the PRIMARY driver for these suggestions.
+Also consider the rest of the family's general taste to ensure everyone will enjoy it, but ${currentUser}'s preference is the tie-breaker.
+Heavily prioritize genres and styles that received high ratings (4/5 or 5/5) from ${currentUser} and the family, and strictly avoid those that were rated poorly.
+${ratingInstruction}
+
+For each movie, provide a 1-sentence reason why it fits ${currentUser}'s taste specifically.
+Return ONLY a JSON array of objects with "title" and "reason" properties.`,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            title: { type: Type.STRING },
+                            reason: { type: Type.STRING },
+                        },
+                        required: ["title", "reason"],
+                    },
+                },
+            },
+        });
+
+        const recommendations = JSON.parse(response.text || "[]");
         res.json({ recommendations });
     } catch (error: any) {
         console.error("Gemini Recommender error:", error);
@@ -126,35 +121,34 @@ app.post("/gemini/party", async (req, res) => {
         return res.status(400).json({ error: "Title is required" });
     }
     try {
-        const ai = new GoogleGenAI(GEMINI_API_KEY);
-        const model = ai.getGenerativeModel({
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+        const promptText = `Create a "Watch Party Pack" for the movie "${title}"${genres ? ` (Genres: ${genres.join(", ")})` : ""}.${summary ? ` Summary: ${summary}` : ""}
+
+Generate context-relevant, themed ideas for:
+1. A unique snack or drink idea.
+2. A simple themed activity or game.
+3. A thoughtful discussion question.
+
+Return ONLY a JSON object with properties: "snack", "activity", "prompt". Keep each response to 1 concise sentence.`;
+
+        const response = await ai.models.generateContent({
             model: "gemini-1.5-flash",
-            generationConfig: {
+            contents: promptText,
+            config: {
                 responseMimeType: "application/json",
                 responseSchema: {
-                    type: SchemaType.OBJECT,
+                    type: Type.OBJECT,
                     properties: {
-                        snack: { type: SchemaType.STRING },
-                        activity: { type: SchemaType.STRING },
-                        prompt: { type: SchemaType.STRING },
+                        snack: { type: Type.STRING },
+                        activity: { type: Type.STRING },
+                        prompt: { type: Type.STRING },
                     },
                     required: ["snack", "activity", "prompt"],
                 },
             },
         });
 
-        const promptText = `Create a "Watch Party Pack" for the movie "${title}"${genres ? ` (Genres: ${genres.join(", ")})` : ""}.${summary ? ` Summary: ${summary}` : ""}
-      
-      Generate context-relevant, themed ideas for:
-      1. A unique snack or drink idea.
-      2. A simple themed activity or game.
-      3. A thoughtful discussion question.
-      
-      Return ONLY a JSON object with properties: "snack", "activity", "prompt". Keep each response to 1 concise sentence.`;
-
-        const result = await model.generateContent(promptText);
-        const response = await result.response;
-        const partyPack = JSON.parse(response.text() || "{}");
+        const partyPack = JSON.parse(response.text || "{}");
         res.json(partyPack);
     } catch (error: any) {
         console.error("Gemini Party Pack error:", error);

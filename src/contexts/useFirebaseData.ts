@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { Movie, FamilyProfile, DEFAULT_PROFILES, CouchState } from './DataContext';
@@ -19,6 +19,7 @@ export function useFirebaseData() {
   const [isLocalMode, setIsLocalMode] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'offline' | 'local-only'>('syncing');
   const [couchState, setCouchState] = useState<CouchState | null>(null);
+  const couchStateRef = useRef<CouchState | null>(null);
 
   useEffect(() => {
     // Don't do anything while Firebase Auth is still initializing
@@ -69,6 +70,10 @@ export function useFirebaseData() {
       unsubscribeCouch();
     };
   }, [user, authLoading]);
+
+  useEffect(() => {
+    couchStateRef.current = couchState;
+  }, [couchState]);
 
 
   useEffect(() => {
@@ -214,10 +219,8 @@ export function useFirebaseData() {
   const pushCouchState = async (updates: Partial<CouchState>) => {
     if (isLocalMode) return;
     
-    // Get latest state directly to avoid closure stale issues if possible, 
-    // but couchState from hook is usually sufficient as this is triggered by user action
     const newState = {
-      ...couchState,
+      ...(couchStateRef.current || {}),
       ...updates,
       timestamp: Date.now()
     } as CouchState;

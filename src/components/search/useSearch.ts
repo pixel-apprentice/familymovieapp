@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { searchMovies, TMDBMovie, GENRE_MAP } from '../../services/tmdb';
 import { getVibeSearchTerms, getFamilyRecommendations } from '../../services/gemini';
 import { useData } from '../../contexts/DataContext';
+import { isCouchModeEnabled } from '../../utils/isCouchMode';
 import { useSettings } from '../../contexts/SettingsContext';
 import { hapticFeedback } from '../../utils/haptics';
 import { toast } from 'sonner';
+import { useLocation } from 'react-router-dom';
 
 const MATURE_KEYWORDS = ['gore', 'graphic', 'sexual', 'drug', 'abuse', 'torture', 'violence', 'nudity'];
 
@@ -53,6 +55,7 @@ export function useSearch() {
   const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
 
   const { currentTurnIndex, movies, profiles, addMovie, couchState, pushCouchState } = useData();
+  const location = useLocation();
   const { allowRatedR, recommendationMode, blockMatureThemes } = useSettings();
 
   useEffect(() => {
@@ -74,7 +77,7 @@ export function useSearch() {
     return () => clearInterval(interval);
   }, [loading]);
 
-  const isCouchMode = sessionStorage.getItem('fmn_couch_mode') === 'true';
+  const isCouchMode = isCouchModeEnabled(location.search);
 
   useEffect(() => {
     if (!isCouchMode) {
