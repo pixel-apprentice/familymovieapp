@@ -5,6 +5,7 @@ import { Movie, FamilyProfile, DEFAULT_PROFILES, CouchState, PulseEvent } from '
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useAuth } from './AuthContext';
 import { searchMovies, getMovieDetails, pickBestMovieMatch, GENRE_MAP } from '../services/tmdb';
+import { logger } from '../utils/logger';
 
 export function useFirebaseData() {
   const { user, loading: authLoading } = useAuth();
@@ -44,6 +45,9 @@ export function useFirebaseData() {
       const moviesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Movie));
       setMovies(moviesData);
       setSyncStatus(navigator.onLine ? 'synced' : 'offline');
+    }, (error) => {
+      logger.error('Firestore movies sync failed:', error);
+      setSyncStatus('offline');
     });
 
     const unsubscribeConfig = onSnapshot(doc(db, 'metadata', 'config'), (docSnap) => {
@@ -58,12 +62,16 @@ export function useFirebaseData() {
           localStorage.setItem('fmn_profiles_cache', JSON.stringify(data.profiles));
         }
       }
+    }, (error) => {
+      logger.error('Firestore config sync failed:', error);
     });
 
     const unsubscribeCouch = onSnapshot(doc(db, 'metadata', 'couch'), (docSnap) => {
       if (docSnap.exists()) {
         setCouchState(docSnap.data() as CouchState);
       }
+    }, (error) => {
+      logger.error('Firestore couch sync failed:', error);
     });
 
     const unsubPulse = onSnapshot(doc(db, "metadata", "pulse"), (docSnap) => {
@@ -74,6 +82,8 @@ export function useFirebaseData() {
           setPulseEvent(data);
         }
       }
+    }, (error) => {
+      logger.error('Firestore pulse sync failed:', error);
     });
 
     return () => {

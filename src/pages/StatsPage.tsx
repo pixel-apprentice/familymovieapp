@@ -5,6 +5,7 @@ import { UserStatsPanel } from '../components/stats/UserStatsPanel';
 import { AboutPanel } from '../components/stats/AboutPanel';
 import { SearchPreferencesPanel } from '../components/stats/SearchPreferencesPanel';
 import { DataManagementPanel } from '../components/stats/DataManagementPanel';
+import { DataStatusPanel } from '../components/stats/DataStatusPanel';
 import { AlertCircle, Terminal } from 'lucide-react';
 
 export function StatsPage() {
@@ -12,6 +13,8 @@ export function StatsPage() {
 
   return (
     <div className="flex flex-col gap-12 w-full max-w-7xl mx-auto px-4 py-8">
+
+      <DataStatusPanel />
 
       {/* Theme Picker Section */}
       <section className="space-y-6">
