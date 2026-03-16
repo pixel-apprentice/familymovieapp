@@ -6,8 +6,8 @@ export function CouchPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Set a flag in session storage so we know this device is a TV (Receiver)
-        sessionStorage.setItem('fmn_couch_mode', 'true');
+        // Set a flag so we know this device is a TV (Receiver)
+        import('../utils/isCouchMode').then(m => m.enableCouchMode());
 
         let retryCount = 0;
         const maxRetries = 20; // 8 seconds total (20 * 400ms)
@@ -16,8 +16,8 @@ export function CouchPage() {
         const initSDK = () => {
             if (typeof window !== 'undefined' && 'cast' in window) {
                 try {
-                    // @ts-expect-error - Receiver SDK types are not in @types/chromecast-caf-sender
-                    const context = window.cast?.framework?.CastReceiverContext?.getInstance();
+                    const castFramework = (window as any).cast?.framework;
+                    const context = castFramework?.CastReceiverContext?.getInstance();
                     if (context) {
                         context.start();
                         logger.log("[Couch Mode] Cast Receiver Context started.");

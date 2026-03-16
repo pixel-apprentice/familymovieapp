@@ -43,6 +43,8 @@ export function CastButton() {
       // Always prefer the custom receiver, but fall back to default ONLY if env var is missing during dev.
       // In production, the intention is to ALWAYS use the VITE_CAST_APP_ID.
       const appId = import.meta.env.VITE_CAST_APP_ID || window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
+      logger.log(`[Cast] Selected App ID: ${appId} (Using ${import.meta.env.VITE_CAST_APP_ID ? 'Configured' : 'Default'})`);
+      
       if (!import.meta.env.VITE_CAST_APP_ID) {
         logger.error('[Cast] CRITICAL: VITE_CAST_APP_ID is missing. Falling back to default receiver which will NOT load the custom web app UI.');
       }
