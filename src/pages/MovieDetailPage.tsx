@@ -82,8 +82,15 @@ export function MovieDetailPage() {
     }
   }, [movie?.id]);
 
+  const prevIdRef = React.useRef<string | undefined>(undefined);
+
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Only scroll to top if the movie ID actually changed (genuine navigation)
+    if (id !== prevIdRef.current) {
+      window.scrollTo(0, 0);
+      prevIdRef.current = id;
+    }
+    
     // Push current movie state to TV (only if NOT already in couch mode)
     if (id && !isCouchMode) {
       pushCouchState({ path: `/movie/${id}`, movieId: id });

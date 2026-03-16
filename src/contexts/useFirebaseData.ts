@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { Movie, FamilyProfile, DEFAULT_PROFILES, CouchState, PulseEvent } from './DataContext';
@@ -24,19 +24,27 @@ export function useFirebaseData() {
   const [couchState, setCouchState] = useState<CouchState | null>(null);
   const [pulseEvent, setPulseEvent] = useState<PulseEvent | null>(null);
   const couchStateRef = useRef<CouchState | null>(null);
+  const moviesRef = useRef<Movie[]>([]);
+
+  useEffect(() => {
+    moviesRef.current = movies;
+  }, [movies]);
 
   useEffect(() => {
     // Don't do anything while Firebase Auth is still initializing
     if (authLoading) return;
 
-    if (!user && !isCouchModeEnabled(window.location.search)) {
-      setIsLocalMode(true);
-      setSyncStatus('local-only');
+    if (!user) {
       const localMovies = localStorage.getItem('localMovies');
       if (localMovies) setMovies(JSON.parse(localMovies));
       const localTurn = localStorage.getItem('localTurn');
       if (localTurn) setCurrentTurnIndex(Number(localTurn));
-      return;
+
+      if (!isCouchModeEnabled(window.location.search)) {
+        setIsLocalMode(true);
+        setSyncStatus('local-only');
+        return;
+      }
     }
 
     setIsLocalMode(false);
@@ -125,15 +133,19 @@ export function useFirebaseData() {
     };
   }, [isLocalMode]);
 
-  const saveLocalMovies = (newMovies: Movie[]) => {
+  const saveLocalMovies = useCallback((newMovies: Movie[]) => {
     setMovies(newMovies);
     localStorage.setItem('localMovies', JSON.stringify(newMovies));
-  };
+  }, []);
 
-  const addMovie = async (movie: Omit<Movie, 'id'> & { id?: string }) => {
+  const addMovie = useCallback(async (movie: Omit<Movie, 'id'> & { id?: string }) => {
     if (isLocalMode) {
-      const newMovie = { ...movie, id: movie.id || Date.now().toString() } as Movie;
-      saveLocalMovies([...movies, newMovie]);
+      setMovies(prev => {
+        const newMovie = { ...movie, id: movie.id || Date.now().toString() } as Movie;
+        const updated = [...prev, newMovie];
+        localStorage.setItem('localMovies', JSON.stringify(updated));
+        return updated;
+      });
       return;
     }
     const sanitized = Object.fromEntries(
@@ -142,11 +154,15 @@ export function useFirebaseData() {
     const docRef = movie.id ? doc(db, 'movies', movie.id) : doc(collection(db, 'movies'));
     setSyncStatus('syncing');
     await setDoc(docRef, sanitized);
-  };
+  }, [isLocalMode]);
 
-  const updateMovie = async (id: string, updates: Partial<Movie>) => {
+  const updateMovie = useCallback(async (id: string, updates: Partial<Movie>) => {
     if (isLocalMode) {
-      saveLocalMovies(movies.map(m => m.id === id ? { ...m, ...updates } : m));
+      setMovies(prev => {
+        const updated = prev.map(m => m.id === id ? { ...m, ...updates } : m);
+        localStorage.setItem('localMovies', JSON.stringify(updated));
+        return updated;
+      });
       return;
     }
     const sanitized = Object.fromEntries(
@@ -155,28 +171,36 @@ export function useFirebaseData() {
     setSyncStatus('syncing');
     // Using setDoc with merge: true is safer than updateDoc as it won't fail if the doc mission
     await setDoc(doc(db, 'movies', id), sanitized, { merge: true });
-  };
+  }, [isLocalMode]);
 
-  const removeMovie = async (id: string) => {
+  const removeMovie = useCallback(async (id: string) => {
     if (isLocalMode) {
-      saveLocalMovies(movies.filter(m => m.id !== id));
+      setMovies(prev => {
+        const updated = prev.filter(m => m.id !== id);
+        localStorage.setItem('localMovies', JSON.stringify(updated));
+        return updated;
+      });
       return;
     }
     setSyncStatus('syncing');
     await deleteDoc(doc(db, 'movies', id));
-  };
+  }, [isLocalMode]);
 
-  const markWatched = async (id: string) => {
+  const markWatched = useCallback(async (id: string) => {
     const updates = { status: 'watched' as const, date: new Date().toISOString().split('T')[0] };
     if (isLocalMode) {
-      saveLocalMovies(movies.map(m => m.id === id ? { ...m, ...updates } : m));
+      setMovies(prev => {
+        const updated = prev.map(m => m.id === id ? { ...m, ...updates } : m);
+        localStorage.setItem('localMovies', JSON.stringify(updated));
+        return updated;
+      });
       return;
     }
     setSyncStatus('syncing');
     await setDoc(doc(db, 'movies', id), updates, { merge: true });
-  };
+  }, [isLocalMode]);
 
-  const skipTurn = async () => {
+  const skipTurn = useCallback(async () => {
     const nextTurn = (currentTurnIndex + 1) % profiles.length;
     if (isLocalMode) {
       setCurrentTurnIndex(nextTurn);
@@ -185,9 +209,9 @@ export function useFirebaseData() {
     }
     setSyncStatus('syncing');
     await setDoc(doc(db, 'metadata', 'config'), { currentTurnIndex: nextTurn }, { merge: true });
-  };
+  }, [currentTurnIndex, isLocalMode, profiles.length]);
 
-  const setTurn = async (index: number) => {
+  const setTurn = useCallback(async (index: number) => {
     if (isLocalMode) {
       setCurrentTurnIndex(index);
       localStorage.setItem('localTurn', index.toString());
@@ -195,21 +219,22 @@ export function useFirebaseData() {
     }
     setSyncStatus('syncing');
     await setDoc(doc(db, 'metadata', 'config'), { currentTurnIndex: index }, { merge: true });
-  };
+  }, [isLocalMode]);
 
-  const updateProfiles = async (newProfiles: FamilyProfile[]) => {
+  const updateProfiles = useCallback(async (newProfiles: FamilyProfile[]) => {
     if (isLocalMode) {
       setProfiles(newProfiles);
       return;
     }
     setSyncStatus('syncing');
     await setDoc(doc(db, 'metadata', 'config'), { profiles: newProfiles }, { merge: true });
-  };
+  }, [isLocalMode]);
 
-  const refreshMetadata = async (forceAll = false) => {
+  const refreshMetadata = useCallback(async (forceAll = false) => {
+    const currentMovies = moviesRef.current;
     const moviesToRefresh = forceAll
-      ? movies
-      : movies.filter(m =>
+      ? currentMovies
+      : currentMovies.filter(m =>
         !m.poster_url ||
         m.poster_url.trim() === '' ||
         (!m.poster_url.startsWith('http') && m.poster_url.length < 5)
@@ -256,9 +281,9 @@ export function useFirebaseData() {
     if (updatedCount > 0) {
       await batch.commit();
     }
-  };
+  }, []);
 
-  const pushCouchState = async (updates: Partial<CouchState>) => {
+  const pushCouchState = useCallback(async (updates: Partial<CouchState>) => {
     if (isLocalMode) return;
     
     const newState = {
@@ -268,18 +293,18 @@ export function useFirebaseData() {
     } as CouchState;
     
     await setDoc(doc(db, 'metadata', 'couch'), newState);
-  };
+  }, [isLocalMode]);
 
-  const pushPulseEvent = async (event: Omit<PulseEvent, 'timestamp'>) => {
+  const pushPulseEvent = useCallback(async (event: Omit<PulseEvent, 'timestamp'>) => {
     if (isLocalMode) return;
     const fullEvent: PulseEvent = { ...event, timestamp: Date.now() };
     await setDoc(doc(db, 'metadata', 'pulse'), fullEvent);
-  };
+  }, [isLocalMode]);
 
-  const clearData = () => {
+  const clearData = useCallback(() => {
     setMovies([]);
     setProfiles(DEFAULT_PROFILES);
-  };
+  }, []);
 
   return {
     movies,

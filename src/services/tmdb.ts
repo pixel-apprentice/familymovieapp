@@ -43,6 +43,7 @@ export async function searchMovies(
   year?: string,
   allowRatedR?: boolean
 ): Promise<TMDBMovie[]> {
+  if (!query) return [];
   const doSearch = async (q: string): Promise<TMDBMovie[]> => {
     let url = `/api/tmdb/search?query=${encodeURIComponent(q)}`;
     if (year) url += `&year=${year}`;
@@ -108,7 +109,7 @@ export async function searchMovies(
       tryFallback = true;
     }
 
-    if (tryFallback) {
+    if (tryFallback && fallbackQuery) {
       console.log(`No results for "${query}", falling back to "${fallbackQuery}"...`);
       results = await doSearch(fallbackQuery);
     }
@@ -118,13 +119,15 @@ export async function searchMovies(
 }
 
 
-const normalizeTitle = (title: string) =>
-  title
+const normalizeTitle = (title: string) => {
+  if (!title) return '';
+  return title
     .toLowerCase()
     .replace(/\([^)]*\)/g, ' ')
     .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+};
 
 export function pickBestMovieMatch(query: string, results: TMDBMovie[]): TMDBMovie | null {
   if (!results || results.length === 0) return null;
@@ -133,6 +136,7 @@ export function pickBestMovieMatch(query: string, results: TMDBMovie[]): TMDBMov
   const queryTokens = normalizedQuery.split(' ').filter(Boolean);
 
   const scored = results.map((movie, index) => {
+    if (!movie.title) return { movie, score: -1 };
     const normalizedTitle = normalizeTitle(movie.title);
     const titleTokens = normalizedTitle.split(' ').filter(Boolean);
 

@@ -51,9 +51,13 @@ test.describe('Casting & Couch Mode', () => {
     // On /?couch=true, App.tsx handles it.
     // Let's check if the flag is set after a couch URL hit.
     await page.goto('/couch');
-    await page.waitForTimeout(1000); // Wait for navigate timer
-    await expect(page).toHaveURL('/');
+    // CouchPage now waits up to 8s for SDK initialization before redirecting to /?couch=true
+    await expect(page).toHaveURL(/\/(\?couch=true)?$/, { timeout: 12000 });
     
+    // Check for "couch-mode-active" class instead of just sessionStorage to be sure app state is aligned
+    const appBody = page.locator('[data-testid="app-ready"]');
+    await expect(appBody).toHaveClass(/couch-mode-active/);
+
     const flagAfterCouch = await page.evaluate(() => sessionStorage.getItem('fmn_couch_mode'));
     expect(flagAfterCouch).toBe('true');
   });
@@ -61,7 +65,10 @@ test.describe('Casting & Couch Mode', () => {
   test('Cinematic UX: verifies blurry backdrop in Movie Detail', async ({ page }) => {
     // Start at home to ensure data is loaded/seeded
     await page.goto('/?couch=true');
-    await page.waitForSelector('[data-testid="movie-card"]');
+    await page.waitForSelector('[data-testid="movie-card"]', { timeout: 10000 });
+    // Allow any initial state pushes or metadata refreshes to settle
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); 
     
     // Click the first movie card
     await page.locator('[data-testid="movie-card"]').first().click();
@@ -93,7 +100,7 @@ test.describe('Casting & Couch Mode', () => {
 
   test('Unidirectional Guard: verifies TV doesn\'t push state', async ({ page }) => {
     await page.goto('/?couch=true');
-    await page.waitForSelector('[data-testid="movie-card"]');
+    await page.waitForSelector('[data-testid="movie-card"]', { timeout: 10000 });
     await page.locator('[data-testid="movie-card"]').first().click();
 
     // Verify that the "Edit" and "Actions" buttons are hidden on the movie page

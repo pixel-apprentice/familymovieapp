@@ -21,12 +21,14 @@ export function CastButton() {
 
   const onSessionStateChanged = useCallback((event: any) => {
     const state = event.sessionState;
-    const casting = state === cast.framework.SessionState.SESSION_STARTED || state === cast.framework.SessionState.SESSION_RESUMED;
+    const { SESSION_STARTED, SESSION_RESUMED, SESSION_ENDED, SESSION_START_FAILED } = window.cast.framework.SessionState;
+    
+    const casting = state === SESSION_STARTED || state === SESSION_RESUMED;
 
     if (casting) {
       setIsCasting(true);
       pushCouchState({ path: window.location.pathname, timestamp: Date.now() });
-    } else if (state === 'SESSION_ENDED') {
+    } else if (state === SESSION_ENDED || state === SESSION_START_FAILED) {
       setIsCasting(false);
     }
   }, [pushCouchState]);
