@@ -16,195 +16,182 @@
   --font-theme-body: var(--theme-font-body);
 }
 
+
+:root,
+[data-theme="modern-pinnacle"] {
+  --theme-base: #000000;
+  --theme-surface: #0a0a0a;
+  --theme-primary: #ffffff;
+  --theme-secondary: #a3a3a3;
+  --theme-text: #ffffff;
+  --theme-muted: #737373;
+  --theme-border: #262626;
+  --theme-accent: #ffffff;
+  --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  --theme-font-heading: "Inter", sans-serif;
+  --theme-font-body: "Inter", sans-serif;
+}
+
+[data-theme="modern-luminous"] {
+  --theme-base: #f1f5f9;
+  --theme-surface: #f8fafc;
+  --theme-primary: #0f172a;
+  --theme-secondary: #64748b;
+  --theme-text: #0f172a;
+  --theme-muted: #94a3b8;
+  --theme-border: #e2e8f0;
+  --theme-accent: #000000;
+  --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  --theme-font-heading: "Inter", sans-serif;
+  --theme-font-body: "Inter", sans-serif;
+}
+
+[data-theme="cinematic-glass"] {
+  --theme-base: #020617;
+  --theme-surface: rgba(15, 23, 42, 0.4);
+  --theme-primary: #38bdf8;
+  --theme-secondary: #0ea5e9;
+  --theme-text: #f8fafc;
+  --theme-muted: #94a3b8;
+  --theme-border: rgba(56, 189, 248, 0.2);
+  --theme-accent: #818cf8;
+  --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --theme-font-heading: "Outfit", sans-serif;
+  --theme-font-body: "Inter", sans-serif;
+}
+
+[data-theme="film-noir"] {
+  --theme-base: #000000;
+  --theme-surface: #111111;
+  --theme-primary: #ffffff;
+  --theme-secondary: #666666;
+  --theme-text: #e5e5e5;
+  --theme-muted: #888888;
+  --theme-border: #333333;
+  --theme-accent: #cccccc;
+  --theme-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+  --theme-font-heading: "Playfair Display", serif;
+  --theme-font-body: "Inter", sans-serif;
+}
+
+[data-theme="matinee-popcorn"] {
+  --theme-base: #fef2f2;
+  --theme-surface: #ffffff;
+  --theme-primary: #ef4444;
+  --theme-secondary: #fca5a5;
+  --theme-text: #1c1917;
+  --theme-muted: #78716c;
+  --theme-border: #fecaca;
+  --theme-accent: #f59e0b;
+  --theme-shadow: 0 8px 32px rgba(239, 68, 68, 0.15);
+  --theme-font-heading: "Outfit", sans-serif;
+  --theme-font-body: "Inter", sans-serif;
+}
+
+[data-theme="vintage-ticket"] {
+  --theme-base: #fdfbf7;
+  --theme-surface: #f4f0e6;
+  --theme-primary: #d97706;
+  --theme-secondary: #92400e;
+  --theme-text: #292524;
+  --theme-muted: #78716c;
+  --theme-border: #e7e5e4;
+  --theme-accent: #b45309;
+  --theme-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  --theme-font-heading: "Playfair Display", serif;
+  --theme-font-body: "Libre Baskerville", serif;
+}
+
+[data-theme="velvet-theater"] {
+  --theme-base: #2e0a16;
+  --theme-surface: #4a1025;
+  --theme-primary: #fbbf24;
+  --theme-secondary: #b45309;
+  --theme-text: #fef3c7;
+  --theme-muted: #fcd34d;
+  --theme-border: #7a1a3d;
+  --theme-accent: #f59e0b;
+  --theme-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+  --theme-font-heading: "Cormorant Garamond", serif;
+  --theme-font-body: "Inter", sans-serif;
+}
+
+[data-theme="sci-fi-hologram"] {
+  --theme-base: #020617;
+  --theme-surface: #0f172a;
+  --theme-primary: #38bdf8;
+  --theme-secondary: #0369a1;
+  --theme-text: #f0f9ff;
+  --theme-muted: #7dd3fc;
+  --theme-border: #0ea5e9;
+  --theme-accent: #818cf8;
+  --theme-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+  --theme-font-heading: "Outfit", sans-serif;
+  --theme-font-body: "JetBrains Mono", monospace;
+}
+
+[data-theme="drive-in"] {
+  --theme-base: #0d0c1d;
+  --theme-surface: #1a1833;
+  --theme-primary: #f97316;
+  --theme-secondary: #fb923c;
+  --theme-text: #fef3c7;
+  --theme-muted: #a78bfa;
+  --theme-border: #2e2b54;
+  --theme-accent: #fbbf24;
+  --theme-shadow: 0 8px 32px rgba(249, 115, 22, 0.2);
+  --theme-font-heading: "Outfit", sans-serif;
+  --theme-font-body: "Inter", sans-serif;
+}
+
+[data-theme="golden-age"] {
+  --theme-base: #1a1612;
+  --theme-surface: #252016;
+  --theme-primary: #d4a843;
+  --theme-secondary: #b8892e;
+  --theme-text: #f5ead4;
+  --theme-muted: #8a7a5e;
+  --theme-border: #3a3020;
+  --theme-accent: #e8c47a;
+  --theme-shadow: 0 8px 32px rgba(212, 168, 67, 0.15);
+  --theme-font-heading: "Cormorant Garamond", serif;
+  --theme-font-body: "Inter", sans-serif;
+}
+
+[data-theme="blockbuster"] {
+  --theme-base: #001f5b;
+  --theme-surface: #002875;
+  --theme-primary: #ffe000;
+  --theme-secondary: #ffd000;
+  --theme-text: #ffffff;
+  --theme-muted: #93b4ff;
+  --theme-border: #0a3580;
+  --theme-accent: #ffe000;
+  --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --theme-font-heading: "Outfit", sans-serif;
+  --theme-font-body: "Inter", sans-serif;
+}
+
+[data-theme="mooooovies"] {
+  --theme-base: #f1f5f9;
+  --theme-surface: #ffffff;
+  --theme-primary: #000000;
+  --theme-secondary: #333333;
+  --theme-text: #000000;
+  --theme-muted: #64748b;
+  --theme-border: #000000;
+  --theme-accent: #ef4444;
+  --theme-shadow: 4px 4px 0px rgba(0, 0, 0, 1);
+  --theme-font-heading: "Outfit", sans-serif;
+  --theme-font-body: "Inter", sans-serif;
+}
+
 @layer base {
-
-  :root,
-  [data-theme="modern-pinnacle"] {
-    --theme-base: #000000;
-    --theme-surface: #0a0a0a;
-    --theme-primary: #ffffff;
-    --theme-secondary: #a3a3a3;
-    --theme-text: #ffffff;
-    --theme-muted: #737373;
-    --theme-border: #262626;
-    --theme-accent: #ffffff;
-    --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
-    --theme-font-heading: "Inter", sans-serif;
-    --theme-font-body: "Inter", sans-serif;
-  }
-
-  [data-theme="modern-luminous"] {
-    --theme-base: #f1f5f9;
-    --theme-surface: #f8fafc;
-    --theme-primary: #0f172a;
-    --theme-secondary: #64748b;
-    --theme-text: #0f172a;
-    --theme-muted: #94a3b8;
-    --theme-border: #e2e8f0;
-    --theme-accent: #000000;
-    --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-    --theme-font-heading: "Inter", sans-serif;
-    --theme-font-body: "Inter", sans-serif;
-  }
-
-  [data-theme="cinematic-glass"] {
-    --theme-base: #020617;
-    --theme-surface: rgba(15, 23, 42, 0.4);
-    --theme-primary: #38bdf8;
-    --theme-secondary: #0ea5e9;
-    --theme-text: #f8fafc;
-    --theme-muted: #94a3b8;
-    --theme-border: rgba(56, 189, 248, 0.2);
-    --theme-accent: #818cf8;
-    --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    --theme-font-heading: "Outfit", sans-serif;
-    --theme-font-body: "Inter", sans-serif;
-  }
-
-  [data-theme="film-noir"] {
-    --theme-base: #000000;
-    --theme-surface: #111111;
-    --theme-primary: #ffffff;
-    --theme-secondary: #666666;
-    --theme-text: #e5e5e5;
-    --theme-muted: #888888;
-    --theme-border: #333333;
-    --theme-accent: #cccccc;
-    --theme-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
-    --theme-font-heading: "Playfair Display", serif;
-    --theme-font-body: "Inter", sans-serif;
-  }
-
-  [data-theme="matinee-popcorn"] {
-    --theme-base: #fef2f2;
-    --theme-surface: #ffffff;
-    --theme-primary: #ef4444;
-    --theme-secondary: #fca5a5;
-    --theme-text: #1c1917;
-    --theme-muted: #78716c;
-    --theme-border: #fecaca;
-    --theme-accent: #f59e0b;
-    --theme-shadow: 0 8px 32px rgba(239, 68, 68, 0.15);
-    --theme-font-heading: "Outfit", sans-serif;
-    --theme-font-body: "Inter", sans-serif;
-  }
-
-
-
-  [data-theme="vintage-ticket"] {
-    --theme-base: #fdfbf7;
-    --theme-surface: #f4f0e6;
-    --theme-primary: #d97706;
-    --theme-secondary: #92400e;
-    --theme-text: #292524;
-    --theme-muted: #78716c;
-    --theme-border: #e7e5e4;
-    --theme-accent: #b45309;
-    --theme-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    --theme-font-heading: "Playfair Display", serif;
-    --theme-font-body: "Libre Baskerville", serif;
-  }
-
-
-
-  [data-theme="velvet-theater"] {
-    --theme-base: #2e0a16;
-    --theme-surface: #4a1025;
-    --theme-primary: #fbbf24;
-    --theme-secondary: #b45309;
-    --theme-text: #fef3c7;
-    --theme-muted: #fcd34d;
-    --theme-border: #7a1a3d;
-    --theme-accent: #f59e0b;
-    --theme-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
-    --theme-font-heading: "Cormorant Garamond", serif;
-    --theme-font-body: "Inter", sans-serif;
-  }
-
-  [data-theme="sci-fi-hologram"] {
-    --theme-base: #020617;
-    --theme-surface: #0f172a;
-    --theme-primary: #38bdf8;
-    --theme-secondary: #0369a1;
-    --theme-text: #f0f9ff;
-    --theme-muted: #7dd3fc;
-    --theme-border: #0ea5e9;
-    --theme-accent: #818cf8;
-    --theme-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
-    --theme-font-heading: "Outfit", sans-serif;
-    --theme-font-body: "JetBrains Mono", monospace;
-  }
-
-  /* Drive-In: Warm summer night at the drive-in */
-  [data-theme="drive-in"] {
-    --theme-base: #0d0c1d;
-    --theme-surface: #1a1833;
-    --theme-primary: #f97316;
-    --theme-secondary: #fb923c;
-    --theme-text: #fef3c7;
-    --theme-muted: #a78bfa;
-    --theme-border: #2e2b54;
-    --theme-accent: #fbbf24;
-    --theme-shadow: 0 8px 32px rgba(249, 115, 22, 0.2);
-    --theme-font-heading: "Outfit", sans-serif;
-    --theme-font-body: "Inter", sans-serif;
-  }
-
-  /* Golden Age: Old Hollywood glamour */
-  [data-theme="golden-age"] {
-    --theme-base: #1a1612;
-    --theme-surface: #252016;
-    --theme-primary: #d4a843;
-    --theme-secondary: #b8892e;
-    --theme-text: #f5ead4;
-    --theme-muted: #8a7a5e;
-    --theme-border: #3a3020;
-    --theme-accent: #e8c47a;
-    --theme-shadow: 0 8px 32px rgba(212, 168, 67, 0.15);
-    --theme-font-heading: "Cormorant Garamond", serif;
-    --theme-font-body: "Inter", sans-serif;
-  }
-
-  /* Blockbuster: 90s video rental nostalgia */
-  [data-theme="blockbuster"] {
-    --theme-base: #001f5b;
-    --theme-surface: #002875;
-    --theme-primary: #ffe000;
-    --theme-secondary: #ffd000;
-    --theme-text: #ffffff;
-    --theme-muted: #93b4ff;
-    --theme-border: #0a3580;
-    --theme-accent: #ffe000;
-    --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    --theme-font-heading: "Outfit", sans-serif;
-    --theme-font-body: "Inter", sans-serif;
-  }
-
-  /* Mooooovies: Cow themed */
-  [data-theme="mooooovies"] {
-    --theme-base: #f1f5f9;
-    --theme-surface: #ffffff;
-    --theme-primary: #000000;
-    --theme-secondary: #333333;
-    --theme-text: #000000;
-    --theme-muted: #64748b;
-    --theme-border: #000000;
-    --theme-accent: #ef4444;
-    --theme-shadow: 4px 4px 0px rgba(0, 0, 0, 1);
-    --theme-font-heading: "Outfit", sans-serif;
-    --theme-font-body: "Inter", sans-serif;
-  }
-
   body {
     @apply bg-theme-base text-theme-text font-theme-body min-h-screen selection:bg-theme-primary selection:text-theme-base;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1, h2, h3, h4, h5, h6 {
     @apply font-theme-heading font-black tracking-tight;
   }
 }

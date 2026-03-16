@@ -22,12 +22,21 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('activeTheme');
-    return (saved as Theme) || 'modern-luminous';
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const saved = localStorage.getItem('activeTheme');
+        if (saved) return saved as Theme;
+      }
+    } catch { /* ignore */ }
+    return 'modern-pinnacle'; // Default to a dark theme for TVs
   });
 
   useEffect(() => {
-    localStorage.setItem('activeTheme', theme);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('activeTheme', theme);
+      }
+    } catch { /* ignore */ }
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
