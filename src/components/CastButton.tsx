@@ -100,11 +100,19 @@ export function CastButton() {
   const handleCastClick = async () => {
     hapticFeedback.medium();
     try {
-      // Trigger the native Chrome Cast dialog
-      const castContext = window.cast?.framework?.CastContext?.getInstance?.();
-      await castContext?.requestSession?.();
+      const castContext = (window as any).cast?.framework?.CastContext?.getInstance?.();
+      const session = castContext?.getCurrentSession();
+
+      if (session) {
+        logger.log('[Cast] Ending current session...');
+        castContext.endCurrentSession(true);
+        setIsCasting(false);
+      } else {
+        logger.log('[Cast] Requesting new session...');
+        await castContext?.requestSession?.();
+      }
     } catch (error) {
-      logger.error('Native cast session request failed:', error);
+      logger.error('Native cast session action failed:', error);
     }
   };
 
@@ -115,10 +123,10 @@ export function CastButton() {
         ? 'bg-theme-primary text-theme-base shadow-lg animate-pulse'
         : 'text-theme-muted hover:text-theme-primary hover:bg-theme-primary/10'
         }`}
-      title={isCasting ? 'Casting to TV...' : 'Connect to TV'}
+      title={isCasting ? 'Click to stop casting' : 'Connect to TV'}
     >
       <Tv size={16} />
-      <span className="hidden sm:inline">Connect TV</span>
+      <span className="hidden sm:inline">{isCasting ? 'Disconnect TV' : 'Connect TV'}</span>
     </button>
   );
 }
