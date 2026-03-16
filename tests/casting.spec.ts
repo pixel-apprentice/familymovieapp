@@ -66,8 +66,6 @@ test.describe('Casting & Couch Mode', () => {
     // Start at home to ensure data is loaded/seeded
     await page.goto('/?couch=true');
     await page.waitForSelector('[data-testid="movie-card"]', { timeout: 10000 });
-    // Allow any initial state pushes or metadata refreshes to settle
-    await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000); 
     
     // Click the first movie card
@@ -101,6 +99,7 @@ test.describe('Casting & Couch Mode', () => {
   test('Unidirectional Guard: verifies TV doesn\'t push state', async ({ page }) => {
     await page.goto('/?couch=true');
     await page.waitForSelector('[data-testid="movie-card"]', { timeout: 10000 });
+    await page.waitForTimeout(1000);
     await page.locator('[data-testid="movie-card"]').first().click();
 
     // Verify that the "Edit" and "Actions" buttons are hidden on the movie page

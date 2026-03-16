@@ -55,7 +55,7 @@ export function useAddMovieForm(movie: TMDBMovie | null, onClose: () => void, on
 
       const isDuplicate = movies.some(m =>
         (m.tmdbId && m.tmdbId.toString() === movie.id.toString()) ||
-        m.title.toLowerCase().trim() === movie.title.toLowerCase().trim()
+        (m.title && movie.title && m.title.toLowerCase().trim() === movie.title.toLowerCase().trim())
       );
 
       if (isDuplicate) {

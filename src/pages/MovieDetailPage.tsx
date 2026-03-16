@@ -97,12 +97,6 @@ export function MovieDetailPage() {
     }
   }, [id, pushCouchState, isCouchMode]);
 
-  useEffect(() => {
-    // Auto-fetch metadata if missing
-    if (movie && (!movie.poster_url || movie.poster_url.trim() === '') && !isRefreshing && !hasAttemptedFetch) {
-      handleRefreshMetadata();
-    }
-  }, [movie?.id, movie?.poster_url, isRefreshing, hasAttemptedFetch]);
 
   const handleRefreshMetadata = async () => {
     if (!movie || isRefreshing) return;

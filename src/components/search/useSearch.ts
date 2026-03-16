@@ -21,7 +21,7 @@ function buildExistingSets(movies: ReturnType<typeof useData>['movies']): {
   );
   const existingTitles = new Set<string>(
     movies
-      .filter(() => true)
+      .filter(m => m.title)
       .map(m => m.title.toLowerCase().trim())
   );
   return { existingTmdbIds, existingTitles };
