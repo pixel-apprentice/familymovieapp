@@ -297,8 +297,25 @@ export function useFirebaseData() {
 
   const pushPulseEvent = useCallback(async (event: Omit<PulseEvent, 'timestamp'>) => {
     if (isLocalMode) return;
-    const fullEvent: PulseEvent = { ...event, timestamp: Date.now() };
-    await setDoc(doc(db, 'metadata', 'pulse'), fullEvent);
+    
+    // Sanitize event to prevent Firebase undefined errors
+    const sanitizedEvent = {
+        ...event,
+        userName: event.userName || '',
+        movieTitle: event.movieTitle || 'Unknown Movie',
+        timestamp: Date.now()
+    };
+
+    if (!event.movieTitle || !event.userName) {
+        logger.warn(`[Firebase] Pulse event missing details (User: ${event.userName}, Movie: ${event.movieTitle})`, event);
+    }
+
+    try {
+        await setDoc(doc(db, 'metadata', 'pulse'), sanitizedEvent);
+    } catch (err) {
+        logger.error('[Firebase] Failed to push pulse event', err);
+        throw err;
+    }
   }, [isLocalMode]);
 
   const clearData = useCallback(() => {

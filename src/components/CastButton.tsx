@@ -26,13 +26,18 @@ export function CastButton() {
     
     const { SESSION_STARTED, SESSION_RESUMED, SESSION_ENDED, SESSION_START_FAILED } = framework.SessionState;
     
-    const casting = state === SESSION_STARTED || state === SESSION_RESUMED;
+    // Log state name for debugging
+    const stateName = Object.keys(framework.SessionState).find(key => framework.SessionState[key] === state) || state;
+    logger.log(`[Cast] Session State Changed: ${stateName} (${state})`);
 
-    if (casting) {
+    if (state === SESSION_STARTED || state === SESSION_RESUMED) {
       setIsCasting(true);
       pushCouchState({ path: window.location.pathname, timestamp: Date.now() });
     } else if (state === SESSION_ENDED || state === SESSION_START_FAILED) {
       setIsCasting(false);
+      if (state === SESSION_START_FAILED) {
+        logger.error('[Cast] Native cast session request failed: SESSION_START_FAILED');
+      }
     }
   }, [pushCouchState]);
 

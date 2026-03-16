@@ -219,12 +219,16 @@ export function MovieDetailPage() {
       
       const profile = profiles.find(p => p.id === memberId);
       if (profile && rating > 0) {
-        await pushPulseEvent({
-          type: 'rating',
-          userName: profile.name,
-          movieTitle: movie.title,
-          value: rating
-        });
+        if (!movie.title) {
+          logger.error(`[Firebase] Cannot push pulse event: Movie title missing for ID ${movie.id}`);
+        } else {
+          await pushPulseEvent({
+            type: 'rating',
+            userName: profile.name,
+            movieTitle: movie.title,
+            value: rating
+          });
+        }
       }
     } catch (error) {
       logger.error(`Rating update failed for movie ID: ${movie.id} (${movie.title})`, error);

@@ -1,6 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;900&family=Playfair+Display:ital,wght@0,400;0,900;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 @import "tailwindcss";
 
+/* Universal Fallbacks for older TV browsers */
+:root {
+  --theme-base: #000000;
+  --theme-surface: #0a0a0a;
+  --theme-primary: #ffffff;
+  --theme-secondary: #a3a3a3;
+  --theme-text: #ffffff;
+  --theme-muted: #737373;
+  --theme-border: #262626;
+  --theme-accent: #ffffff;
+  --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  --theme-font-heading: "Inter", sans-serif;
+  --theme-font-body: "Inter", sans-serif;
+}
+
+body {
+  background-color: #000; /* Absolute fallback */
+  color: #fff;
+  margin: 0;
+}
+
 @theme {
   --color-theme-base: var(--theme-base);
   --color-theme-surface: var(--theme-surface);
