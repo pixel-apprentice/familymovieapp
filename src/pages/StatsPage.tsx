@@ -6,7 +6,9 @@ import { AboutPanel } from '../components/stats/AboutPanel';
 import { SearchPreferencesPanel } from '../components/stats/SearchPreferencesPanel';
 import { DataManagementPanel } from '../components/stats/DataManagementPanel';
 import { DataStatusPanel } from '../components/stats/DataStatusPanel';
-import { AlertCircle, Terminal } from 'lucide-react';
+import { AlertCircle, Terminal, Copy, Trash2, Check } from 'lucide-react';
+import { ErrorLog } from '../utils/logger';
+import { toast } from 'sonner';
 
 export function StatsPage() {
   const { theme } = useTheme();
@@ -54,35 +56,85 @@ export function StatsPage() {
       <UserStatsPanel />
       <AboutPanel />
 
-      {/* Debug Section (Hidden unless error exists) */}
-      {sessionStorage.getItem('fmn_last_error') && (
-        <section className="mt-8 opacity-50 hover:opacity-100 transition-opacity">
-          <div className="flex items-center gap-4 mb-4">
-            <h2 className="text-xl font-black uppercase tracking-widest text-red-500 flex items-center gap-2">
-              <Terminal size={20} />
-              Crash Debugger
-            </h2>
-            <div className="h-px flex-1 bg-red-500/20" />
-          </div>
-          <div className="p-6 bg-red-500/5 border border-red-500/20 rounded-3xl font-mono text-[10px] space-y-4">
-            <div className="flex items-start gap-3">
-              <AlertCircle size={14} className="text-red-500 shrink-0" />
-              <div className="space-y-2">
-                <p className="text-red-400 font-black">LAST CAPTURED ERROR:</p>
-                <div className="p-3 bg-black/40 rounded-xl text-red-300 break-all border border-red-500/10">
-                  {sessionStorage.getItem('fmn_last_error')}
-                </div>
-                <button 
-                  onClick={() => { sessionStorage.removeItem('fmn_last_error'); window.location.reload(); }}
-                  className="px-3 py-1 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors uppercase font-black"
+      {/* Debug Section (System Logs) */}
+      {(() => {
+        const logsRaw = sessionStorage.getItem('fmn_error_logs');
+        const logs: ErrorLog[] = logsRaw ? JSON.parse(logsRaw) : [];
+        if (logs.length === 0) return null;
+
+        const copyLogs = async (text: string, label: string) => {
+          try {
+            await navigator.clipboard.writeText(text);
+            toast.success(`${label} copied to clipboard`);
+          } catch (e) {
+            toast.error("Failed to copy to clipboard");
+          }
+        };
+
+        return (
+          <section className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-black uppercase tracking-widest text-red-500 flex items-center gap-2">
+                  <Terminal size={20} />
+                  System Logs
+                </h2>
+                <div className="h-px w-24 bg-red-500/20" />
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => copyLogs(JSON.stringify(logs, null, 2), "Full log history")}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-theme-primary/10 text-theme-primary text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-theme-primary/20 transition-all border border-theme-primary/20"
                 >
-                  Clear Debug Log
+                  <Copy size={14} />
+                  Copy All
+                </button>
+                <button
+                  onClick={() => { sessionStorage.removeItem('fmn_error_logs'); window.location.reload(); }}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-500/20 transition-all border border-red-500/20"
+                >
+                  <Trash2 size={14} />
+                  Clear
                 </button>
               </div>
             </div>
-          </div>
-        </section>
-      )}
+
+            <div className="space-y-4">
+              {logs.map((log, i) => (
+                <div key={i} className="p-4 bg-theme-surface/30 border border-theme-border/50 rounded-2xl font-mono text-[10px] group transition-all hover:bg-theme-surface/50">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2 overflow-hidden">
+                      <div className="flex items-center gap-2 text-theme-muted">
+                        <span className="text-red-500 opacity-50">#{(logs.length - i).toString().padStart(2, '0')}</span>
+                        <span>{new Date(log.timestamp).toLocaleString()}</span>
+                      </div>
+                      <p className="text-red-400 font-black text-xs break-all">{log.message}</p>
+                      {log.args && <p className="text-theme-text opacity-70 break-all">{log.args}</p>}
+                      {log.stack && (
+                        <details className="mt-2 group/stack">
+                          <summary className="cursor-pointer text-theme-muted hover:text-theme-primary transition-colors flex items-center gap-1 select-none">
+                            <span className="text-[9px] uppercase tracking-tighter">View Stack Trace</span>
+                          </summary>
+                          <pre className="mt-2 p-3 bg-black/40 rounded-xl text-theme-muted/80 whitespace-pre-wrap break-all border border-white/5 leading-relaxed text-[8px] max-h-48 overflow-y-auto">
+                            {log.stack}
+                          </pre>
+                        </details>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => copyLogs(JSON.stringify(log, null, 2), "Entry")}
+                      className="p-2 text-theme-muted hover:text-theme-primary transition-colors opacity-0 group-hover:opacity-100"
+                      title="Copy this entry"
+                    >
+                      <Copy size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
       
       <DataStatusPanel />
     </div>
