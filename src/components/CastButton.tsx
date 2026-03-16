@@ -21,7 +21,10 @@ export function CastButton() {
 
   const onSessionStateChanged = useCallback((event: any) => {
     const state = event.sessionState;
-    const { SESSION_STARTED, SESSION_RESUMED, SESSION_ENDED, SESSION_START_FAILED } = window.cast.framework.SessionState;
+    const framework = (window as any).cast?.framework;
+    if (!framework) return;
+    
+    const { SESSION_STARTED, SESSION_RESUMED, SESSION_ENDED, SESSION_START_FAILED } = framework.SessionState;
     
     const casting = state === SESSION_STARTED || state === SESSION_RESUMED;
 
@@ -37,29 +40,31 @@ export function CastButton() {
     if (!isAvailable || isInitializedRef.current) return;
 
     try {
-      const castContext = window.cast?.framework?.CastContext?.getInstance?.();
-      if (!castContext) return;
+      const castFramework = (window as any).cast?.framework;
+      const chromeCast = (window as any).chrome?.cast;
+      
+      const castContext = castFramework?.CastContext?.getInstance?.();
+      if (!castContext || !chromeCast) return;
 
       // Always prefer the custom receiver, but fall back to default ONLY if env var is missing during dev.
-      // In production, the intention is to ALWAYS use the VITE_CAST_APP_ID.
-      const appId = import.meta.env.VITE_CAST_APP_ID || window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
+      const appId = import.meta.env.VITE_CAST_APP_ID || chromeCast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
       logger.log(`[Cast] Selected App ID: ${appId} (Using ${import.meta.env.VITE_CAST_APP_ID ? 'Configured' : 'Default'})`);
       
       if (!import.meta.env.VITE_CAST_APP_ID) {
-        logger.error('[Cast] CRITICAL: VITE_CAST_APP_ID is missing. Falling back to default receiver which will NOT load the custom web app UI.');
+        logger.error('[Cast] CRITICAL: VITE_CAST_APP_ID is missing. Falling back to default receiver.');
       }
 
-      const sessionRequest = new window.chrome.cast.SessionRequest(appId);
-      sessionRequest.capabilities = [window.chrome.cast.Capability.VIDEO_OUT];
+      const sessionRequest = new chromeCast.SessionRequest(appId);
+      sessionRequest.capabilities = [chromeCast.Capability.VIDEO_OUT];
 
       castContext.setOptions({
         receiverApplicationId: appId,
-        autoJoinPolicy: window.chrome.cast.AutoJoinPolicy.ORIGINAL_SCOPE,
+        autoJoinPolicy: chromeCast.AutoJoinPolicy.ORIGINAL_SCOPE,
         sessionRequest,
       });
 
       castContext.addEventListener(
-        window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+        castFramework.CastContextEventType.SESSION_STATE_CHANGED,
         onSessionStateChanged as any
       );
 
@@ -78,10 +83,11 @@ export function CastButton() {
     }
 
     return () => {
-      const castContext = window.cast?.framework?.CastContext?.getInstance?.();
-      if (castContext && isInitializedRef.current) {
+      const castContext = (window as any).cast?.framework?.CastContext?.getInstance?.();
+      const castFramework = (window as any).cast?.framework;
+      if (castContext && castFramework && isInitializedRef.current) {
         castContext.removeEventListener(
-          window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+          castFramework.CastContextEventType.SESSION_STATE_CHANGED,
           onSessionStateChanged as any
         );
       }

@@ -14,7 +14,7 @@ import { StatsPage } from './pages/StatsPage';
 import { MovieDetailPage } from './pages/MovieDetailPage';
 import { CouchPage } from './pages/CouchPage';
 import { useDatabaseSeed } from './hooks/useDatabaseSeed';
-import { isCouchModeEnabled } from './utils/isCouchMode';
+import { isCouchModeEnabled, enableCouchMode, clearCouchMode } from './utils/isCouchMode';
 
 function AppContent() {
   useDatabaseSeed();
@@ -25,6 +25,15 @@ function AppContent() {
   const lastSyncTimestampRef = React.useRef(0);
 
   const isCouchMode = isCouchModeEnabled(location.search);
+
+  // Handle Couch Mode persistence side effects
+  React.useEffect(() => {
+    if (location.search.includes('exit_couch=true')) {
+      clearCouchMode();
+    } else if (location.search.includes('couch=true')) {
+      enableCouchMode();
+    }
+  }, [location.search]);
 
   // Global Sync Listener for TV
   React.useEffect(() => {

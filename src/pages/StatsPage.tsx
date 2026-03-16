@@ -58,8 +58,15 @@ export function StatsPage() {
 
       {/* Debug Section (System Logs) */}
       {(() => {
-        const logsRaw = sessionStorage.getItem('fmn_error_logs');
-        const logs: ErrorLog[] = logsRaw ? JSON.parse(logsRaw) : [];
+        let logs: ErrorLog[] = [];
+        try {
+          const logsRaw = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('fmn_error_logs') : null;
+          logs = logsRaw ? JSON.parse(logsRaw) : [];
+          if (!Array.isArray(logs)) logs = [];
+        } catch (e) {
+          logs = [];
+        }
+        
         if (logs.length === 0) return null;
 
         const copyLogs = async (text: string, label: string) => {

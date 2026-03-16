@@ -25,8 +25,15 @@ export const logger = {
     
     // Persist to session storage for post-mortem debugging
     try {
+      if (typeof sessionStorage === 'undefined') return;
       const logsRaw = sessionStorage.getItem('fmn_error_logs');
-      let logs: ErrorLog[] = logsRaw ? JSON.parse(logsRaw) : [];
+      let logs: ErrorLog[] = [];
+      try {
+        logs = logsRaw ? JSON.parse(logsRaw) : [];
+        if (!Array.isArray(logs)) logs = [];
+      } catch {
+        logs = [];
+      }
       
       const newLog: ErrorLog = {
         message,
