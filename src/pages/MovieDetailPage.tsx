@@ -503,7 +503,7 @@ export function MovieDetailPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1.5 overflow-hidden">
+                  <div className="flex items-center gap-1.5 overflow-hidden shrink-0">
                     <div className="flex items-center -space-x-1">
                       {[1, 2, 3, 4, 5].map((star) => {
                         const currentRating = movie.ratings[profile.id] || 0;
@@ -511,7 +511,7 @@ export function MovieDetailPage() {
                         const isHalf = star - 0.5 === currentRating;
 
                         return (
-                          <div key={star} className={`relative flex items-center select-none ${isCouchMode ? 'h-12 w-10' : 'h-10 w-8'}`}>
+                          <div key={star} className={`relative flex items-center select-none ${isCouchMode ? 'h-12 w-10' : 'h-10 w-7'}`}>
                             {!isCouchMode && (
                               <button
                                 onClick={() => { hapticFeedback.light(); handleRatingToggle(profile.id, star); }}
@@ -545,7 +545,7 @@ export function MovieDetailPage() {
                       </svg>
                     </div>
                     {!isCouchMode && (
-                      <span className="text-[10px] font-mono font-black text-theme-text w-6 text-right tabular-nums">
+                      <span className="text-[10px] font-mono font-black text-theme-text w-6 text-right tabular-nums shrink-0">
                         {movie.ratings[profile.id] > 0 ? movie.ratings[profile.id] : '—'}
                       </span>
                     )}
