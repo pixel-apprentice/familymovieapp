@@ -4,7 +4,7 @@ import { CurrentTurn } from './CurrentTurn';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { motion } from 'motion/react';
-import { Home, Settings } from 'lucide-react';
+import { Home, Settings, LogOut } from 'lucide-react';
 import { PizzaButton } from './PizzaButton';
 import { CastButton } from './CastButton';
 import { hapticFeedback } from '../utils/haptics';
@@ -111,6 +111,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+
+      {/* Exit Couch Mode Escape Hatch (subtle) */}
+      {isCouchMode && (
+        <Link 
+          to="/?exit_couch=true"
+          onClick={() => {
+            // Force a reload to ensure all states are cleared
+            setTimeout(() => window.location.reload(), 100);
+          }}
+          className="fixed bottom-4 right-4 z-50 p-3 bg-black/20 hover:bg-red-500/20 text-white/20 hover:text-red-500 transition-all rounded-full backdrop-blur-sm group"
+          title="Exit TV Mode"
+        >
+          <LogOut size={20} className="group-hover:scale-110 transition-transform" />
+        </Link>
+      )}
     </div>
   );
 }

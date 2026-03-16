@@ -6,6 +6,14 @@ export function CouchPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        // 1. Inject the Receiver SDK dynamically if not present
+        if (!document.getElementById('cast-receiver-sdk')) {
+            const script = document.createElement('script');
+            script.id = 'cast-receiver-sdk';
+            script.src = "https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js";
+            document.head.appendChild(script);
+        }
+
         // Set a flag so we know this device is a TV (Receiver)
         import('../utils/isCouchMode').then(m => m.enableCouchMode());
 
