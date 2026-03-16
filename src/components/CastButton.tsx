@@ -59,13 +59,9 @@ export function CastButton() {
         logger.error('[Cast] CRITICAL: VITE_CAST_APP_ID is missing. Falling back to default receiver.');
       }
 
-      const sessionRequest = new chromeCast.SessionRequest(appId);
-      sessionRequest.capabilities = [chromeCast.Capability.VIDEO_OUT];
-
       castContext.setOptions({
         receiverApplicationId: appId,
         autoJoinPolicy: chromeCast.AutoJoinPolicy.ORIGINAL_SCOPE,
-        sessionRequest,
       });
 
       castContext.addEventListener(
