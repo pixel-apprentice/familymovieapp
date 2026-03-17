@@ -42,11 +42,11 @@ body {
 }
 
 
-:root,
 [data-theme="modern-pinnacle"] {
   color-scheme: dark;
   --theme-base: #000000;
   --theme-surface: #0a0a0a;
+  --theme-surface-rgb: 10, 10, 10;
   --theme-primary: #ffffff;
   --theme-secondary: #a3a3a3;
   --theme-text: #ffffff;
@@ -62,6 +62,7 @@ body {
   color-scheme: light;
   --theme-base: #f1f5f9;
   --theme-surface: #f8fafc;
+  --theme-surface-rgb: 248, 250, 252;
   --theme-primary: #0f172a;
   --theme-secondary: #64748b;
   --theme-text: #0f172a;
@@ -76,7 +77,8 @@ body {
 [data-theme="cinematic-glass"] {
   color-scheme: dark;
   --theme-base: #020617;
-  --theme-surface: rgba(15, 23, 42, 0.4);
+  --theme-surface: #0f172a;
+  --theme-surface-rgb: 15, 23, 42;
   --theme-primary: #38bdf8;
   --theme-secondary: #0ea5e9;
   --theme-text: #f8fafc;
@@ -92,6 +94,7 @@ body {
   color-scheme: dark;
   --theme-base: #000000;
   --theme-surface: #111111;
+  --theme-surface-rgb: 17, 17, 17;
   --theme-primary: #ffffff;
   --theme-secondary: #666666;
   --theme-text: #e5e5e5;
@@ -107,6 +110,7 @@ body {
   color-scheme: light;
   --theme-base: #fef2f2;
   --theme-surface: #ffffff;
+  --theme-surface-rgb: 255, 255, 255;
   --theme-primary: #ef4444;
   --theme-secondary: #fca5a5;
   --theme-text: #1c1917;
@@ -122,6 +126,7 @@ body {
   color-scheme: light;
   --theme-base: #fdfbf7;
   --theme-surface: #f4f0e6;
+  --theme-surface-rgb: 244, 240, 230;
   --theme-primary: #d97706;
   --theme-secondary: #92400e;
   --theme-text: #292524;
@@ -137,6 +142,7 @@ body {
   color-scheme: dark;
   --theme-base: #2e0a16;
   --theme-surface: #4a1025;
+  --theme-surface-rgb: 74, 16, 37;
   --theme-primary: #fbbf24;
   --theme-secondary: #b45309;
   --theme-text: #fef3c7;
@@ -152,6 +158,7 @@ body {
   color-scheme: dark;
   --theme-base: #020617;
   --theme-surface: #0f172a;
+  --theme-surface-rgb: 15, 23, 42;
   --theme-primary: #38bdf8;
   --theme-secondary: #0369a1;
   --theme-text: #f0f9ff;
@@ -167,6 +174,7 @@ body {
   color-scheme: dark;
   --theme-base: #0d0c1d;
   --theme-surface: #1a1833;
+  --theme-surface-rgb: 26, 24, 51;
   --theme-primary: #f97316;
   --theme-secondary: #fb923c;
   --theme-text: #fef3c7;
@@ -182,6 +190,7 @@ body {
   color-scheme: dark;
   --theme-base: #1a1612;
   --theme-surface: #252016;
+  --theme-surface-rgb: 37, 32, 22;
   --theme-primary: #d4a843;
   --theme-secondary: #b8892e;
   --theme-text: #f5ead4;
@@ -197,6 +206,7 @@ body {
   color-scheme: dark;
   --theme-base: #001f5b;
   --theme-surface: #002875;
+  --theme-surface-rgb: 0, 40, 117;
   --theme-primary: #ffe000;
   --theme-secondary: #ffd000;
   --theme-text: #ffffff;
@@ -212,6 +222,7 @@ body {
   color-scheme: light;
   --theme-base: #f1f5f9;
   --theme-surface: #ffffff;
+  --theme-surface-rgb: 255, 255, 255;
   --theme-primary: #000000;
   --theme-secondary: #333333;
   --theme-text: #000000;
@@ -286,7 +297,7 @@ body {
 .couch-mode-active .bg-theme-surface {
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
-  background-color: rgba(var(--color-theme-surface-rgb, 10, 10, 10), 0.9) !important;
+  background-color: rgba(var(--theme-surface-rgb, 10, 10, 10), 0.9) !important;
   transition: none !important; /* Disable expensive transitions on low-power hardware */
 }
 

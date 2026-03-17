@@ -8,50 +8,11 @@ export function CouchPage() {
     const { movies, couchState } = useData();
 
     useEffect(() => {
-        // 1. Inject the Receiver SDK dynamically if not present
-        if (!document.getElementById('cast-receiver-sdk')) {
-            const script = document.createElement('script');
-            script.id = 'cast-receiver-sdk';
-            script.src = "https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js";
-            document.head.appendChild(script);
-        }
-
         // Set a flag so we know this device is a TV (Receiver)
-        // ONLY persist if it's a real Chromecast or has the explicit param
+        // ONLY persist if it's a real Chromecast
         const isRealTV = window.navigator.userAgent.indexOf('CrKey') > -1;
         if (isRealTV) {
             import('../utils/isCouchMode').then(m => m.enableCouchMode());
-        }
-
-        let retryCount = 0;
-        const maxRetries = 20; 
-        const retryInterval = 400;
-
-        const initSDK = () => {
-            if (typeof window !== 'undefined' && 'cast' in window) {
-                try {
-                    const castFramework = (window as any).cast?.framework;
-                    const context = castFramework?.CastReceiverContext?.getInstance();
-                    if (context) {
-                        context.start();
-                        logger.log("[Couch Mode] Cast Receiver Context started.");
-                        return true;
-                    }
-                } catch (error) {
-                    logger.error("[Couch Mode] Failed to start Cast Receiver:", error);
-                }
-            }
-            return false;
-        };
-
-        if (!initSDK()) {
-            const timer = setInterval(() => {
-                retryCount++;
-                if (initSDK() || retryCount >= maxRetries) {
-                    clearInterval(timer);
-                }
-            }, retryInterval);
-            return () => clearInterval(timer);
         }
     }, []);
 

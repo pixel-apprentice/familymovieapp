@@ -35,6 +35,36 @@ function AppContent() {
     }
   }, [location.search]);
 
+  // FAST RECEIVER BOOT: Initialize CAF Receiver immediately if we are on the couch path
+  // This must happen ABOVE the auth gate to prevent session_error timeouts on the handset.
+  React.useEffect(() => {
+    const isCouchPath = location.pathname === '/couch';
+    const isTV = window.navigator.userAgent.indexOf('CrKey') > -1;
+
+    if ((isCouchPath || isTV) && !document.getElementById('cast-receiver-sdk')) {
+      logger.log("[App] TV Environment detected. Starting Receiver SDK...");
+      
+      const script = document.createElement('script');
+      script.id = 'cast-receiver-sdk';
+      script.src = "https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js";
+      document.head.appendChild(script);
+
+      // We wait for the script to load before starting the context
+      script.onload = () => {
+        try {
+          const castFramework = (window as any).cast?.framework;
+          const context = castFramework?.CastReceiverContext?.getInstance();
+          if (context) {
+            context.start();
+            logger.log("[App] Cast Receiver Context started successfully.");
+          }
+        } catch (error) {
+          logger.error("[App] Failed to start Cast Receiver:", error);
+        }
+      };
+    }
+  }, [location.pathname]);
+
   // Global Sync Listener for TV
   React.useEffect(() => {
     if (isCouchMode && couchState && couchState.timestamp > lastSyncTimestampRef.current) {

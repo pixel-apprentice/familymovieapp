@@ -44,6 +44,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Explicitly sync the color scheme to override system preferences
     const isLight = ['modern-luminous', 'matinee-popcorn', 'vintage-ticket', 'mooooovies'].includes(theme);
     root.style.colorScheme = isLight ? 'light' : 'dark';
+    
+    // Force a secondary safeguard for dark mode interference
+    if (isLight) {
+      root.classList.remove('dark');
+    } else {
+      root.classList.add('dark');
+    }
   }, [theme]);
 
   return (
