@@ -43,9 +43,15 @@ function AppContent() {
       // Always update the ref so we "consume" the update
       lastSyncTimestampRef.current = couchState.timestamp;
       
-      if (isNewPath) {
+      // SELECTIVE SYNC: Only follow if it's a "Cinematic" path (e.g. Movie Details)
+      // This prevents the TV from showing "Settings" or "Stats" while the family is viewing.
+      const isCinematicPath = couchState.path.startsWith('/movie/');
+      
+      if (isNewPath && isCinematicPath) {
         logger.log("[Couch Mode] Syncing navigation to:", couchState.path);
         navigate(couchState.path);
+      } else if (!isCinematicPath) {
+        logger.log("[Couch Mode] Ignoring non-cinematic path:", couchState.path);
       } else {
         logger.log("[Couch Mode] Already at path:", couchState.path);
       }

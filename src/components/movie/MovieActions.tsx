@@ -10,21 +10,51 @@ interface MovieActionsProps {
   handlePlexRequest: () => void;
   markWatched: (id: string) => void;
   handleDelete: () => void;
+  couchState?: any;
+  pushCouchState: (updates: any) => Promise<void>;
 }
 
-export function MovieActions({ movie, trailerUrl, isSending, handlePlexRequest, markWatched, handleDelete }: MovieActionsProps) {
+export function MovieActions({ 
+  movie, 
+  trailerUrl, 
+  isSending, 
+  handlePlexRequest, 
+  markWatched, 
+  handleDelete,
+  couchState,
+  pushCouchState
+}: MovieActionsProps) {
   const { theme } = useTheme();
   const getThemeText = useThemeText();
+  
+  const isTrailerPlayingOnTV = couchState?.activeTrailer === movie.trailerKey && movie.trailerKey;
+
+  const handleTrailerAction = (e: React.MouseEvent) => {
+    if (movie.trailerKey) {
+      e.preventDefault();
+      if (isTrailerPlayingOnTV) {
+        pushCouchState({ activeTrailer: '' });
+      } else {
+        pushCouchState({ activeTrailer: movie.trailerKey });
+      }
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <a 
         href={trailerUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center gap-3 w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-700 transition-all shadow-lg"
+        onClick={handleTrailerAction}
+        className={`flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all shadow-lg ${
+          isTrailerPlayingOnTV 
+            ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' 
+            : 'bg-red-600 hover:bg-red-700 text-white'
+        }`}
       >
         <Youtube size={20} />
-        Watch Trailer
+        {isTrailerPlayingOnTV ? 'Stop Trailer' : 'Watch on TV'}
       </a>
 
       {movie.status === 'wishlist' && (

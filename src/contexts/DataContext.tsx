@@ -42,6 +42,7 @@ export interface CouchState {
   pickerFilter?: string;
   genreFilter?: string;
   searchQuery?: string;
+  activeTrailer?: string;
   timestamp: number;
 }
 

@@ -20,7 +20,7 @@ import { logger } from '../utils/logger';
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { movies, updateMovie, markWatched, removeMovie, profiles, pushCouchState, pushPulseEvent } = useData();
+  const { movies, updateMovie, markWatched, removeMovie, profiles, pushCouchState, pushPulseEvent, couchState } = useData();
   const { theme } = useTheme();
   const { showModal } = useModal();
   const location = useLocation();
@@ -285,8 +285,10 @@ export function MovieDetailPage() {
     ? `https://www.youtube.com/watch?v=${movie.trailerKey}`
     : `https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' movie trailer')}`;
 
+  const isActiveTrailerOnTV = isCouchMode && couchState?.activeTrailer && couchState.activeTrailer === movie.trailerKey;
+
   return (
-    <div className={`w-full max-w-4xl mx-auto px-4 py-2 md:py-4 transition-all duration-1000 ${isCouchMode ? 'max-w-none px-0' : ''}`}>
+    <div className={`w-full max-w-4xl mx-auto px-4 py-2 md:py-4 transition-all duration-1000 ${isCouchMode ? 'max-w-none px-0 h-screen overflow-hidden flex flex-col justify-center' : ''}`}>
       {/* Cinematic TV Backdrop */}
       {isCouchMode && movie.poster_url && (
         <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
@@ -302,6 +304,29 @@ export function MovieDetailPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-theme-base via-transparent to-theme-base/50" />
         </div>
       )}
+
+      {/* Full Screen Trailer Layer (TV Only) */}
+      <AnimatePresence>
+        {isActiveTrailerOnTV && (
+          <motion.div
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed inset-0 z-[100] bg-black flex items-center justify-center p-[5vw]"
+          >
+            <iframe
+              src={`https://www.youtube.com/embed/${movie.trailerKey}?autoplay=1&controls=0&modestbranding=1&rel=0`}
+              className="w-full h-full rounded-3xl shadow-2xl border-4 border-white/10"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+            />
+            {/* Overlay to catch clicks and show "Press any button on phone to stop" message */}
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 bg-black/60 backdrop-blur-xl rounded-full border border-white/20 text-white/60 text-sm font-black uppercase tracking-widest animate-pulse">
+               Playing Trailer on TV
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {!isCouchMode && (
         <div className="flex items-center justify-between mb-4">
@@ -487,27 +512,27 @@ export function MovieDetailPage() {
               {!isCouchMode && <div className="text-[10px] font-mono text-theme-muted uppercase">Tap star again to toggle half</div>}
             </div>
 
-            <div className={`grid grid-cols-1 gap-4 ${isCouchMode ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2'} FamilyRankings`}>
+            <div className={`grid grid-cols-1 gap-6 ${isCouchMode ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2'} FamilyRankings`}>
               {profiles.map((profile) => (
                 <motion.div
                   key={profile.id}
                   layout
-                  className={`bg-theme-base/40 backdrop-blur-md border border-theme-border/50 rounded-2xl px-5 py-3 flex flex-col gap-2 group/rank transition-all ${
-                    isCouchMode ? 'hover:bg-white/5 hover:scale-105' : 'items-center justify-between flex-row'
+                  className={`bg-theme-base/40 backdrop-blur-md border border-theme-border/50 rounded-3xl px-6 py-5 flex flex-col gap-4 group/rank transition-all ${
+                    isCouchMode ? 'hover:bg-white/5 hover:scale-105 border-white/10 ring-1 ring-white/5' : 'items-center justify-between flex-row'
                   }`}
                 >
                   <div className="flex items-center justify-between w-full">
-                    <span className={`${isCouchMode ? 'text-xl' : 'text-[10px] md:text-xs'} font-black uppercase tracking-widest truncate profile-name`} style={{ color: profile.color }}>
+                    <span className={`${isCouchMode ? 'text-2xl' : 'text-[10px] md:text-xs'} font-black uppercase tracking-widest truncate profile-name`} style={{ color: profile.color }}>
                       {profile.name}
                     </span>
                     {isCouchMode && (
-                      <span className="text-2xl font-mono font-black text-theme-text tabular-nums opacity-50">
+                      <span className="text-3xl font-mono font-black text-theme-text tabular-nums opacity-60">
                         {movie.ratings[profile.id] > 0 ? movie.ratings[profile.id] : '—'}
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1.5 overflow-hidden shrink-0">
+                  <div className="flex items-center gap-2 overflow-hidden shrink-0">
                     <div className="flex items-center -space-x-1">
                       {[1, 2, 3, 4, 5].map((star) => {
                         const currentRating = movie.ratings[profile.id] || 0;
@@ -515,7 +540,7 @@ export function MovieDetailPage() {
                         const isHalf = star - 0.5 === currentRating;
 
                         return (
-                          <div key={star} className={`relative flex items-center select-none ${isCouchMode ? 'h-12 w-10' : 'h-10 w-7'}`}>
+                          <div key={star} className={`relative flex items-center select-none ${isCouchMode ? 'h-16 w-14' : 'h-10 w-7'}`}>
                             {!isCouchMode && (
                               <button
                                 onClick={() => { hapticFeedback.light(); handleRatingToggle(profile.id, star); }}
@@ -530,10 +555,10 @@ export function MovieDetailPage() {
                               transition={{ duration: 0.5, ease: "easeInOut" }}
                             >
                               <Star
-                                size={isCouchMode ? 32 : 24}
+                                size={isCouchMode ? 44 : 24}
                                 className={`transition-all ${isFull || isHalf ? 'text-amber-400' : 'text-theme-muted opacity-10'}`}
                                 fill={isFull ? 'currentColor' : isHalf ? 'url(#halfStarDetail)' : 'none'}
-                                style={isCouchMode && (isFull || isHalf) ? { filter: 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.4))' } : {}}
+                                style={isCouchMode && (isFull || isHalf) ? { filter: 'drop-shadow(0 0 12px rgba(251, 191, 36, 0.6))' } : {}}
                               />
                             </motion.div>
                           </div>
@@ -570,6 +595,8 @@ export function MovieDetailPage() {
                 handlePlexRequest={handlePlexRequest}
                 markWatched={markWatched}
                 handleDelete={handleDelete}
+                couchState={couchState}
+                pushCouchState={pushCouchState}
               />
             </div>
           )}
