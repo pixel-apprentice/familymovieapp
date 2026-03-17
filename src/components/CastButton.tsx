@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Tv } from 'lucide-react';
+import { toast } from 'sonner';
 import { useData } from '../contexts/DataContext';
 import { useLocation } from 'react-router-dom';
 import { hapticFeedback } from '../utils/haptics';
@@ -37,6 +38,13 @@ export function CastButton() {
       setIsCasting(false);
       if (state === SESSION_START_FAILED) {
         logger.error('[Cast] Native cast session request failed: SESSION_START_FAILED');
+        toast.error("Cast connection failed. Check if your Receiver URL matches in the Cast Console!", {
+            duration: 5000,
+            action: {
+                label: "Need Help?",
+                onClick: () => window.open('https://cast.google.com/publish', '_blank')
+            }
+        });
       }
     }
   }, [pushCouchState]);

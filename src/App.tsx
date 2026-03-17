@@ -43,9 +43,10 @@ function AppContent() {
       // Always update the ref so we "consume" the update
       lastSyncTimestampRef.current = couchState.timestamp;
       
-      // SELECTIVE SYNC: Only follow if it's a "Cinematic" path (e.g. Movie Details)
-      // This prevents the TV from showing "Settings" or "Stats" while the family is viewing.
-      const isCinematicPath = couchState.path.startsWith('/movie/');
+      // SELECTIVE SYNC: Follow movie details OR the home page.
+      // This allows the TV to show the movie list while browsing, 
+      // but still ignores "Settings" or "Stats".
+      const isCinematicPath = couchState.path === '/' || couchState.path.startsWith('/movie/');
       
       if (isNewPath && isCinematicPath) {
         logger.log("[Couch Mode] Syncing navigation to:", couchState.path);

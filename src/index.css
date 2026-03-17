@@ -282,6 +282,18 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
+/* TV Performance Optimizations (Onn 4k / Chromecast) */
+.couch-mode-active .bg-theme-surface {
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  background-color: rgba(var(--color-theme-surface-rgb, 10, 10, 10), 0.9) !important;
+  transition: none !important; /* Disable expensive transitions on low-power hardware */
+}
+
+.couch-mode-active .blur-\[80px\] {
+  filter: blur(40px) brightness(0.4) !important; /* Reduce blur radius for faster rendering */
+}
+
 /* Film Noir: High contrast, monochrome */
 [data-theme="film-noir"] body {
   background-color: #000000;
