@@ -52,6 +52,14 @@ function AppContent() {
     }
   }, [isCouchMode, couchState, location.pathname, navigate]);
 
+  // Force Redirect for TV landing on root
+  React.useEffect(() => {
+    if (isCouchMode && location.pathname === '/') {
+      logger.log("[Couch Mode] TV landed on root. Forcing redirect to /couch");
+      navigate('/couch', { replace: true });
+    }
+  }, [isCouchMode, location.pathname, navigate]);
+
   // PWA Update Cinematic Notification
   React.useEffect(() => {
     const handleUpdate = () => {

@@ -13,15 +13,16 @@ export function isCouchModeEnabled(search?: string): boolean {
   } catch { /* ignore */ }
 
   // 4. Auto-detect Google Cast Receiver SDK (CAF)
-  // This is present when running inside a Chromecast Receiver
   try {
     if (typeof window !== 'undefined') {
       const isTVAgent = window.navigator.userAgent.indexOf('CrKey') > -1;
-      const hasReceiverContext = (window as any).cast?.framework?.CastReceiverContext;
       
-      // If we are on a TV, we are in couch mode. 
-      // If we have the context BUT we are not on a TV, it's likely a phone loading the SDK for debugging.
-      if (isTVAgent && hasReceiverContext) return true;
+      // If we are on a TV, we are in couch mode.
+      if (isTVAgent) return true;
+
+      // Fallback for context detection if UA is masked or missing
+      const hasReceiverContext = (window as any).cast?.framework?.CastReceiverContext;
+      if (hasReceiverContext) return true;
     }
   } catch { /* ignore */ }
 
