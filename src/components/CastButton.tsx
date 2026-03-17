@@ -64,9 +64,11 @@ export function CastButton() {
         logger.error('[Cast] CRITICAL: VITE_CAST_APP_ID is missing. Falling back to default receiver.');
       }
 
+      logger.log(`[Cast] Setting Options - AppId: ${appId}, Policy: ORIGIN_SCOPED`);
+      
       castContext.setOptions({
         receiverApplicationId: appId,
-        autoJoinPolicy: chromeCast.AutoJoinPolicy.ORIGINAL_SCOPE,
+        autoJoinPolicy: chromeCast.AutoJoinPolicy.ORIGIN_SCOPED,
       });
 
       castContext.addEventListener(
@@ -89,7 +91,8 @@ export function CastButton() {
   useEffect(() => {
     window.__onGCastApiAvailable = initializeCast;
 
-    if (typeof window !== 'undefined' && window.chrome?.cast?.isAvailable) {
+    const isAvailable = Boolean((window as any).chrome?.cast?.isAvailable || (window as any).cast?.framework);
+    if (isAvailable) {
       initializeCast(true);
     }
 
