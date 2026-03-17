@@ -305,6 +305,10 @@ body {
   filter: blur(40px) brightness(0.4) !important; /* Reduce blur radius for faster rendering */
 }
 
+.couch-mode-active h1 {
+  line-height: 1 !important; /* Prevent title clipping on large text */
+}
+
 /* Film Noir: High contrast, monochrome */
 [data-theme="film-noir"] body {
   background-color: #000000;
