@@ -8,10 +8,12 @@ interface MovieProps {
   genres?: string[];
   ratings?: Record<string, number>;
   pickedBy?: string;
+  trailerKey?: string;
 }
 
 interface MoviePageTVProps {
   movie: MovieProps;
+  activeTrailer?: string | null;
 }
 
 const TV_STYLES: Record<string, React.CSSProperties> = {
@@ -156,7 +158,7 @@ const TV_STYLES: Record<string, React.CSSProperties> = {
   },
 };
 
-export default function MoviePageTV({ movie }: MoviePageTVProps) {
+export default function MoviePageTV({ movie, activeTrailer }: MoviePageTVProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -182,6 +184,8 @@ export default function MoviePageTV({ movie }: MoviePageTVProps) {
     ? (ratingValues.reduce((a, b) => a + b, 0) / ratingValues.length).toFixed(1)
     : null;
 
+  const showTrailer = activeTrailer && activeTrailer === movie.trailerKey;
+
   return (
     <div style={{ ...TV_STYLES.root, ...fadeStyle }}>
       {/* Dynamic Backdrop */}
@@ -191,6 +195,21 @@ export default function MoviePageTV({ movie }: MoviePageTVProps) {
           style={TV_STYLES.backdrop}
           aria-hidden="true"
         />
+      )}
+
+      {/* Trailer Overlay */}
+      {showTrailer && (
+        <div style={TV_STYLES.trailerOverlay}>
+          <iframe
+            src={`https://www.youtube.com/embed/${movie.trailerKey}?autoplay=1&controls=0&modestbranding=1&rel=0`}
+            style={TV_STYLES.trailerFrame}
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+          />
+          <div style={TV_STYLES.trailerIndicator} className="animate-pulse">
+            Playing Trailer
+          </div>
+        </div>
       )}
 
       {/* LEFT: Poster */}

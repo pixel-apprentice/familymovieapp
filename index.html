@@ -53,7 +53,11 @@
   <script type="text/javascript">
     // ROBUST ZERO-LATENCY RECEIVER BOOT: 
     // Fires BEFORE React and polls for the 'cast' global to handle SDK initialization lag.
-    if (navigator.userAgent.indexOf('CrKey') > -1) {
+    const ua = navigator.userAgent;
+    const isTVAgent = ua.indexOf('CrKey') > -1 || (ua.indexOf('Android') > -1 && ua.indexOf('TV') > -1);
+    const isCouchPath = window.location.pathname === '/couch' || window.location.search.includes('couch=true');
+
+    if (isTVAgent || isCouchPath) {
       window.isCastReceiver = true;
       const s = document.createElement('script');
       s.src = "https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js";

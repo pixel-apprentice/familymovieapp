@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;900&family=Playfair+Display:ital,wght@0,400;0,900;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Chivo:wght@400;900&family=Cabin:wght@400;700&family=Nunito:wght@400;800;900&display=swap');
 @import "tailwindcss";
 
 #css-diagnostic-overlay {
@@ -44,15 +44,15 @@ body {
 
 [data-theme="modern-pinnacle"] {
   color-scheme: dark;
-  --theme-base: #000000;
-  --theme-surface: #0a0a0a;
-  --theme-surface-rgb: 10, 10, 10;
+  --theme-base: #0d1117;
+  --theme-surface: #161b22;
+  --theme-surface-rgb: 22, 27, 34;
   --theme-primary: #ffffff;
   --theme-secondary: #a3a3a3;
-  --theme-text: #ffffff;
+  --theme-text: #e8eaf0;
   --theme-muted: #737373;
   --theme-border: #262626;
-  --theme-accent: #ffffff;
+  --theme-accent: #58a6ff;
   --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
   --theme-font-heading: "Inter", sans-serif;
   --theme-font-body: "Inter", sans-serif;
@@ -60,17 +60,17 @@ body {
 
 [data-theme="modern-luminous"] {
   color-scheme: light;
-  --theme-base: #f1f5f9;
+  --theme-base: #faf9f6;
   --theme-surface: #f8fafc;
   --theme-surface-rgb: 248, 250, 252;
   --theme-primary: #0f172a;
-  --theme-secondary: #64748b;
-  --theme-text: #0f172a;
-  --theme-muted: #94a3b8;
+  --theme-secondary: #5c5f77;
+  --theme-text: #1e1e2e;
+  --theme-muted: #9399b2;
   --theme-border: #e2e8f0;
-  --theme-accent: #000000;
+  --theme-accent: #7287fd;
   --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-  --theme-font-heading: "Inter", sans-serif;
+  --theme-font-heading: "Playfair Display", serif;
   --theme-font-body: "Inter", sans-serif;
 }
 
@@ -87,22 +87,6 @@ body {
   --theme-accent: #818cf8;
   --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   --theme-font-heading: "Outfit", sans-serif;
-  --theme-font-body: "Inter", sans-serif;
-}
-
-[data-theme="film-noir"] {
-  color-scheme: dark;
-  --theme-base: #000000;
-  --theme-surface: #111111;
-  --theme-surface-rgb: 17, 17, 17;
-  --theme-primary: #ffffff;
-  --theme-secondary: #666666;
-  --theme-text: #e5e5e5;
-  --theme-muted: #888888;
-  --theme-border: #333333;
-  --theme-accent: #cccccc;
-  --theme-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
-  --theme-font-heading: "Playfair Display", serif;
   --theme-font-body: "Inter", sans-serif;
 }
 
@@ -146,12 +130,21 @@ body {
   --theme-primary: #fbbf24;
   --theme-secondary: #b45309;
   --theme-text: #fef3c7;
-  --theme-muted: #fcd34d;
+  --theme-muted: #c4a882;
   --theme-border: #7a1a3d;
   --theme-accent: #f59e0b;
   --theme-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
   --theme-font-heading: "Cormorant Garamond", serif;
   --theme-font-body: "Inter", sans-serif;
+}
+
+[data-theme="velvet-theater"] h1,
+[data-theme="velvet-theater"] h2,
+[data-theme="velvet-theater"] h3,
+[data-theme="velvet-theater"] h4,
+[data-theme="velvet-theater"] h5,
+[data-theme="velvet-theater"] h6 {
+  font-weight: 700;
 }
 
 [data-theme="sci-fi-hologram"] {
@@ -162,7 +155,7 @@ body {
   --theme-primary: #38bdf8;
   --theme-secondary: #0369a1;
   --theme-text: #f0f9ff;
-  --theme-muted: #7dd3fc;
+  --theme-muted: #334d6b;
   --theme-border: #0ea5e9;
   --theme-accent: #818cf8;
   --theme-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
@@ -178,12 +171,12 @@ body {
   --theme-primary: #f97316;
   --theme-secondary: #fb923c;
   --theme-text: #fef3c7;
-  --theme-muted: #a78bfa;
+  --theme-muted: #c2844a;
   --theme-border: #2e2b54;
   --theme-accent: #fbbf24;
   --theme-shadow: 0 8px 32px rgba(249, 115, 22, 0.2);
   --theme-font-heading: "Outfit", sans-serif;
-  --theme-font-body: "Inter", sans-serif;
+  --theme-font-body: "Cabin", sans-serif;
 }
 
 [data-theme="golden-age"] {
@@ -202,6 +195,15 @@ body {
   --theme-font-body: "Inter", sans-serif;
 }
 
+[data-theme="golden-age"] h1,
+[data-theme="golden-age"] h2,
+[data-theme="golden-age"] h3,
+[data-theme="golden-age"] h4,
+[data-theme="golden-age"] h5,
+[data-theme="golden-age"] h6 {
+  font-weight: 700;
+}
+
 [data-theme="blockbuster"] {
   color-scheme: dark;
   --theme-base: #001f5b;
@@ -212,10 +214,10 @@ body {
   --theme-text: #ffffff;
   --theme-muted: #93b4ff;
   --theme-border: #0a3580;
-  --theme-accent: #ffe000;
+  --theme-accent: #fff8dc;
   --theme-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   --theme-font-heading: "Outfit", sans-serif;
-  --theme-font-body: "Inter", sans-serif;
+  --theme-font-body: "Chivo", sans-serif;
 }
 
 [data-theme="mooooovies"] {
@@ -228,10 +230,10 @@ body {
   --theme-text: #000000;
   --theme-muted: #64748b;
   --theme-border: #000000;
-  --theme-accent: #ef4444;
+  --theme-accent: #22c55e;
   --theme-shadow: 4px 4px 0px rgba(0, 0, 0, 1);
   --theme-font-heading: "Outfit", sans-serif;
-  --theme-font-body: "Inter", sans-serif;
+  --theme-font-body: "Nunito", sans-serif;
 }
 
 @layer base {
@@ -248,8 +250,8 @@ body {
 
 /* Modern Pinnacle: Sleek, glass, subtle glow */
 [data-theme="modern-pinnacle"] body {
-  background-color: #000000;
-  background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #000000 70%);
+  background-color: #0d1117;
+  background-image: radial-gradient(circle at 50% 0%, #1c2333 0%, #0d1117 70%);
   background-attachment: fixed;
 }
 
@@ -309,21 +311,7 @@ body {
   line-height: 1 !important; /* Prevent title clipping on large text */
 }
 
-/* Film Noir: High contrast, monochrome */
-[data-theme="film-noir"] body {
-  background-color: #000000;
-  background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
-  background-attachment: fixed;
-}
-
-[data-theme="film-noir"] .bg-theme-surface {
-  background: #111111;
-  border: 1px solid #333333;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
-  background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
-}
-
-/* Matinee Popcorn: Buttery and cinematic */
+/* Velvet Theater: Rich curtain */
 [data-theme="matinee-popcorn"] body {
   background-color: #fffbeb;
   background-image: radial-gradient(circle at 20px 20px, #fef3c7 15px, transparent 15px),

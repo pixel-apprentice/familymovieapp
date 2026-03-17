@@ -289,7 +289,7 @@ export function MovieDetailPage() {
   const isActiveTrailerOnTV = isCouchMode && couchState?.activeTrailer && couchState.activeTrailer === movie.trailerKey;
 
   if (isCouchMode) {
-    return <MoviePageTV movie={movie} />;
+    return <MoviePageTV movie={movie} activeTrailer={couchState?.activeTrailer} />;
   }
 
   return (
