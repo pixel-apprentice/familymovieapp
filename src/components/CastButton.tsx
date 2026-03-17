@@ -142,24 +142,37 @@ export function CastButton() {
       }
     } catch (error: any) {
       const errorStr = String(error);
-      // CAF often uses lower-case for error types, we check both
-      const detailedCode = (window as any).chrome?.cast?.lastError?.code || 'unknown';
+      // CAF often follows this structure for detailed errors
+      const detailedCode = error?.detailed_error_code || (window as any).chrome?.cast?.lastError?.code || 'unknown';
+      const errorDesc = (window as any).chrome?.cast?.lastError?.description || '';
       
-      logger.error('[Cast] Session Action Failed:', { error, detailedCode, appId });
+      logger.error('[Cast] Session Action Failed:', { error, detailedCode, appId, errorDesc });
 
       if (errorStr.includes('cancel')) {
         toast.info('Cast request cancelled.');
-      } else if (errorStr.includes('session_error') || errorStr.includes('session_start_failed')) {
+      } else if (errorStr.includes('session_error') || errorStr.includes('session_start_failed') || errorStr.includes('error')) {
         toast.error(
           <div className="flex flex-col gap-1">
-            <span className="font-bold">TV Connection Failed</span>
-            <span className="text-xs opacity-80">App ID: {appId}</span>
-            <span className="text-xs opacity-70">Check if your Vercel URL is authorized in the Cast Console.</span>
+            <span className="font-bold text-sm text-red-400">Cast Handshake Failed</span>
+            <div className="flex flex-col gap-0.5 p-2 bg-black/20 rounded-lg border border-white/5 my-1">
+              <span className="text-[10px] font-mono opacity-90 uppercase">Code: {detailedCode}</span>
+              <span className="text-[10px] font-mono opacity-70">App ID: {appId}</span>
+              {errorDesc && <span className="text-[9px] opacity-60 italic mt-0.5">"{errorDesc}"</span>}
+            </div>
+            <p className="text-[10px] opacity-80 leading-relaxed">
+              Usually means <span className="text-white font-semibold underline decoration-white/20 underline-offset-2">familymovieapp.vercel.app</span> is missing from 'Authorized Domains' in your Cast Console.
+            </p>
           </div>,
-          { duration: 8000 }
+          { 
+            duration: 10000,
+            action: {
+              label: 'Open Console',
+              onClick: () => window.open('https://cast.google.com/publish/', '_blank')
+            }
+          }
         );
       } else {
-        toast.error(`Cast Error: ${errorStr} (ID: ${appId})`);
+        toast.error(`Cast Error: ${errorStr} (Detail: ${detailedCode})`);
       }
     }
   };
