@@ -60,7 +60,11 @@
   </script>
 </head>
 
-<body>
+<body style="background: #000; color: #fff; margin: 0;">
+  <!-- DIAGNOSTIC OVERLAY: Hidden by index.css. If visible, the external CSS failed to load. -->
+  <div id="css-diagnostic-overlay" style="background: #ff0000; color: #ffffff; padding: 15px; font-family: sans-serif; font-weight: bold; position: fixed; top: 0; left: 0; right: 0; z-index: 999999; text-align: center; border-bottom: 5px solid #fff;">
+    ⚠️ STYLING FAILURE: The TV is NOT rendering the main stylesheet (Build: 2026-03-16 20:52)
+  </div>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
