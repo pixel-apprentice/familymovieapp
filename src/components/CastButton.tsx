@@ -58,6 +58,7 @@ export function CastButton() {
 
       // Always prefer the custom receiver, but fall back to default ONLY if env var is missing during dev.
       const appId = import.meta.env.VITE_CAST_APP_ID || chromeCast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
+      console.log('🏁 Cast App ID Detected:', appId);
       logger.log(`[Cast] Selected App ID: ${appId} (Using ${import.meta.env.VITE_CAST_APP_ID ? 'Configured' : 'Default'})`);
       
       if (!import.meta.env.VITE_CAST_APP_ID) {
@@ -130,6 +131,7 @@ export function CastButton() {
         logger.log('[Cast] Ending session...');
         await castContext.endCurrentSession(true);
       } else {
+        console.log('🚀 Requesting Cast Session for ID:', appId);
         logger.log(`[Cast] Requesting session for AppID: ${appId}...`);
         const result = await castContext.requestSession();
         if (result) {
