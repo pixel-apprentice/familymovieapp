@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TMDBMovie } from '../../services/tmdb';
 import { useData } from '../../contexts/DataContext';
+import { movieService } from '../../services/movieService';
 import { sendRequestEmail } from '../../services/emailService';
 import { toast } from 'sonner';
 
@@ -21,8 +22,10 @@ export function useAddMovieForm(movie: TMDBMovie | null, onClose: () => void, on
     }
   }, [profiles, currentTurnIndex, picker]);
 
-  const handleRatingChange = (profileId: string, rating: number) => {
-    setRatings(prev => ({ ...prev, [profileId]: rating }));
+  const handleRatingChange = (profileId: string, star: number) => {
+    const currentRating = ratings[profileId] || 0;
+    const newRating = movieService.calculateNewRating(currentRating, star);
+    setRatings(prev => ({ ...prev, [profileId]: newRating }));
   };
 
   const handlePlexRequest = async () => {

@@ -68,20 +68,26 @@ export function AddMovieWatchedDetails({
             <div key={profile.id} className="flex items-center justify-between p-3 bg-theme-base rounded-xl border border-theme-border">
               <span className="text-xs font-black uppercase tracking-widest" style={{ color: profile.color }}>{profile.name}</span>
               <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map(star => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => handleRatingChange(profile.id, star)}
-                    className={`p-2 min-w-[44px] min-h-[44px] flex items-center justify-center transition-all hover:scale-125 ${
-                      star <= (ratings[profile.id] || 0) 
-                        ? 'text-theme-primary' 
-                        : 'text-theme-muted opacity-20'
-                    }`}
-                  >
-                    <Star size={20} fill={star <= (ratings[profile.id] || 0) ? 'currentColor' : 'none'} />
-                  </button>
-                ))}
+                {[1, 2, 3, 4, 5].map(star => {
+                  const currentRating = ratings[profile.id] || 0;
+                  const isFull = star <= currentRating;
+                  const isHalf = star - 0.5 === currentRating;
+                  
+                  return (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => handleRatingChange(profile.id, star)}
+                      className={`p-2 min-w-[44px] min-h-[44px] flex items-center justify-center transition-all hover:scale-125 ${
+                        isFull || isHalf 
+                          ? 'text-amber-400' 
+                          : 'text-theme-muted opacity-20'
+                      }`}
+                    >
+                      <Star size={20} fill={isFull ? 'currentColor' : isHalf ? 'url(#halfStarDetail)' : 'none'} />
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))}

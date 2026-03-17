@@ -22,6 +22,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className={`min-h-screen flex flex-col relative overflow-hidden transition-colors duration-700 ${isCouchMode ? `couch-mode-active couch-theme-${theme}` : ''}`} data-testid="app-ready">
+      {/* Global SVG Gradients */}
+      <svg width="0" height="0" className="absolute pointer-events-none" aria-hidden="true">
+        <defs>
+          <linearGradient id="halfStarDetail" x1="0" x2="100%" y1="0" y2="0">
+            <stop offset="50%" stopColor="#fbbf24" /> {/* amber-400 */}
+            <stop offset="50%" stopColor="transparent" />
+          </linearGradient>
+        </defs>
+      </svg>
       {/* ... existing theme backgrounds ... */}
       
       {isCouchMode && <PulseNotification event={pulseEvent} />}

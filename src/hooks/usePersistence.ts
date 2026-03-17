@@ -7,9 +7,17 @@ export function usePersistence<T>(key: string, initialValue: T) {
       if (typeof window === 'undefined') return initialValue;
       
       const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
+      if (item === null) return initialValue;
+      
+      try {
+        return JSON.parse(item);
+      } catch (parseError) {
+        // Migration support: If parsing fails, it's likely a legacy raw string (e.g., "modern-pinnacle" instead of "\"modern-pinnacle\"")
+        // We return the raw string as-is.
+        return item as unknown as T;
+      }
     } catch (error) {
-      logger.error(`[Persistence] Error reading key "${key}":`, error);
+      logger.warn(`[Persistence] Could not parse key "${key}", falling back to initial value.`);
       return initialValue;
     }
   });

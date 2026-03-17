@@ -11,7 +11,7 @@ interface MovieDetailRankingsProps {
 
 export function MovieDetailRankings({ movie, profiles, handleRatingToggle }: MovieDetailRankingsProps) {
   return (
-    <section className="bg-theme-surface/30 border border-theme-border rounded-3xl p-4 md:p-8 space-y-4 mt-4">
+    <section className="bg-theme-surface/30 border border-theme-border rounded-3xl p-4 md:p-8 space-y-4 mt-4 relative">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 text-theme-primary">
           <Star size={16} />
