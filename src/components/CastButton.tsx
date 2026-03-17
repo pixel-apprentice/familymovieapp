@@ -14,6 +14,8 @@ declare global {
   }
 }
 
+const CAST_APP_ID = 'EEFE3131';
+
 export function CastButton() {
   const { pushCouchState } = useData();
   const location = useLocation();
@@ -56,15 +58,11 @@ export function CastButton() {
       const castContext = castFramework?.CastContext?.getInstance?.();
       if (!castContext || !chromeCast) return;
 
-      // Always prefer the custom receiver, but fall back to default ONLY if env var is missing during dev.
-      const appId = import.meta.env.VITE_CAST_APP_ID || chromeCast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
-      console.log('🏁 Cast App ID Detected:', appId);
-      logger.log(`[Cast] Selected App ID: ${appId} (Using ${import.meta.env.VITE_CAST_APP_ID ? 'Configured' : 'Default'})`);
+      // Always use the hardcoded custom receiver ID for stabilization
+      const appId = CAST_APP_ID;
+      console.log('🏁 Cast App ID Enforced:', appId);
+      logger.log(`[Cast] Selected App ID: ${appId}`);
       
-      if (!import.meta.env.VITE_CAST_APP_ID) {
-        logger.error('[Cast] CRITICAL: VITE_CAST_APP_ID is missing. Falling back to default receiver.');
-      }
-
       logger.log(`[Cast] Setting Options - AppId: ${appId}, Policy: ORIGIN_SCOPED`);
       
       castContext.setOptions({
@@ -119,7 +117,7 @@ export function CastButton() {
     hapticFeedback.medium();
     const castFramework = (window as any).cast?.framework;
     const castContext = castFramework?.CastContext?.getInstance();
-    const appId = import.meta.env.VITE_CAST_APP_ID || 'CC1AD843';
+    const appId = CAST_APP_ID;
 
     if (!castContext) {
       toast.error(`Cast SDK not ready (AppID: ${appId}). Please refresh.`);
@@ -133,13 +131,18 @@ export function CastButton() {
       } else {
         console.log('🚀 Requesting Cast Session for ID:', appId);
         logger.log(`[Cast] Requesting session for AppID: ${appId}...`);
-        const result = await castContext.requestSession();
+        
+        // PASS APP ID EXPLICITLY IN THE REQUEST
+        const result = await castContext.requestSession({
+          receiverApplicationId: appId
+        });
         if (result) {
           logger.log('[Cast] Session starting success:', result);
         }
       }
     } catch (error: any) {
       const errorStr = String(error);
+      // CAF often uses lower-case for error types, we check both
       const detailedCode = (window as any).chrome?.cast?.lastError?.code || 'unknown';
       
       logger.error('[Cast] Session Action Failed:', { error, detailedCode, appId });
