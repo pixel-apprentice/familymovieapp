@@ -44,6 +44,7 @@ body {
 
 :root,
 [data-theme="modern-pinnacle"] {
+  color-scheme: dark;
   --theme-base: #000000;
   --theme-surface: #0a0a0a;
   --theme-primary: #ffffff;
@@ -58,6 +59,7 @@ body {
 }
 
 [data-theme="modern-luminous"] {
+  color-scheme: light;
   --theme-base: #f1f5f9;
   --theme-surface: #f8fafc;
   --theme-primary: #0f172a;
@@ -72,6 +74,7 @@ body {
 }
 
 [data-theme="cinematic-glass"] {
+  color-scheme: dark;
   --theme-base: #020617;
   --theme-surface: rgba(15, 23, 42, 0.4);
   --theme-primary: #38bdf8;
@@ -86,6 +89,7 @@ body {
 }
 
 [data-theme="film-noir"] {
+  color-scheme: dark;
   --theme-base: #000000;
   --theme-surface: #111111;
   --theme-primary: #ffffff;
@@ -100,6 +104,7 @@ body {
 }
 
 [data-theme="matinee-popcorn"] {
+  color-scheme: light;
   --theme-base: #fef2f2;
   --theme-surface: #ffffff;
   --theme-primary: #ef4444;
@@ -114,6 +119,7 @@ body {
 }
 
 [data-theme="vintage-ticket"] {
+  color-scheme: light;
   --theme-base: #fdfbf7;
   --theme-surface: #f4f0e6;
   --theme-primary: #d97706;
@@ -128,6 +134,7 @@ body {
 }
 
 [data-theme="velvet-theater"] {
+  color-scheme: dark;
   --theme-base: #2e0a16;
   --theme-surface: #4a1025;
   --theme-primary: #fbbf24;
@@ -142,6 +149,7 @@ body {
 }
 
 [data-theme="sci-fi-hologram"] {
+  color-scheme: dark;
   --theme-base: #020617;
   --theme-surface: #0f172a;
   --theme-primary: #38bdf8;
@@ -156,6 +164,7 @@ body {
 }
 
 [data-theme="drive-in"] {
+  color-scheme: dark;
   --theme-base: #0d0c1d;
   --theme-surface: #1a1833;
   --theme-primary: #f97316;
@@ -170,6 +179,7 @@ body {
 }
 
 [data-theme="golden-age"] {
+  color-scheme: dark;
   --theme-base: #1a1612;
   --theme-surface: #252016;
   --theme-primary: #d4a843;
@@ -184,6 +194,7 @@ body {
 }
 
 [data-theme="blockbuster"] {
+  color-scheme: dark;
   --theme-base: #001f5b;
   --theme-surface: #002875;
   --theme-primary: #ffe000;
@@ -198,6 +209,7 @@ body {
 }
 
 [data-theme="mooooovies"] {
+  color-scheme: light;
   --theme-base: #f1f5f9;
   --theme-surface: #ffffff;
   --theme-primary: #000000;

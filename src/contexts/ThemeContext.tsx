@@ -37,7 +37,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('activeTheme', theme);
       }
     } catch { /* ignore */ }
-    document.documentElement.setAttribute('data-theme', theme);
+    
+    const root = document.documentElement;
+    root.setAttribute('data-theme', theme);
+    
+    // Explicitly sync the color scheme to override system preferences
+    const isLight = ['modern-luminous', 'matinee-popcorn', 'vintage-ticket', 'mooooovies'].includes(theme);
+    root.style.colorScheme = isLight ? 'light' : 'dark';
   }, [theme]);
 
   return (
