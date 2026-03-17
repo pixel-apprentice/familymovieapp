@@ -2,7 +2,7 @@ import React from 'react';
 import { Movie, useData } from '../contexts/DataContext';
 import { useTheme, useThemeText } from '../contexts/ThemeContext';
 import { motion } from 'motion/react';
-import { Trash2, Youtube, ExternalLink } from 'lucide-react';
+import { Trash2, Youtube, ExternalLink, Star } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { hapticFeedback } from '../utils/haptics';
 import { isCouchModeEnabled } from '../utils/isCouchMode';
@@ -76,8 +76,12 @@ export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
               )}
 
               {movie.status === 'watched' && Number(familyRating) > 0 && (
-                <div className="bg-black/60 backdrop-blur-md text-white border border-white/20 px-2 py-1 rounded-lg flex items-center gap-1 shadow-xl">
-                  <span className="text-amber-400 font-black">★</span>
+                <div className="bg-black/60 backdrop-blur-md text-white border border-white/20 px-2 py-1 rounded-lg flex items-center gap-1.5 shadow-xl">
+                  <Star 
+                    size={10} 
+                    className="text-amber-400" 
+                    fill={Number(familyRating) % 1 !== 0 ? 'url(#halfStarDetail)' : 'currentColor'} 
+                  />
                   <span className="text-[10px] font-black uppercase tracking-tight">{familyRating}</span>
                 </div>
               )}

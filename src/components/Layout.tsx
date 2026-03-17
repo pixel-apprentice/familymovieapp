@@ -129,14 +129,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
             // Force a reload to ensure all states are cleared
             setTimeout(() => window.location.reload(), 100);
           }}
-          className="fixed bottom-6 right-6 z-50 p-4 bg-black/40 hover:bg-red-500/80 text-white/40 hover:text-white transition-all rounded-2xl backdrop-blur-xl border border-white/10 hover:border-white/20 group flex items-center gap-3 shadow-2xl"
+          className="fixed bottom-8 right-8 z-[200] group"
           title="Exit TV Mode"
         >
-          <LogOut size={24} className="group-hover:rotate-12 transition-transform" />
-          {/* Only show text on desktop to help people get "unstuck" */}
-          <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap hidden lg:inline">
-            Exit TV Mode
-          </span>
+          <div className="flex items-center gap-0 group-hover:gap-3 px-3 py-3 group-hover:px-6 rounded-full bg-black/20 hover:bg-red-500/80 text-white/20 hover:text-white transition-all duration-500 backdrop-blur-3xl border border-white/5 hover:border-white/20 shadow-2xl overflow-hidden">
+            <LogOut size={20} className="group-hover:rotate-12 transition-transform duration-500 shrink-0" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] w-0 group-hover:w-auto opacity-0 group-hover:opacity-100 transition-all duration-500 whitespace-nowrap overflow-hidden">
+              Terminate Session
+            </span>
+          </div>
         </Link>
       )}
     </div>

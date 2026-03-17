@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Star } from 'lucide-react';
 import { Movie } from '../contexts/DataContext';
 import { useData } from '../contexts/DataContext';
 import { hapticFeedback } from '../utils/haptics';
@@ -72,7 +72,14 @@ export const MovieListRow: React.FC<MovieListRowProps> = ({ movie }) => {
                             {profile?.name || movie.pickedBy}
                         </span>
                         {avgRating > 0 && (
-                            <span className={`${isCouchMode ? 'text-lg' : 'text-[10px]'} text-theme-muted font-mono text-theme-primary`}>★ {avgRating}</span>
+                            <span className={`${isCouchMode ? 'text-lg' : 'text-[10px]'} text-theme-muted font-mono text-theme-primary flex items-center gap-1`}>
+                                <Star 
+                                    size={isCouchMode ? 18 : 10} 
+                                    className="text-amber-400" 
+                                    fill={avgRating % 1 !== 0 ? 'url(#halfStarDetail)' : 'currentColor'} 
+                                />
+                                {avgRating}
+                            </span>
                         )}
                         {movie.status === 'wishlist' && (
                             <span className={`${isCouchMode ? 'text-sm px-3 py-1' : 'text-[9px] px-1.5 py-0.5'} font-black uppercase tracking-widest rounded border border-theme-primary/30 text-theme-primary bg-theme-primary/10`}>

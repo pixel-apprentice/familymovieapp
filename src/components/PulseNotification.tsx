@@ -80,8 +80,16 @@ export function PulseNotification({ event }: { event: PulseEvent | null }) {
               
               <p className="text-theme-muted text-sm font-medium mt-0.5">
                 {activeEvent.type === 'rating' && (
-                  <span className="inline-flex items-center gap-1">
-                    gave it <span className="text-amber-500 font-black">{activeEvent.value} ★</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    gave it 
+                    <span className="text-amber-500 font-black flex items-center gap-1">
+                      {activeEvent.value}
+                      <Star 
+                        size={14} 
+                        fill={Number(activeEvent.value) % 1 !== 0 ? 'url(#halfStarDetail)' : 'currentColor'} 
+                        className="text-amber-400"
+                      />
+                    </span>
                   </span>
                 )}
                 {activeEvent.type === 'watched' && "Marked as completed!"}
