@@ -11,7 +11,7 @@
             "headers": [
                 { "key": "Access-Control-Allow-Origin", "value": "*" },
                 { "key": "X-Frame-Options", "value": "ALLOWALL" },
-                { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' https://*.google.com" }
+                { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' https://*.google.com; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cast.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;" }
             ]
         }
     ]
