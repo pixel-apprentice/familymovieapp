@@ -17,7 +17,11 @@ export function CouchPage() {
         }
 
         // Set a flag so we know this device is a TV (Receiver)
-        import('../utils/isCouchMode').then(m => m.enableCouchMode());
+        // ONLY persist if it's a real Chromecast or has the explicit param
+        const isRealTV = window.navigator.userAgent.indexOf('CrKey') > -1;
+        if (isRealTV) {
+            import('../utils/isCouchMode').then(m => m.enableCouchMode());
+        }
 
         let retryCount = 0;
         const maxRetries = 20; 
