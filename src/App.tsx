@@ -54,11 +54,15 @@ function AppContent() {
 
   // Force Redirect for TV landing on root
   React.useEffect(() => {
-    if (isCouchMode && location.pathname === '/') {
+    const explicitCouchQuery = location.search.includes('couch=true');
+
+    // Allow "/?couch=true" to render the TV UI.
+    // Only force bootstrap if we're on "/" without the explicit couch query.
+    if (isCouchMode && location.pathname === '/' && !explicitCouchQuery) {
       logger.log("[Couch Mode] TV landed on root. Forcing redirect to /couch");
       navigate('/couch', { replace: true });
     }
-  }, [isCouchMode, location.pathname, navigate]);
+  }, [isCouchMode, location.pathname, location.search, navigate]);
 
   // PWA Update Cinematic Notification
   React.useEffect(() => {
@@ -121,4 +125,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
