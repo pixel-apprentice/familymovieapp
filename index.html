@@ -51,21 +51,38 @@
   <script type="text/javascript"
     src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
   <script type="text/javascript">
-    // ZERO-LATENCY RECEIVER BOOT: Initialize CAF Receiver immediately on TV devices.
-    // This must fire BEFORE React boots to avoid the Chromecast Ultra's strict handshake timeout.
+    // ROBUST ZERO-LATENCY RECEIVER BOOT: 
+    // Fires BEFORE React and polls for the 'cast' global to handle SDK initialization lag.
     if (navigator.userAgent.indexOf('CrKey') > -1) {
       window.isCastReceiver = true;
       const s = document.createElement('script');
       s.src = "https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js";
       s.onload = () => {
-        try {
-          const context = cast.framework.CastReceiverContext.getInstance();
-          // We can set options here if needed, but start() is what tells the phone "I AM ALIVE"
-          context.start();
-          console.log('[TV] Cast Receiver Context started via index.html');
-        } catch (e) {
-          console.error('[TV] Failed to start receiver in head:', e);
-        }
+        let attempts = 0;
+        const maxAttempts = 40; // 2 seconds total
+
+        const startWithRetry = () => {
+          try {
+            const castFramework = window.cast?.framework;
+            const context = castFramework?.CastReceiverContext?.getInstance();
+            if (context) {
+              context.start();
+              console.log('[TV] Cast Receiver Context started successfully after', attempts, 'retries.');
+              return;
+            }
+          } catch (e) {
+            console.warn('[TV] Init attempt failed:', e);
+          }
+
+          attempts++;
+          if (attempts < maxAttempts) {
+            setTimeout(startWithRetry, 50);
+          } else {
+            console.error('[TV] Cast Receiver failed to initialize after 2 seconds.');
+          }
+        };
+
+        startWithRetry();
       };
       document.head.appendChild(s);
     }
