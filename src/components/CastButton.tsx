@@ -142,8 +142,11 @@ export function CastButton() {
       }
     } catch (error: any) {
       const errorStr = String(error);
-      // CAF often follows this structure for detailed errors
-      const detailedCode = error?.detailed_error_code || (window as any).chrome?.cast?.lastError?.code || 'unknown';
+      // CAF often returns a string like 'session_error' directly, or an object with detailed_error_code
+      const detailedCode = error?.detailed_error_code || 
+                          ((window as any).chrome?.cast?.lastError?.code) || 
+                          (errorStr !== '[object Object]' ? errorStr : 'unknown');
+      
       const errorDesc = (window as any).chrome?.cast?.lastError?.description || '';
       
       console.dir(error); // 🧪 Let the user see the full raw error object
