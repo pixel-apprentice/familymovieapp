@@ -146,6 +146,7 @@ export function CastButton() {
       const detailedCode = error?.detailed_error_code || (window as any).chrome?.cast?.lastError?.code || 'unknown';
       const errorDesc = (window as any).chrome?.cast?.lastError?.description || '';
       
+      console.dir(error); // 🧪 Let the user see the full raw error object
       logger.error('[Cast] Session Action Failed:', { error, detailedCode, appId, errorDesc });
 
       if (errorStr.includes('cancel')) {
