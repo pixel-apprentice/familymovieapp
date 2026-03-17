@@ -51,10 +51,22 @@
   <script type="text/javascript"
     src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
   <script type="text/javascript">
-    // Only load receiver SDK if we are on a likely TV receiver (Chromecast)
+    // ZERO-LATENCY RECEIVER BOOT: Initialize CAF Receiver immediately on TV devices.
+    // This must fire BEFORE React boots to avoid the Chromecast Ultra's strict handshake timeout.
     if (navigator.userAgent.indexOf('CrKey') > -1) {
+      window.isCastReceiver = true;
       const s = document.createElement('script');
       s.src = "https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js";
+      s.onload = () => {
+        try {
+          const context = cast.framework.CastReceiverContext.getInstance();
+          // We can set options here if needed, but start() is what tells the phone "I AM ALIVE"
+          context.start();
+          console.log('[TV] Cast Receiver Context started via index.html');
+        } catch (e) {
+          console.error('[TV] Failed to start receiver in head:', e);
+        }
+      };
       document.head.appendChild(s);
     }
   </script>
