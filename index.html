@@ -21,6 +21,32 @@
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍕</text></svg>" />
 
   <title>Pizza Movie Night</title>
+  <style id="fmn-safety-css">
+    /* Bulletproof TV Fallbacks: Injected directly to prevent white screens */
+    :root {
+      --theme-base: #000000;
+      --theme-surface: #0a0a0a;
+      --theme-primary: #ffffff;
+      --theme-secondary: #a3a3a3;
+      --theme-text: #ffffff;
+      --theme-muted: #737373;
+      --theme-border: #262626;
+      --theme-accent: #ffffff;
+    }
+    html, body {
+      background-color: #000 !important;
+      color: #fff !important;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      width: 100vw;
+      overflow-x: hidden;
+      font-family: sans-serif; /* High-reliability fallback */
+    }
+    #root {
+      background-color: #000 !important;
+    }
+  </style>
   <!-- Google Cast SDK -->
   <script type="text/javascript"
     src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
