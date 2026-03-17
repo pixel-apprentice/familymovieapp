@@ -116,43 +116,46 @@ export function CastButton() {
 
   const handleCastClick = async () => {
     hapticFeedback.medium();
-    try {
-      const castContext = (window as any).cast?.framework?.CastContext?.getInstance?.();
-      const session = castContext?.getCurrentSession();
+    const castFramework = (window as any).cast?.framework;
+    const castContext = castFramework?.CastContext?.getInstance();
+    const appId = import.meta.env.VITE_CAST_APP_ID || 'CC1AD843';
 
-      if (session) {
-        logger.log('[Cast] Ending current session...');
-        castContext.endCurrentSession(true);
-        setIsCasting(false);
+    if (!castContext) {
+      toast.error(`Cast SDK not ready (AppID: ${appId}). Please refresh.`);
+      return;
+    }
+
+    try {
+      if (castContext.getSessionState() === castFramework.SessionState.SESSION_STARTED) {
+        logger.log('[Cast] Ending session...');
+        await castContext.endCurrentSession(true);
       } else {
-        logger.log('[Cast] Requesting new session...');
-        try {
-          await castContext?.requestSession?.();
-        } catch (err: any) {
-          // CAF throws the error code as a string, but some versions provide an object
-          const errorCode = typeof err === 'string' ? err : err?.code || 'unknown';
-          const detailedCode = err?.detailed_error_code || 'none';
-          
-          logger.error(`[Cast] Session Request Failed: ${errorCode} (Detailed: ${detailedCode})`);
-          
-          let userMessage = "Cast couldn't connect.";
-          if (errorCode === 'session_error') {
-            userMessage = "Cast Session Error. Usually means your Vercel URL isn't authorized in Cast Console!";
-          } else if (errorCode === 'cancel') {
-            userMessage = "Cast cancelled.";
-          }
-          
-          toast.error(userMessage, {
-            duration: 6000,
-            action: {
-              label: "Check Console",
-              onClick: () => window.open('https://cast.google.com/publish', '_blank')
-            }
-          });
+        logger.log(`[Cast] Requesting session for AppID: ${appId}...`);
+        const result = await castContext.requestSession();
+        if (result) {
+          logger.log('[Cast] Session starting success:', result);
         }
       }
-    } catch (error) {
-      logger.error('Native cast session action failed:', error);
+    } catch (error: any) {
+      const errorStr = String(error);
+      const detailedCode = (window as any).chrome?.cast?.lastError?.code || 'unknown';
+      
+      logger.error('[Cast] Session Action Failed:', { error, detailedCode, appId });
+
+      if (errorStr.includes('cancel')) {
+        toast.info('Cast request cancelled.');
+      } else if (errorStr.includes('session_error') || errorStr.includes('session_start_failed')) {
+        toast.error(
+          <div className="flex flex-col gap-1">
+            <span className="font-bold">TV Connection Failed</span>
+            <span className="text-xs opacity-80">App ID: {appId}</span>
+            <span className="text-xs opacity-70">Check if your Vercel URL is authorized in the Cast Console.</span>
+          </div>,
+          { duration: 8000 }
+        );
+      } else {
+        toast.error(`Cast Error: ${errorStr} (ID: ${appId})`);
+      }
     }
   };
 
