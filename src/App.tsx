@@ -52,13 +52,24 @@ function AppContent() {
     }
   }, [isCouchMode, couchState, location.pathname, navigate]);
 
-  // Force Redirect for TV landing on root
+  // Force bootstrap route only for fresh TV receiver sessions.
   React.useEffect(() => {
-    if (isCouchMode && location.pathname === '/') {
-      logger.log("[Couch Mode] TV landed on root. Forcing redirect to /couch");
+    const explicitCouchQuery = location.search.includes('couch=true');
+
+    let hasStoredCouchFlag = false;
+    try {
+      hasStoredCouchFlag = typeof localStorage !== 'undefined' && localStorage.getItem('fmn_couch_mode') === 'true';
+    } catch {
+      hasStoredCouchFlag = false;
+    }
+
+    // Keep browser-based couch sessions on "/" when couch mode is already persisted.
+    // Redirect only when couch mode is detected but not explicitly requested and not yet persisted.
+    if (isCouchMode && location.pathname === '/' && !explicitCouchQuery && !hasStoredCouchFlag) {
+      logger.log("[Couch Mode] TV landed on root. Forcing redirect to /couch bootstrap.");
       navigate('/couch', { replace: true });
     }
-  }, [isCouchMode, location.pathname, navigate]);
+  }, [isCouchMode, location.pathname, location.search, navigate]);
 
   // PWA Update Cinematic Notification
   React.useEffect(() => {
@@ -121,4 +132,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
