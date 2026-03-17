@@ -9,11 +9,9 @@ export function CouchPage() {
 
     useEffect(() => {
         // Set a flag so we know this device is a TV (Receiver)
-        // ONLY persist if it's a real Chromecast
-        const isRealTV = window.navigator.userAgent.indexOf('CrKey') > -1;
-        if (isRealTV) {
-            import('../utils/isCouchMode').then(m => m.enableCouchMode());
-        }
+        // This persists so that even if we navigate to /tv/movie/:id, 
+        // the app knows it's a TV without checking the URL constantly.
+        import('../utils/isCouchMode').then(m => m.enableCouchMode());
     }, []);
 
     // Ambient Mode Timer: If no movie is selected after 5 minutes, cycle through top picks

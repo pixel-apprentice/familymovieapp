@@ -3,15 +3,15 @@ import { Movie, FamilyProfile } from '../../contexts/DataContext';
 import { MovieCard } from '../MovieCard';
 import { MovieListRow } from '../MovieListRow';
 import { useTheme, useThemeText } from '../../contexts/ThemeContext';
+import { calculateAverageRating } from '../../constants/movies';
 
 interface HistorySectionProps {
   watchedMovies: Movie[];
   profiles: FamilyProfile[];
-  calculateAverageRating: (ratings: Movie['ratings']) => number;
   viewMode: 'grid' | 'list';
 }
 
-export function HistorySection({ watchedMovies, profiles, calculateAverageRating, viewMode }: HistorySectionProps) {
+export function HistorySection({ watchedMovies, profiles, viewMode }: HistorySectionProps) {
   const { theme } = useTheme();
   const getThemeText = useThemeText();
   return (

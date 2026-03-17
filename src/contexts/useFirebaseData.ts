@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import { Movie, FamilyProfile, DEFAULT_PROFILES, CouchState, PulseEvent } from './DataContext';
+import { Movie, FamilyProfile, CouchState, PulseEvent } from '../types/movie';
+import { DEFAULT_PROFILES, CACHE_KEYS, DEFAULTS } from '../constants/settings';
+import { usePersistence } from '../hooks/usePersistence';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useAuth } from './AuthContext';
 import { searchMovies, getMovieDetails, pickBestMovieMatch, GENRE_MAP } from '../services/tmdb';
@@ -11,14 +13,27 @@ import { isCouchModeEnabled } from '../utils/isCouchMode';
 export function useFirebaseData() {
   const { user, loading: authLoading } = useAuth();
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [profiles, setProfiles] = useState<FamilyProfile[]>(() => {
-    const saved = localStorage.getItem('fmn_profiles_cache');
-    return saved ? JSON.parse(saved) : DEFAULT_PROFILES;
-  });
-  const [currentTurnIndex, setCurrentTurnIndex] = useState<number>(() => {
-    const saved = localStorage.getItem('fmn_turn_cache');
-    return saved ? parseInt(saved, 10) : 0;
-  });
+  
+  const [profiles, setProfiles] = usePersistence<FamilyProfile[]>(
+    CACHE_KEYS.PROFILES, 
+    DEFAULT_PROFILES
+  );
+  
+  const [currentTurnIndex, setCurrentTurnIndex] = usePersistence<number>(
+    CACHE_KEYS.TURN_INDEX, 
+    DEFAULTS.TURN_INDEX
+  );
+
+  const [localMovies, setLocalMovies, clearLocalMovies] = usePersistence<Movie[]>(
+    CACHE_KEYS.LOCAL_MOVIES,
+    []
+  );
+
+  const [localTurn, setLocalTurn, clearLocalTurn] = usePersistence<number>(
+    CACHE_KEYS.LOCAL_TURN,
+    DEFAULTS.TURN_INDEX
+  );
+
   const [isLocalMode, setIsLocalMode] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'offline' | 'local-only'>('syncing');
   const [couchState, setCouchState] = useState<CouchState | null>(null);
@@ -35,12 +50,10 @@ export function useFirebaseData() {
     if (authLoading) return;
 
     if (!user) {
-      const localMovies = localStorage.getItem('localMovies');
-      if (localMovies) setMovies(JSON.parse(localMovies));
-      const localTurn = localStorage.getItem('localTurn');
-      if (localTurn) setCurrentTurnIndex(Number(localTurn));
+      if (localMovies.length > 0) setMovies(localMovies);
+      setCurrentTurnIndex(localTurn);
 
-      if (!isCouchModeEnabled(window.location.search)) {
+      if (!isCouchModeEnabled()) {
         setIsLocalMode(true);
         setSyncStatus('local-only');
         return;
@@ -71,11 +84,9 @@ export function useFirebaseData() {
           const data = docSnap.data();
           if (data.currentTurnIndex !== undefined) {
             setCurrentTurnIndex(data.currentTurnIndex);
-            localStorage.setItem('fmn_turn_cache', data.currentTurnIndex.toString());
           }
           if (data.profiles) {
             setProfiles(data.profiles);
-            localStorage.setItem('fmn_profiles_cache', JSON.stringify(data.profiles));
           }
         }
       }, (error) => {
@@ -140,12 +151,9 @@ export function useFirebaseData() {
 
   const addMovie = useCallback(async (movie: Omit<Movie, 'id'> & { id?: string }) => {
     if (isLocalMode) {
-      setMovies(prev => {
-        const newMovie = { ...movie, id: movie.id || Date.now().toString() } as Movie;
-        const updated = [...prev, newMovie];
-        localStorage.setItem('localMovies', JSON.stringify(updated));
-        return updated;
-      });
+      const newMovie = { ...movie, id: movie.id || Date.now().toString() } as Movie;
+      setLocalMovies(prev => [...prev, newMovie]);
+      setMovies(prev => [...prev, newMovie]);
       return;
     }
     const sanitized = Object.fromEntries(
@@ -158,11 +166,8 @@ export function useFirebaseData() {
 
   const updateMovie = useCallback(async (id: string, updates: Partial<Movie>) => {
     if (isLocalMode) {
-      setMovies(prev => {
-        const updated = prev.map(m => m.id === id ? { ...m, ...updates } : m);
-        localStorage.setItem('localMovies', JSON.stringify(updated));
-        return updated;
-      });
+      setLocalMovies(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+      setMovies(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
       return;
     }
     const sanitized = Object.fromEntries(
@@ -175,11 +180,8 @@ export function useFirebaseData() {
 
   const removeMovie = useCallback(async (id: string) => {
     if (isLocalMode) {
-      setMovies(prev => {
-        const updated = prev.filter(m => m.id !== id);
-        localStorage.setItem('localMovies', JSON.stringify(updated));
-        return updated;
-      });
+      setLocalMovies(prev => prev.filter(m => m.id !== id));
+      setMovies(prev => prev.filter(m => m.id !== id));
       return;
     }
     setSyncStatus('syncing');
@@ -203,8 +205,8 @@ export function useFirebaseData() {
   const skipTurn = useCallback(async () => {
     const nextTurn = (currentTurnIndex + 1) % profiles.length;
     if (isLocalMode) {
+      setLocalTurn(nextTurn);
       setCurrentTurnIndex(nextTurn);
-      localStorage.setItem('localTurn', nextTurn.toString());
       return;
     }
     setSyncStatus('syncing');
@@ -213,8 +215,8 @@ export function useFirebaseData() {
 
   const setTurn = useCallback(async (index: number) => {
     if (isLocalMode) {
+      setLocalTurn(index);
       setCurrentTurnIndex(index);
-      localStorage.setItem('localTurn', index.toString());
       return;
     }
     setSyncStatus('syncing');

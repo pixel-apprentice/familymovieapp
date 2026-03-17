@@ -30,10 +30,10 @@ function AppContent() {
   React.useEffect(() => {
     if (location.search.includes('exit_couch=true')) {
       clearCouchMode();
-    } else if (location.search.includes('couch=true')) {
+    } else if (location.pathname.startsWith('/tv')) {
       enableCouchMode();
     }
-  }, [location.search]);
+  }, [location.search, location.pathname]);
 
   // THE CAST RECEIVER BOOT HAS MOVED TO index.html for zero-latency startup.
   // This allows the TV to check-in with the phone before React even mounts.
@@ -41,34 +41,26 @@ function AppContent() {
   // Global Sync Listener for TV
   React.useEffect(() => {
     if (isCouchMode && couchState && couchState.timestamp > lastSyncTimestampRef.current) {
-      const isOnCouchLanding = location.pathname === '/couch';
-      const isNewPath = location.pathname !== couchState.path;
+      const isOnTvLanding = location.pathname === '/tv';
+      const tvPathBase = '/tv';
       
-      // Always update the ref so we "consume" the update
+      // Normalize the incoming path to a TV path
+      const targetPath = couchState.path === '/' ? tvPathBase : `${tvPathBase}${couchState.path}`;
+      const isNewPath = location.pathname !== targetPath;
+      
       lastSyncTimestampRef.current = couchState.timestamp;
       
-      // SELECTIVE SYNC: 
-      // 1. If we are on the specialized /couch landing page, only navigate away if the phone is on a movie.
-      // 2. If the phone is on the home page, stay on /couch (our ambient waiting room).
-      // 3. If we are ALREADY somewhere else (like a movie), keep following the phone's Home/Movie sync.
-      
       const isPhoneOnMovie = couchState.path.startsWith('/movie/');
-      const isPhoneOnHome = couchState.path === '/';
       
       if (isNewPath) {
-        if (isOnCouchLanding) {
+        if (isOnTvLanding) {
           if (isPhoneOnMovie) {
-            logger.log("[Couch Mode] Phone is on a movie. Syncing from landing to:", couchState.path);
-            navigate(couchState.path);
-          } else {
-            logger.log("[Couch Mode] Phone is on home. Staying on specialized landing page.");
+            logger.log("[Couch Mode] Phone on movie. Syncing to:", targetPath);
+            navigate(targetPath);
           }
         } else {
-          // We are already in the "synced" flow (e.g. on a movie or the home page)
-          if (isPhoneOnMovie || isPhoneOnHome) {
-            logger.log("[Couch Mode] Syncing navigation to:", couchState.path);
-            navigate(couchState.path);
-          }
+            logger.log("[Couch Mode] Syncing navigation to:", targetPath);
+            navigate(targetPath);
         }
       }
     }
@@ -113,7 +105,10 @@ function AppContent() {
         <Route path="/" element={<HomePage />} />
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/movie/:id" element={<MovieDetailPage />} />
-        <Route path="/couch" element={<CouchPage />} />
+        
+        {/* TV Routes */}
+        <Route path="/tv" element={<CouchPage />} />
+        <Route path="/tv/movie/:id" element={<MovieDetailPage />} />
       </Routes>
       <Modal />
       <Toaster position="top-center" richColors />

@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext } from 'react';
+import { CACHE_KEYS } from '../constants/settings';
+import { usePersistence } from '../hooks/usePersistence';
 
 export type RecommendationMode = 'balanced' | 'familiar' | 'explore' | 'safe';
 export type ContentMaxRating = 'PG' | 'PG-13' | 'R';
@@ -17,43 +19,35 @@ interface SettingsContextType {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-    const [allowRatedR, setAllowRatedRState] = useState<boolean>(() => {
-        return localStorage.getItem('allowRatedR') === 'true';
-    });
-    const [recommendationMode, setRecommendationModeState] = useState<RecommendationMode>(() =>
-        (localStorage.getItem('recommendationMode') as RecommendationMode) || 'balanced'
+    const [allowRatedR, setAllowRatedRState] = usePersistence<boolean>(
+        CACHE_KEYS.ALLOW_RATED_R,
+        false
     );
-    const [contentMaxRating, setContentMaxRatingState] = useState<ContentMaxRating>(() =>
-        (localStorage.getItem('contentMaxRating') as ContentMaxRating) || 'PG-13'
+    const [recommendationMode, setRecommendationMode] = usePersistence<RecommendationMode>(
+        CACHE_KEYS.RECOMMENDATION_MODE,
+        'balanced'
     );
-    const [blockMatureThemes, setBlockMatureThemesState] = useState<boolean>(() =>
-        localStorage.getItem('blockMatureThemes') !== 'false'
+    const [contentMaxRating, setContentMaxRatingState] = usePersistence<ContentMaxRating>(
+        CACHE_KEYS.CONTENT_MAX_RATING,
+        'PG-13'
+    );
+    const [blockMatureThemes, setBlockMatureThemes] = usePersistence<boolean>(
+        CACHE_KEYS.BLOCK_MATURE_THEMES,
+        true
     );
 
     const setAllowRatedR = (val: boolean) => {
         setAllowRatedRState(val);
-        localStorage.setItem('allowRatedR', val ? 'true' : 'false');
         if (val) {
             setContentMaxRatingState('R');
-            localStorage.setItem('contentMaxRating', 'R');
+        } else if (contentMaxRating === 'R') {
+            setContentMaxRatingState('PG-13');
         }
-    };
-
-    const setRecommendationMode = (mode: RecommendationMode) => {
-        setRecommendationModeState(mode);
-        localStorage.setItem('recommendationMode', mode);
     };
 
     const setContentMaxRating = (rating: ContentMaxRating) => {
         setContentMaxRatingState(rating);
-        localStorage.setItem('contentMaxRating', rating);
         setAllowRatedRState(rating === 'R');
-        localStorage.setItem('allowRatedR', rating === 'R' ? 'true' : 'false');
-    };
-
-    const setBlockMatureThemes = (val: boolean) => {
-        setBlockMatureThemesState(val);
-        localStorage.setItem('blockMatureThemes', val ? 'true' : 'false');
     };
 
     return (

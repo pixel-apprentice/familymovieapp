@@ -1,9 +1,11 @@
 export function isCouchModeEnabled(search?: string): boolean {
-  // 1. Explicit exit hatch (cleanup happens in useEffect in App)
-  if (search?.includes('exit_couch=true')) return false;
+  // 1. Path-based check (Primary)
+  if (typeof window !== 'undefined') {
+    if (window.location.pathname.startsWith('/tv')) return true;
+  }
 
-  // 2. Explicit couch query param (strongest signal)
-  if (search?.includes('couch=true')) return true;
+  // 2. Explicit exit hatch (cleanup happens in useEffect in App)
+  if (search?.includes('exit_couch=true')) return false;
 
   // 3. Persistent storage
   try {

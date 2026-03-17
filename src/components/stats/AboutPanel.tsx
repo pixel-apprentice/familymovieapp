@@ -44,19 +44,26 @@ const CHANGELOG = [
   }
 ];
 
+import { CACHE_KEYS } from '../../constants/settings';
+import { usePersistence } from '../../hooks/usePersistence';
+
 export function AboutPanel() {
   const { theme } = useTheme();
   const [showChangelog, setShowChangelog] = useState(false);
   const latestVersion = CHANGELOG[0].version;
 
+  const [lastSeenVersion, setLastSeenVersion] = usePersistence<string | null>(
+    CACHE_KEYS.CHANGELOG_VERSION,
+    null
+  );
+
   const unreadCount = useMemo(() => {
-    const seen = localStorage.getItem('lastSeenChangelogVersion');
-    if (!seen || seen !== latestVersion) return 1;
+    if (!lastSeenVersion || lastSeenVersion !== latestVersion) return 1;
     return 0;
-  }, [latestVersion]);
+  }, [latestVersion, lastSeenVersion]);
 
   const openChangelog = () => {
-    localStorage.setItem('lastSeenChangelogVersion', latestVersion);
+    setLastSeenVersion(latestVersion);
     setShowChangelog(true);
   };
 

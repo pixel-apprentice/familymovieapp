@@ -8,54 +8,9 @@ import { useModal } from './ModalContext';
 import { useFirebaseData } from './useFirebaseData';
 import { logger } from '../utils/logger';
 
-export interface FamilyProfile {
-  id: string;
-  name: string;
-  color: string;
-}
-
-export const DEFAULT_PROFILES: FamilyProfile[] = [
-  { id: 'Jack', name: 'Jack', color: '#60a5fa' },
-  { id: 'Simone', name: 'Simone', color: '#f472b6' },
-  { id: 'Mom', name: 'Mom', color: '#34d399' },
-  { id: 'Dad', name: 'Dad', color: '#fbbf24' }
-];
-
-export interface Movie {
-  id: string;
-  tmdbId?: string;
-  title: string;
-  poster_url?: string;
-  trailerKey?: string;
-  summary?: string;
-  status: 'wishlist' | 'watched';
-  pickedBy: string;
-  date?: string;
-  genres?: string[];
-  ratings: Record<string, number>;
-}
-
-export interface CouchState {
-  path: string;
-  movieId?: string;
-  viewMode?: 'grid' | 'list';
-  pickerFilter?: string;
-  genreFilter?: string;
-  searchQuery?: string;
-  activeTrailer?: string;
-  timestamp: number;
-}
-
-export interface PulseEvent {
-  type: 'rating' | 'watched' | 'added' | 'status';
-  userName?: string;
-  movieTitle?: string;
-  message?: string;
-  title?: string;
-  value?: string | number;
-  timestamp: number;
-  onAction?: () => void;
-}
+import { FamilyProfile, Movie, CouchState, PulseEvent } from '../types/movie';
+export type { FamilyProfile, Movie, CouchState, PulseEvent };
+import { DEFAULT_PROFILES } from '../constants/settings';
 
 interface DataContextType {
   movies: Movie[];
@@ -144,13 +99,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           await Promise.all(deletePromises);
         }
 
+interface SeedMovie {
+  date: string;
+  title: string;
+  picker: string;
+}
+
         // 2. Re-seed data
         try {
           const seedBatch = writeBatch(db);
-          seedData.forEach((m) => {
+          (seedData as SeedMovie[]).forEach((m) => {
             let picker = m.picker;
             if (picker.includes('Family')) picker = 'Family';
-            if (picker === 'Lauren' || picker === 'Mom') picker = 'Mom';
+            // Normalize specific mappings
+            const mappings: Record<string, string> = { 'Lauren': 'Mom', 'Dad': 'Dad', 'Jack': 'Jack', 'Simone': 'Simone' };
+            if (mappings[picker]) picker = mappings[picker];
 
             const newDocRef = doc(collection(db, 'movies'));
             seedBatch.set(newDocRef, {

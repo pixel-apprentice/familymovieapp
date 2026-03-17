@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getThemeText, ThemeTextKey } from '../utils/themeDictionary';
 
+import { CACHE_KEYS, DEFAULTS } from '../constants/settings';
+import { usePersistence } from '../hooks/usePersistence';
+
 export type Theme =
   | 'modern-pinnacle'
   | 'modern-luminous'
@@ -21,23 +24,12 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    try {
-      if (typeof localStorage !== 'undefined') {
-        const saved = localStorage.getItem('activeTheme');
-        if (saved) return saved as Theme;
-      }
-    } catch { /* ignore */ }
-    return 'modern-pinnacle'; // Default to a dark theme for TVs
-  });
+  const [theme, setTheme] = usePersistence<Theme>(
+    CACHE_KEYS.THEME,
+    DEFAULTS.THEME
+  );
 
   useEffect(() => {
-    try {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('activeTheme', theme);
-      }
-    } catch { /* ignore */ }
-    
     const root = document.documentElement;
     root.setAttribute('data-theme', theme);
     

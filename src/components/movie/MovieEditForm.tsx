@@ -44,7 +44,7 @@ export function MovieEditForm({ editForm, setEditForm, profiles, handleSave, set
           <label className="text-[10px] uppercase font-black text-theme-muted tracking-widest">Status</label>
           <select
             value={editForm.status}
-            onChange={e => setEditForm({...editForm, status: e.target.value as any})}
+            onChange={e => setEditForm(prev => ({...prev, status: e.target.value as 'wishlist' | 'watched'}))}
             className="bg-theme-base border-2 border-theme-border rounded-xl px-4 py-3 text-sm font-black uppercase text-theme-text focus:outline-none focus:border-theme-primary transition-colors w-full"
           >
             <option value="wishlist">

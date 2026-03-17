@@ -20,7 +20,7 @@ export function UpNextSection({ wishlistMovies, pickRandom, randomMovie, setRand
   const { theme } = useTheme();
   const getThemeText = useThemeText();
   const location = useLocation();
-  const isCouchMode = isCouchModeEnabled(location.search);
+  const isCouchMode = isCouchModeEnabled();
   return (
     <section className="space-y-6">
       <div className="flex items-center justify-between gap-4">

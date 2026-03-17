@@ -18,7 +18,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme();
   const location = useLocation();
 
-  const isCouchMode = isCouchModeEnabled(location.search);
+  const isCouchMode = isCouchModeEnabled();
 
   return (
     <div className={`min-h-screen flex flex-col relative overflow-hidden transition-colors duration-700 ${isCouchMode ? `couch-mode-active couch-theme-${theme}` : ''}`} data-testid="app-ready">

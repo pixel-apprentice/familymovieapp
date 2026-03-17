@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useModal } from '../../contexts/ModalContext';
+import { CACHE_KEYS } from '../../constants/settings';
+import { usePersistence } from '../../hooks/usePersistence';
 
 export function DatabaseManagementPanel() {
   const { isLocalMode, resetDatabase } = useData();
   const { showModal } = useModal();
   const [isResetting, setIsResetting] = useState(false);
+  const [forceLocal, setForceLocal, removeForceLocal] = usePersistence<string | null>(
+    CACHE_KEYS.FORCE_LOCAL,
+    null
+  );
 
   const handleReset = async () => {
     const confirmed = await showModal({
@@ -38,10 +44,10 @@ export function DatabaseManagementPanel() {
           >
             {isResetting ? 'Resetting...' : 'Reset Database'}
           </button>
-          {isLocalMode && localStorage.getItem('forceLocal') === 'true' ? (
+          {isLocalMode && forceLocal === 'true' ? (
             <button 
               onClick={() => {
-                localStorage.removeItem('forceLocal');
+                removeForceLocal();
                 window.location.reload();
               }}
               className="px-8 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 font-black rounded-xl hover:bg-emerald-500/20 transition-all uppercase text-[10px] tracking-widest"
@@ -59,7 +65,7 @@ export function DatabaseManagementPanel() {
                   cancelText: 'Cancel'
                 });
                 if (confirmed) {
-                  localStorage.setItem('forceLocal', 'true');
+                  setForceLocal('true');
                   window.location.reload();
                 }
               }}

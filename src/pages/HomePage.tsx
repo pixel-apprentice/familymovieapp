@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom';
 
 export function HomePage() {
   const location = useLocation();
-  const isCouchMode = isCouchModeEnabled(location.search);
+  const isCouchMode = isCouchModeEnabled();
 
   return (
     <>

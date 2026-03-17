@@ -34,17 +34,18 @@
       --theme-accent: #ffffff;
     }
     html, body {
-      background-color: #000;
-      color: #fff;
+      background-color: var(--theme-base);
+      color: var(--theme-text);
       margin: 0;
       padding: 0;
       min-height: 100vh;
       width: 100vw;
       overflow-x: hidden;
       font-family: sans-serif; /* High-reliability fallback */
+      transition: background-color 0.3s ease;
     }
     #root {
-      background-color: #000;
+      background-color: transparent;
     }
   </style>
   <!-- Google Cast SDK -->
@@ -55,7 +56,7 @@
     // Fires BEFORE React and polls for the 'cast' global to handle SDK initialization lag.
     const ua = navigator.userAgent;
     const isTVAgent = ua.indexOf('CrKey') > -1 || (ua.indexOf('Android') > -1 && ua.indexOf('TV') > -1);
-    const isCouchPath = window.location.pathname === '/couch' || window.location.search.includes('couch=true');
+    const isCouchPath = window.location.pathname.startsWith('/tv');
 
     if (isTVAgent || isCouchPath) {
       window.isCastReceiver = true;
