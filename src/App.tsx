@@ -52,13 +52,8 @@ function AppContent() {
     }
   }, [isCouchMode, couchState, location.pathname, navigate]);
 
-  // Force Redirect for TV landing on root
-  React.useEffect(() => {
-    if (isCouchMode && location.pathname === '/') {
-      logger.log("[Couch Mode] TV landed on root. Forcing redirect to /couch");
-      navigate('/couch', { replace: true });
-    }
-  }, [isCouchMode, location.pathname, navigate]);
+  // Force Redirect for TV landing on root - REMOVED to prevent loop
+  // CouchPage.tsx now handles the entry point and synchronization logic.
 
   // PWA Update Cinematic Notification
   React.useEffect(() => {

@@ -31,8 +31,8 @@ export function CouchPage() {
                         logger.log("[Couch Mode] Cast Receiver Context started.");
                         
                         // Small delay to let the underlying WebSocket stabilize
-                        // But now we know the SDK is at least started.
-                        setTimeout(() => navigate('/?couch=true', { replace: true }), 300);
+                        // We no longer manually navigate; App.tsx's sync listener will handle it.
+                        logger.log("[Couch Mode] Waiting for sync from phone...");
                         return true;
                     }
                 } catch (error) {
@@ -48,8 +48,7 @@ export function CouchPage() {
                 if (initSDK() || retryCount >= maxRetries) {
                     clearInterval(timer);
                     if (retryCount >= maxRetries) {
-                        logger.warn("[Couch Mode] Cast SDK not found after retries. Manual navigation fall-through.");
-                        navigate('/?couch=true', { replace: true });
+                        logger.warn("[Couch Mode] Cast SDK not found after retries. Manual sync check enabled.");
                     }
                 }
             }, retryInterval);

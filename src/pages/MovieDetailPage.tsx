@@ -338,14 +338,14 @@ export function MovieDetailPage() {
       </div>
     )}
 
-      <div className={`grid grid-cols-1 ${isCouchMode ? 'md:grid-cols-[450px_1fr] gap-16' : 'md:grid-cols-[240px_1fr] gap-8'}`}>
+      <div className={`grid grid-cols-1 ${isCouchMode ? 'md:grid-cols-[30vw_1fr] gap-12 lg:gap-24 items-center' : 'md:grid-cols-[240px_1fr] gap-8'}`}>
         {/* Poster Section */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="space-y-6 flex flex-col items-center md:items-start"
         >
-          <div className={`aspect-[2/3] w-[40%] md:w-full rounded-2xl overflow-hidden border border-theme-border shadow-xl relative group`}>
+          <div className={`aspect-[2/3] w-[50%] md:w-full max-h-[75vh] rounded-2xl overflow-hidden border border-theme-border shadow-xl relative group flex items-center justify-center`}>
             {movie.poster_url ? (
               <img
                 src={getPosterSrc(movie.poster_url)}

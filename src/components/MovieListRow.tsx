@@ -1,10 +1,11 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 import { Movie } from '../contexts/DataContext';
 import { useData } from '../contexts/DataContext';
 import { hapticFeedback } from '../utils/haptics';
 import { useTheme, useThemeText } from '../contexts/ThemeContext';
+import { isCouchModeEnabled } from '../utils/isCouchMode';
 
 interface MovieListRowProps {
     movie: Movie;
@@ -14,6 +15,8 @@ export const MovieListRow: React.FC<MovieListRowProps> = ({ movie }) => {
     const { profiles, markWatched } = useData();
     const { theme } = useTheme();
     const getThemeText = useThemeText();
+    const location = useLocation();
+    const isCouchMode = isCouchModeEnabled(location.search);
     const profile = profiles.find(p => p.id === movie.pickedBy);
     const pickerColor = profile?.color || 'currentColor';
 
@@ -57,22 +60,22 @@ export const MovieListRow: React.FC<MovieListRowProps> = ({ movie }) => {
                 {/* Info */}
                 <div className="flex-1 min-w-0 flex flex-col gap-1">
                     <Link to={`/movie/${movie.id}`}>
-                        <h3 className="font-black text-sm text-theme-text leading-tight line-clamp-2 hover:text-theme-primary transition-colors">
+                        <h3 className={`font-black text-theme-text leading-tight line-clamp-2 hover:text-theme-primary transition-colors ${isCouchMode ? 'text-2xl' : 'text-sm'}`}>
                             {movie.title}
                         </h3>
                     </Link>
                     <div className="flex items-center gap-2 flex-wrap">
                         {movie.date && movie.date !== 'Unknown' && (
-                            <span className="text-[10px] text-theme-muted font-mono">{movie.date.split('-')[0]}</span>
+                            <span className={`${isCouchMode ? 'text-lg' : 'text-[10px]'} text-theme-muted font-mono`}>{movie.date.split('-')[0]}</span>
                         )}
-                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: pickerColor }}>
+                        <span className={`font-black uppercase tracking-widest ${isCouchMode ? 'text-lg' : 'text-[10px]'}`} style={{ color: pickerColor }}>
                             {profile?.name || movie.pickedBy}
                         </span>
                         {avgRating > 0 && (
-                            <span className="text-[10px] text-theme-muted font-mono text-theme-primary">★ {avgRating}</span>
+                            <span className={`${isCouchMode ? 'text-lg' : 'text-[10px]'} text-theme-muted font-mono text-theme-primary`}>★ {avgRating}</span>
                         )}
                         {movie.status === 'wishlist' && (
-                            <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border border-theme-primary/30 text-theme-primary bg-theme-primary/10">
+                            <span className={`${isCouchMode ? 'text-sm px-3 py-1' : 'text-[9px] px-1.5 py-0.5'} font-black uppercase tracking-widest rounded border border-theme-primary/30 text-theme-primary bg-theme-primary/10`}>
                                 Pending
                             </span>
                         )}
@@ -80,19 +83,21 @@ export const MovieListRow: React.FC<MovieListRowProps> = ({ movie }) => {
                 </div>
 
                 {/* Actions */}
-                <div className="shrink-0 flex items-center gap-3 pr-2">
-                    {movie.status === 'wishlist' && (
-                        <button
-                            onClick={() => { hapticFeedback.success(); markWatched(movie.id); }}
-                            className="px-2.5 py-1.5 bg-theme-primary/10 text-theme-primary rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-theme-primary hover:text-theme-base transition-all active:scale-95 touch-manipulation opacity-0 group-hover:opacity-100 focus:opacity-100 sm:opacity-100"
-                        >
-                            {getThemeText('watched')}
-                        </button>
-                    )}
-                    <Link to={`/movie/${movie.id}`} className="text-theme-muted hover:text-theme-primary transition-colors p-2 -mr-2">
-                        <ExternalLink size={15} />
-                    </Link>
-                </div>
+                {!isCouchMode && (
+                    <div className="shrink-0 flex items-center gap-3 pr-2">
+                        {movie.status === 'wishlist' && (
+                            <button
+                                onClick={() => { hapticFeedback.success(); markWatched(movie.id); }}
+                                className="px-2.5 py-1.5 bg-theme-primary/10 text-theme-primary rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-theme-primary hover:text-theme-base transition-all active:scale-95 touch-manipulation opacity-0 group-hover:opacity-100 focus:opacity-100 sm:opacity-100"
+                            >
+                                {getThemeText('watched')}
+                            </button>
+                        )}
+                        <Link to={`/movie/${movie.id}`} className="text-theme-muted hover:text-theme-primary transition-colors p-2 -mr-2">
+                            <ExternalLink size={15} />
+                        </Link>
+                    </div>
+                )}
             </div>
         </div>
     );

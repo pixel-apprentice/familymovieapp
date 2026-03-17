@@ -1,4 +1,4 @@
-import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Movie } from '../../contexts/DataContext';
 import { MovieCard } from '../MovieCard';
@@ -6,6 +6,7 @@ import { MovieListRow } from '../MovieListRow';
 import { hapticFeedback } from '../../utils/haptics';
 import { useTheme, useThemeText } from '../../contexts/ThemeContext';
 import { WandSparkles } from 'lucide-react';
+import { isCouchModeEnabled } from '../../utils/isCouchMode';
 
 interface UpNextSectionProps {
   wishlistMovies: Movie[];
@@ -18,22 +19,26 @@ interface UpNextSectionProps {
 export function UpNextSection({ wishlistMovies, pickRandom, randomMovie, setRandomMovie, viewMode }: UpNextSectionProps) {
   const { theme } = useTheme();
   const getThemeText = useThemeText();
+  const location = useLocation();
+  const isCouchMode = isCouchModeEnabled(location.search);
   return (
     <section className="space-y-6">
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-2xl md:text-3xl font-black text-theme-primary uppercase tracking-tighter">
+        <h2 className={`${isCouchMode ? 'text-4xl md:text-5xl lg:text-6xl mb-4' : 'text-2xl md:text-3xl'} font-black text-theme-primary uppercase tracking-tighter`}>
           {getThemeText('upNextTitle')}
         </h2>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={pickRandom}
-            disabled={wishlistMovies.length === 0}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-theme-primary text-theme-base shadow-lg hover:shadow-theme-primary/20 transition-all disabled:opacity-40"
-          >
-            <WandSparkles size={14} />
-            <span className="hidden sm:inline">Smart Pick</span>
-          </button>
-        </div>
+        {!isCouchMode && (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={pickRandom}
+              disabled={wishlistMovies.length === 0}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-theme-primary text-theme-base shadow-lg hover:shadow-theme-primary/20 transition-all disabled:opacity-40"
+            >
+              <WandSparkles size={14} />
+              <span className="hidden sm:inline">Smart Pick</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <AnimatePresence mode="popLayout">

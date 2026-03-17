@@ -3,13 +3,16 @@ import { Movie, useData } from '../contexts/DataContext';
 import { useTheme, useThemeText } from '../contexts/ThemeContext';
 import { motion } from 'motion/react';
 import { Trash2, Youtube, ExternalLink } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { hapticFeedback } from '../utils/haptics';
+import { isCouchModeEnabled } from '../utils/isCouchMode';
 
 export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
   const { markWatched, removeMovie, profiles } = useData();
   const { theme } = useTheme();
   const getThemeText = useThemeText();
+  const location = useLocation();
+  const isCouchMode = isCouchModeEnabled(location.search);
 
   const [imageError, setImageError] = React.useState(false);
 
@@ -61,11 +64,11 @@ export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
             </div>
 
             {/* Top Right Actions / Rating */}
-            <div className="absolute top-2 right-2 z-40 flex flex-col items-end gap-2">
-              {movie.status === 'wishlist' && (
+            <div className="absolute top-2 right-2 z-40 flex flex-col items-end gap-2 text-white">
+              {movie.status === 'wishlist' && !isCouchMode && (
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); hapticFeedback.medium(); removeMovie(movie.id); }}
-                  className="p-1.5 bg-red-500/80 hover:bg-red-600 text-white rounded-full transition-colors shadow-lg"
+                  className="p-1.5 bg-red-500/80 hover:bg-red-600 rounded-full transition-colors shadow-lg"
                   title="Remove"
                 >
                   <Trash2 size={12} />
@@ -93,21 +96,21 @@ export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
         <div className="flex flex-col gap-1 mb-2">
           <Link to={`/movie/${movie.id}`} className="hover:underline">
             <h3 className={`text-xs md:text-base font-black leading-tight text-theme-text group-hover:text-theme-primary transition-colors line-clamp-2 ${theme === 'vintage-ticket' ? 'font-serif italic text-sm' : ''
-              }`}>
+              } ${isCouchMode ? 'text-2xl' : ''}`}>
               {movie.title}
             </h3>
           </Link>
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[9px] md:text-xs font-black uppercase" style={{ color: pickerColor }}>{pickerName}</span>
+            <span className={`font-black uppercase ${isCouchMode ? 'text-lg' : 'text-[9px] md:text-xs'}`} style={{ color: pickerColor }}>{pickerName}</span>
             {movie.date && (
-              <span className="text-[7px] md:text-[9px] text-theme-muted font-mono uppercase tracking-widest">
+              <span className={`text-theme-muted font-mono uppercase tracking-widest ${isCouchMode ? 'text-sm' : 'text-[7px] md:text-[9px]'}`}>
                 {movie.date.split('-')[0]}
               </span>
             )}
           </div>
         </div>
 
-        {movie.status === 'wishlist' && (
+        {movie.status === 'wishlist' && !isCouchMode && (
           <div className="mt-auto space-y-1">
             <motion.button
               whileTap={{ scale: 0.95 }}
