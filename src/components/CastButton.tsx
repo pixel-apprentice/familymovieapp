@@ -38,16 +38,13 @@ export function CastButton() {
       setIsCasting(false);
       if (state === SESSION_START_FAILED) {
         logger.error('[Cast] Native cast session request failed: SESSION_START_FAILED');
-        toast.error("Cast connection failed. Check if your Receiver URL matches in the Cast Console!", {
-            duration: 5000,
-            action: {
-                label: "Need Help?",
-                onClick: () => window.open('https://cast.google.com/publish', '_blank')
-            }
-        });
       }
     }
   }, [pushCouchState]);
+
+  const onCastError = useCallback((event: any) => {
+    logger.error(`[Cast] Global Cast Error: ${event.error_code}${event.detailed_error_code ? ` (Detailed: ${event.detailed_error_code})` : ''}`);
+  }, []);
 
   const initializeCast = useCallback((isAvailable: boolean) => {
     if (!isAvailable || isInitializedRef.current) return;
@@ -77,6 +74,11 @@ export function CastButton() {
         onSessionStateChanged as any
       );
 
+      castContext.addEventListener(
+        castFramework.CastContextEventType.CAST_ERROR,
+        onCastError as any
+      );
+
       isInitializedRef.current = true;
       setIsCasting(Boolean(castContext.getCurrentSession()));
     } catch (err) {
@@ -99,6 +101,10 @@ export function CastButton() {
           castFramework.CastContextEventType.SESSION_STATE_CHANGED,
           onSessionStateChanged as any
         );
+        castContext.removeEventListener(
+          castFramework.CastContextEventType.CAST_ERROR,
+          onCastError as any
+        );
       }
       isInitializedRef.current = false;
       window.__onGCastApiAvailable = () => {};
@@ -117,7 +123,30 @@ export function CastButton() {
         setIsCasting(false);
       } else {
         logger.log('[Cast] Requesting new session...');
-        await castContext?.requestSession?.();
+        try {
+          await castContext?.requestSession?.();
+        } catch (err: any) {
+          // CAF throws the error code as a string, but some versions provide an object
+          const errorCode = typeof err === 'string' ? err : err?.code || 'unknown';
+          const detailedCode = err?.detailed_error_code || 'none';
+          
+          logger.error(`[Cast] Session Request Failed: ${errorCode} (Detailed: ${detailedCode})`);
+          
+          let userMessage = "Cast couldn't connect.";
+          if (errorCode === 'session_error') {
+            userMessage = "Cast Session Error. Usually means your Vercel URL isn't authorized in Cast Console!";
+          } else if (errorCode === 'cancel') {
+            userMessage = "Cast cancelled.";
+          }
+          
+          toast.error(userMessage, {
+            duration: 6000,
+            action: {
+              label: "Check Console",
+              onClick: () => window.open('https://cast.google.com/publish', '_blank')
+            }
+          });
+        }
       }
     } catch (error) {
       logger.error('Native cast session action failed:', error);
