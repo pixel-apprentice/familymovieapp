@@ -17,8 +17,9 @@ export function CouchPage() {
         // Set a flag so we know this device is a TV (Receiver)
         import('../utils/isCouchMode').then(m => m.enableCouchMode());
 
+        const isCastReceiverUserAgent = typeof window !== 'undefined' && window.navigator.userAgent.includes('CrKey');
         let retryCount = 0;
-        const maxRetries = 20; // 8 seconds total (20 * 400ms)
+        const maxRetries = isCastReceiverUserAgent ? 20 : 2; // Fast-fallback for Android TV browsers without CAF
         const retryInterval = 400;
 
         const initSDK = () => {
@@ -48,7 +49,7 @@ export function CouchPage() {
                 if (initSDK() || retryCount >= maxRetries) {
                     clearInterval(timer);
                     if (retryCount >= maxRetries) {
-                        logger.warn("[Couch Mode] Cast SDK not found after retries. Manual navigation fall-through.");
+                        logger.warn("[Couch Mode] Cast SDK unavailable in this runtime. Falling back to browser Couch UI.");
                         navigate('/?couch=true', { replace: true });
                     }
                 }

@@ -338,14 +338,14 @@ export function MovieDetailPage() {
       </div>
     )}
 
-      <div className={`grid grid-cols-1 ${isCouchMode ? 'md:grid-cols-[450px_1fr] gap-16' : 'md:grid-cols-[240px_1fr] gap-8'}`}>
+      <div className={`grid grid-cols-1 ${isCouchMode ? 'md:grid-cols-[minmax(240px,320px)_1fr] gap-8 lg:gap-10' : 'md:grid-cols-[240px_1fr] gap-8'}`}>
         {/* Poster Section */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="space-y-6 flex flex-col items-center md:items-start"
         >
-          <div className={`aspect-[2/3] w-[40%] md:w-full rounded-2xl overflow-hidden border border-theme-border shadow-xl relative group`}>
+          <div className={`aspect-[2/3] w-[55%] sm:w-[45%] md:w-full max-w-[320px] rounded-2xl overflow-hidden border border-theme-border shadow-xl relative group`}>
             {movie.poster_url ? (
               <img
                 src={getPosterSrc(movie.poster_url)}
@@ -391,7 +391,7 @@ export function MovieDetailPage() {
         >
           <div className="space-y-4">
             <div className="flex flex-col gap-2">
-              <h1 className={`${isCouchMode ? 'text-7xl md:text-8xl lg:text-9xl' : 'text-4xl md:text-5xl lg:text-6xl'} font-black tracking-tighter text-theme-text leading-tight ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
+              <h1 className={`${isCouchMode ? 'text-4xl md:text-5xl lg:text-6xl' : 'text-4xl md:text-5xl lg:text-6xl'} font-black tracking-tighter text-theme-text leading-tight ${theme === 'vintage-ticket' ? 'font-serif italic' : ''}`}>
                 {movie.title}
               </h1>
 
@@ -471,18 +471,18 @@ export function MovieDetailPage() {
             </div>
 
             {movie.summary && (
-              <p className={`${isCouchMode ? 'text-2xl opacity-90' : 'text-sm text-theme-muted'} leading-relaxed mt-2 max-w-2xl`}>
+              <p className={`${isCouchMode ? 'text-lg md:text-xl opacity-90 max-w-4xl' : 'text-sm text-theme-muted'} leading-relaxed mt-2 max-w-2xl`}>
                 {movie.summary}
               </p>
             )}
           </div>
 
           {/* Rankings Section */}
-          <section className={`${isCouchMode ? 'bg-black/20 backdrop-blur-2xl border-2 border-white/10 scale-105 origin-left shadow-2xl' : 'bg-theme-surface/30 border'} border-theme-border rounded-3xl p-4 md:p-8 space-y-4 mt-4`}>
+          <section className={`${isCouchMode ? 'bg-black/20 backdrop-blur-2xl border-2 border-white/10 shadow-2xl' : 'bg-theme-surface/30 border'} border-theme-border rounded-3xl p-4 md:p-8 space-y-4 mt-4`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 text-theme-primary">
                 <Star size={isCouchMode ? 32 : 16} className={isCouchMode ? 'drop-shadow-[0_0_10px_rgba(var(--color-primary),0.5)]' : ''} />
-                <h2 className={`${isCouchMode ? 'text-2xl' : 'text-[10px]'} font-black uppercase tracking-[0.3em]`}>Family Rankings</h2>
+                <h2 className={`${isCouchMode ? 'text-xl md:text-2xl' : 'text-[10px]'} font-black uppercase tracking-[0.3em]`}>Family Rankings</h2>
               </div>
               {!isCouchMode && <div className="text-[10px] font-mono text-theme-muted uppercase">Tap star again to toggle half</div>}
             </div>
@@ -497,11 +497,11 @@ export function MovieDetailPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between w-full">
-                    <span className={`${isCouchMode ? 'text-xl' : 'text-[10px] md:text-xs'} font-black uppercase tracking-widest truncate profile-name`} style={{ color: profile.color }}>
+                    <span className={`${isCouchMode ? 'text-base md:text-lg' : 'text-[10px] md:text-xs'} font-black uppercase tracking-widest truncate profile-name`} style={{ color: profile.color }}>
                       {profile.name}
                     </span>
                     {isCouchMode && (
-                      <span className="text-2xl font-mono font-black text-theme-text tabular-nums opacity-50">
+                      <span className="text-xl md:text-2xl font-mono font-black text-theme-text tabular-nums opacity-50">
                         {movie.ratings[profile.id] > 0 ? movie.ratings[profile.id] : '—'}
                       </span>
                     )}
@@ -515,7 +515,7 @@ export function MovieDetailPage() {
                         const isHalf = star - 0.5 === currentRating;
 
                         return (
-                          <div key={star} className={`relative flex items-center select-none ${isCouchMode ? 'h-12 w-10' : 'h-10 w-7'}`}>
+                          <div key={star} className={`relative flex items-center select-none ${isCouchMode ? 'h-9 w-7 md:h-10 md:w-8' : 'h-10 w-7'}`}>
                             {!isCouchMode && (
                               <button
                                 onClick={() => { hapticFeedback.light(); handleRatingToggle(profile.id, star); }}
@@ -530,7 +530,7 @@ export function MovieDetailPage() {
                               transition={{ duration: 0.5, ease: "easeInOut" }}
                             >
                               <Star
-                                size={isCouchMode ? 32 : 24}
+                                size={isCouchMode ? 24 : 24}
                                 className={`transition-all ${isFull || isHalf ? 'text-amber-400' : 'text-theme-muted opacity-10'}`}
                                 fill={isFull ? 'currentColor' : isHalf ? 'url(#halfStarDetail)' : 'none'}
                                 style={isCouchMode && (isFull || isHalf) ? { filter: 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.4))' } : {}}
