@@ -11,9 +11,12 @@ export function CurrentTurn() {
   const currentPicker = profiles[currentTurnIndex]?.name || 'Family';
 
   // Find the last watched movie
-  const lastWatched = [...movies]
-    .filter(m => m.status === 'watched' && m.date)
-    .sort((a, b) => new Date(b.date!).getTime() - new Date(a.date!).getTime())[0];
+  const lastWatched = movies.reduce((latest, current) => {
+    if (current.status !== 'watched' || !current.date || current.date === 'Unknown') return latest;
+    if (!latest || !latest.date) return current;
+    // YYYY-MM-DD makes string comparison valid for dates natively
+    return current.date > latest.date ? current : latest;
+  }, null as typeof movies[0] | null);
 
   const daysAgo = lastWatched?.date ? Math.floor((new Date().getTime() - new Date(lastWatched.date).getTime()) / (1000 * 3600 * 24)) : null;
 

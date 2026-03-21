@@ -14,7 +14,7 @@ import { getWatchPartyIdeas } from '../services/gemini';
 import { isCouchModeEnabled } from '../utils/isCouchMode';
 import { logger } from '../utils/logger';
 import MoviePageTV from '../components/movie/MoviePageTV';
-import { getPosterUrl, sortMoviesByDate, getWatchedMovies } from '../constants/movies';
+import { useMovieFilters } from '../hooks/useMovieFilters';
 import { MovieDetailHeader } from '../components/movie/MovieDetailHeader';
 import { MovieDetailRankings } from '../components/movie/MovieDetailRankings';
 import { MovieDetailPartyPack } from '../components/movie/MovieDetailPartyPack';
@@ -37,10 +37,12 @@ export function MovieDetailPage() {
   const [editForm, setEditForm] = useState({ date: '', status: 'wishlist' as const, pickedBy: '' });
 
   // Navigation Logic
-  const watchedMovies = getWatchedMovies(movies);
-  const currentIdx = watchedMovies.findIndex(m => m.id === id);
-  const prevMovie = currentIdx > 0 ? watchedMovies[currentIdx - 1] : null;
-  const nextMovie = currentIdx !== -1 && currentIdx < watchedMovies.length - 1 ? watchedMovies[currentIdx + 1] : null;
+  const { filteredWishlist, filteredWatched } = useMovieFilters();
+  const isWishlist = movie?.status === 'wishlist';
+  const activeList = isWishlist ? filteredWishlist : filteredWatched;
+  const currentIdx = movie ? activeList.findIndex(m => m.id === movie.id) : -1;
+  const prevMovie = currentIdx > 0 ? activeList[currentIdx - 1] : null;
+  const nextMovie = currentIdx !== -1 && currentIdx < activeList.length - 1 ? activeList[currentIdx + 1] : null;
 
   useEffect(() => {
     if (movie && (!isEditing || editForm.pickedBy === '')) {
@@ -198,7 +200,7 @@ export function MovieDetailPage() {
             <button onClick={() => prevMovie && navigate(`/movie/${prevMovie.id}`)} disabled={!prevMovie} className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-theme-border hover:border-theme-primary hover:text-theme-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed touch-manipulation">
               <ChevronLeft size={12} /> Prev
             </button>
-            <span className="text-[10px] text-theme-muted font-mono">{currentIdx + 1} / {watchedMovies.length}</span>
+            <span className="text-[10px] text-theme-muted font-mono">{currentIdx + 1} / {activeList.length}</span>
             <button onClick={() => nextMovie && navigate(`/movie/${nextMovie.id}`)} disabled={!nextMovie} className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-theme-border hover:border-theme-primary hover:text-theme-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed touch-manipulation">
               Next <ChevronRight size={12} />
             </button>
