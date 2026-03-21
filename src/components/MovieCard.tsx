@@ -7,13 +7,17 @@ import { Link, useLocation } from 'react-router-dom';
 import { hapticFeedback } from '../utils/haptics';
 import { isCouchModeEnabled } from '../utils/isCouchMode';
 
-export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
-  const { markWatched, removeMovie, profiles } = useData();
-  const { theme } = useTheme();
-  const getThemeText = useThemeText();
-  const location = useLocation();
-  const isCouchMode = isCouchModeEnabled(location.search);
+interface MovieCardInnerProps {
+  movie: Movie;
+  markWatched: (id: string) => void;
+  removeMovie: (id: string) => void;
+  profiles: any[];
+  theme: string;
+  getThemeText: (key: string) => string;
+  isCouchMode: boolean;
+}
 
+const MovieCardInner = React.memo(({ movie, markWatched, removeMovie, profiles, theme, getThemeText, isCouchMode }: MovieCardInnerProps) => {
   const [imageError, setImageError] = React.useState(false);
 
   const trailerUrl = movie.trailerKey
@@ -139,5 +143,31 @@ export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
         )}
       </div>
     </motion.div>
+  );
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.movie === nextProps.movie &&
+    prevProps.theme === nextProps.theme &&
+    prevProps.isCouchMode === nextProps.isCouchMode
+  );
+});
+
+export const MovieCard: React.FC<{ movie: Movie }> = ({ movie }) => {
+  const { markWatched, removeMovie, profiles } = useData();
+  const { theme } = useTheme();
+  const getThemeText = useThemeText();
+  const location = useLocation();
+  const isCouchMode = isCouchModeEnabled(location.search);
+
+  return (
+    <MovieCardInner 
+      movie={movie} 
+      markWatched={markWatched} 
+      removeMovie={removeMovie} 
+      profiles={profiles} 
+      theme={theme} 
+      getThemeText={getThemeText} 
+      isCouchMode={isCouchMode} 
+    />
   );
 };

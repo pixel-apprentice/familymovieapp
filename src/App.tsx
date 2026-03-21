@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { DataProvider, useData } from './contexts/DataContext';
@@ -15,6 +15,7 @@ import { MovieDetailPage } from './pages/MovieDetailPage';
 import { CouchPage } from './pages/CouchPage';
 import { useDatabaseSeed } from './hooks/useDatabaseSeed';
 import { isCouchModeEnabled, enableCouchMode, clearCouchMode } from './utils/isCouchMode';
+import { useCouchNavigationSync } from './hooks/useCouchNavigationSync';
 
 function AppContent() {
   useDatabaseSeed();
@@ -38,33 +39,9 @@ function AppContent() {
   // THE CAST RECEIVER BOOT HAS MOVED TO index.html for zero-latency startup.
   // This allows the TV to check-in with the phone before React even mounts.
 
-  // Global Sync Listener for TV
-  React.useEffect(() => {
-    if (isCouchMode && couchState && couchState.timestamp > lastSyncTimestampRef.current) {
-      const isOnTvLanding = location.pathname === '/tv';
-      const tvPathBase = '/tv';
-      
-      // Normalize the incoming path to a TV path
-      const targetPath = couchState.path === '/' ? tvPathBase : `${tvPathBase}${couchState.path}`;
-      const isNewPath = location.pathname !== targetPath;
-      
-      lastSyncTimestampRef.current = couchState.timestamp;
-      
-      const isPhoneOnMovie = couchState.path.startsWith('/movie/');
-      
-      if (isNewPath) {
-        if (isOnTvLanding) {
-          if (isPhoneOnMovie) {
-            logger.log("[Couch Mode] Phone on movie. Syncing to:", targetPath);
-            navigate(targetPath);
-          }
-        } else {
-            logger.log("[Couch Mode] Syncing navigation to:", targetPath);
-            navigate(targetPath);
-        }
-      }
-    }
-  }, [isCouchMode, couchState, location.pathname, navigate]);
+  // Global Sync Listener for TV - Extracted to Custom Hook for maintainability
+  useCouchNavigationSync(isCouchMode, couchState);
+
 
   // Force Redirect for TV landing on root - REMOVED to prevent loop
   // CouchPage.tsx now handles the entry point and synchronization logic.
@@ -119,6 +96,9 @@ function AppContent() {
         {/* TV Routes */}
         <Route path="/tv" element={<CouchPage />} />
         <Route path="/tv/movie/:id" element={<MovieDetailPage />} />
+        
+        {/* Fallback Catch-All Route (Edge Case Handling) */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Modal />
       <Toaster position="top-center" richColors />

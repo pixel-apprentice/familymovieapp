@@ -11,12 +11,16 @@ interface MovieListRowProps {
     movie: Movie;
 }
 
-export const MovieListRow: React.FC<MovieListRowProps> = ({ movie }) => {
-    const { profiles, markWatched } = useData();
-    const { theme } = useTheme();
-    const getThemeText = useThemeText();
-    const location = useLocation();
-    const isCouchMode = isCouchModeEnabled(location.search);
+interface MovieListRowInnerProps {
+    movie: Movie;
+    profiles: any[];
+    markWatched: (id: string) => void;
+    theme: string;
+    getThemeText: (key: string) => string;
+    isCouchMode: boolean;
+}
+
+const MovieListRowInner = React.memo(({ movie, profiles, markWatched, theme, getThemeText, isCouchMode }: MovieListRowInnerProps) => {
     const profile = profiles.find(p => p.id === movie.pickedBy);
     const pickerColor = profile?.color || 'currentColor';
 
@@ -107,5 +111,30 @@ export const MovieListRow: React.FC<MovieListRowProps> = ({ movie }) => {
                 )}
             </div>
         </div>
+    );
+}, (prevProps, nextProps) => {
+    return (
+        prevProps.movie === nextProps.movie &&
+        prevProps.theme === nextProps.theme &&
+        prevProps.isCouchMode === nextProps.isCouchMode
+    );
+});
+
+export const MovieListRow: React.FC<MovieListRowProps> = ({ movie }) => {
+    const { profiles, markWatched } = useData();
+    const { theme } = useTheme();
+    const getThemeText = useThemeText();
+    const location = useLocation();
+    const isCouchMode = isCouchModeEnabled(location.search);
+
+    return (
+        <MovieListRowInner 
+            movie={movie} 
+            profiles={profiles} 
+            markWatched={markWatched} 
+            theme={theme} 
+            getThemeText={getThemeText} 
+            isCouchMode={isCouchMode} 
+        />
     );
 };
