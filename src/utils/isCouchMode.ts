@@ -20,10 +20,12 @@ export function isCouchModeEnabled(search?: string): boolean {
       const ua = window.navigator.userAgent;
       const isTVAgent = ua.indexOf('CrKey') > -1 || (ua.indexOf('Android') > -1 && ua.indexOf('TV') > -1);
       
-      // If we are on a TV, we are in couch mode.
-      if (isTVAgent || (window as any).isCastReceiver) return true;
+      // If we are on a hardware TV or the Cast Receiver SDK is active, authorize it.
+      if (isTVAgent || (window as any).isCastReceiver || !!(window as any).__onGCastReceiverApiAvailable) {
+        return true;
+      }
 
-      // Fallback for context detection if UA is masked or missing
+      // Fallback for framework detection
       const hasReceiverContext = (window as any).cast?.framework?.CastReceiverContext;
       if (hasReceiverContext) return true;
     }

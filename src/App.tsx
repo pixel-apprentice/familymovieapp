@@ -19,7 +19,17 @@ import { useCouchNavigationSync } from './hooks/useCouchNavigationSync';
 
 function SecurityGateway({ children }: { children: React.ReactNode }) {
   const [isAuthorized, setIsAuthorized] = React.useState(() => {
-    return localStorage.getItem('fmn_invite_code') === (import.meta.env.VITE_FAMILY_INVITE_CODE || 'familypizza');
+    // 1. Check if we have a valid invite code from a previous visit
+    const inviteMatch = localStorage.getItem('fmn_invite_code') === (import.meta.env.VITE_FAMILY_INVITE_CODE || 'familypizza');
+    if (inviteMatch) return true;
+
+    // 2. AUTO-AUTHORIZE TVS: Hardware TVs/Chromecasts aren't browsers-of-opportunity.
+    // This allows the receiver to boot instantly without a keyboard.
+    if (isCouchModeEnabled(window.location.search)) {
+      return true;
+    }
+
+    return false;
   });
   const location = useLocation();
   const navigate = useNavigate();
@@ -29,6 +39,7 @@ function SecurityGateway({ children }: { children: React.ReactNode }) {
     const inviteCode = params.get('invite');
     const validCode = import.meta.env.VITE_FAMILY_INVITE_CODE || 'familypizza';
     
+    // If we detect the invite link on THIS visit, allow access and save it locally.
     if (inviteCode === validCode) {
       localStorage.setItem('fmn_invite_code', inviteCode);
       setIsAuthorized(true);
