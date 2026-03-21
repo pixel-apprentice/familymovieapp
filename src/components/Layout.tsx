@@ -58,11 +58,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {!isCouchMode && (
         <header className="sticky top-0 z-40 bg-theme-base/80 backdrop-blur-xl border-b-2 border-theme-border/30">
           <div className="max-w-7xl mx-auto flex items-center justify-between p-4 md:p-6">
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className={`w-10 h-10 rounded-full bg-theme-primary/10 flex items-center justify-center text-xl shadow-lg group-hover:scale-110 transition-transform border border-theme-primary/20`}>
-                🍕
-              </div>
-              <h1 className={`text-xl md:text-2xl font-black tracking-tighter text-theme-primary hidden sm:block`}>
+            <Link to="/" className="flex items-center group">
+              <h1 className="text-xl md:text-2xl font-black tracking-tighter text-theme-primary transition-transform group-hover:scale-[1.02]">
                 {getThemeText(theme, 'appTitle')}
               </h1>
             </Link>

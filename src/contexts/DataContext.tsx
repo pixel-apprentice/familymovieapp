@@ -17,6 +17,7 @@ interface DataContextType {
   profiles: FamilyProfile[];
   currentTurnIndex: number;
   isLocalMode: boolean;
+  isInitializing: boolean;
   syncStatus: 'synced' | 'syncing' | 'offline' | 'local-only';
   addMovie: (movie: Omit<Movie, 'id'> & { id?: string }) => Promise<void>;
   updateMovie: (id: string, updates: Partial<Movie>) => Promise<void>;
@@ -58,7 +59,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     pulseEvent,
     pushCouchState,
     pushPulseEvent,
-    clearData
+    clearData,
+    isInitializing
   } = useFirebaseData();
 
   const resetDatabase = async () => {
@@ -160,6 +162,7 @@ interface SeedMovie {
     profiles,
     currentTurnIndex,
     isLocalMode,
+    isInitializing,
     syncStatus,
     couchState,
     pulseEvent,
@@ -174,7 +177,7 @@ interface SeedMovie {
     setTurn,
     updateProfiles,
     clearData
-  }), [movies, profiles, currentTurnIndex, isLocalMode, syncStatus, couchState, pulseEvent, resetDatabase, addMovie, updateMovie, removeMovie, markWatched, skipTurn, pushCouchState, pushPulseEvent, setTurn, updateProfiles, clearData]);
+  }), [movies, profiles, currentTurnIndex, isLocalMode, isInitializing, syncStatus, couchState, pulseEvent, resetDatabase, addMovie, updateMovie, removeMovie, markWatched, skipTurn, pushCouchState, pushPulseEvent, setTurn, updateProfiles, clearData]);
 
   return (
     <DataContext.Provider value={value}>

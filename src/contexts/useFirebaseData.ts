@@ -13,6 +13,7 @@ import { isCouchModeEnabled } from '../utils/isCouchMode';
 export function useFirebaseData() {
   const { user, loading: authLoading } = useAuth();
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [isInitializing, setIsInitializing] = useState(true);
   
   const [profiles, setProfiles] = usePersistence<FamilyProfile[]>(
     CACHE_KEYS.PROFILES, 
@@ -52,6 +53,7 @@ export function useFirebaseData() {
     if (!user) {
       if (localMovies.length > 0) setMovies(localMovies);
       setCurrentTurnIndex(localTurn);
+      setIsInitializing(false);
 
       if (!isCouchModeEnabled()) {
         setIsLocalMode(true);
@@ -74,9 +76,11 @@ export function useFirebaseData() {
         const moviesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Movie));
         setMovies(moviesData);
         setSyncStatus(navigator.onLine ? 'synced' : 'offline');
+        setIsInitializing(false);
       }, (error) => {
         logger.error('Firestore movies sync failed:', error);
         setSyncStatus('offline');
+        setIsInitializing(false);
       });
 
       unsubscribeConfig = onSnapshot(doc(db, 'metadata', 'config'), (docSnap) => {
@@ -343,6 +347,7 @@ export function useFirebaseData() {
     pulseEvent,
     pushCouchState,
     pushPulseEvent,
-    clearData
+    clearData,
+    isInitializing
   };
 }

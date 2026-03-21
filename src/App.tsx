@@ -20,7 +20,7 @@ import { useCouchNavigationSync } from './hooks/useCouchNavigationSync';
 function AppContent() {
   useDatabaseSeed();
   const { loading: authLoading } = useAuth();
-  const { couchState, pushPulseEvent } = useData();
+  const { isInitializing, couchState, pushPulseEvent } = useData();
   const location = useLocation();
   const navigate = useNavigate();
   const lastSyncTimestampRef = React.useRef(0);
@@ -42,10 +42,6 @@ function AppContent() {
   // Global Sync Listener for TV - Extracted to Custom Hook for maintainability
   useCouchNavigationSync(isCouchMode, couchState);
 
-
-  // Force Redirect for TV landing on root - REMOVED to prevent loop
-  // CouchPage.tsx now handles the entry point and synchronization logic.
-
   // PWA Update Cinematic Notification
   React.useEffect(() => {
     const handleUpdate = () => {
@@ -63,7 +59,9 @@ function AppContent() {
     return () => window.removeEventListener('fmn:pwa-update-available', handleUpdate);
   }, [pushPulseEvent]);
 
-  if (authLoading) {
+  const isBooting = authLoading || isInitializing;
+
+  if (isBooting) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-theme-base font-['Outfit'] select-none">
         <div className="flex flex-col items-center gap-8">
