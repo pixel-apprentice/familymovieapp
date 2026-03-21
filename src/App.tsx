@@ -88,12 +88,22 @@ function AppContent() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-theme-base">
-        <div className="flex flex-col items-center gap-6">
-          <div className="w-12 h-12 rounded-full bg-theme-primary flex items-center justify-center text-theme-base font-black text-2xl shadow-xl animate-pulse">
-            F
+      <div className="min-h-screen flex items-center justify-center bg-theme-base font-['Outfit'] select-none">
+        <div className="flex flex-col items-center gap-8">
+          <div className="relative">
+            <div className="w-24 h-24 rounded-full bg-theme-primary/10 flex items-center justify-center text-5xl shadow-[0_0_50px_rgba(var(--color-primary),0.2)] animate-pulse border border-theme-primary/20">
+              🍕
+            </div>
+            <div className="absolute inset-0 w-24 h-24 border-4 border-theme-primary border-t-transparent rounded-full animate-spin opacity-40" />
           </div>
-          <div className="w-8 h-8 border-4 border-theme-border border-t-theme-primary rounded-full animate-spin" />
+          <div className="flex flex-col items-center gap-2">
+            <h1 className="text-2xl font-black tracking-[0.3em] uppercase text-theme-primary">
+              Pizza Movie Night
+            </h1>
+            <div className="h-1 w-12 bg-theme-primary/20 rounded-full overflow-hidden">
+               <div className="h-full bg-theme-primary animate-[shimmer_2s_infinite] w-full" />
+            </div>
+          </div>
         </div>
       </div>
     );

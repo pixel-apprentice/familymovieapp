@@ -99,43 +99,10 @@ export function useSearch() {
     setLoading(true);
     setResults([]);
     try {
-      // 1. Always try direct search first
-      const directResults = await searchMovies(cleanQuery, undefined, allowRatedR);
-
-      // 2. If it's descriptive, also try vibe search
-      let vibeResults: TMDBMovie[] = [];
-      const isVibing = cleanQuery.split(' ').length > 2 || 
-                      cleanQuery.length > 20 || 
-                      /scary|funny|mood|vibe|like|style|about|pick/i.test(cleanQuery);
-
-      if (isVibing) {
-        setLoadingMessage('Analyzing the vibe...');
-        const titles = await getVibeSearchTerms(cleanQuery, allowRatedR);
-        if (titles.length > 0) {
-          const settled = await Promise.allSettled(
-            titles.map(title => searchMovies(title, undefined, allowRatedR))
-          );
-          for (const result of settled) {
-            if (result.status === 'fulfilled' && result.value.length > 0) {
-              vibeResults.push(result.value[0]);
-            }
-          }
-        }
-      }
-
-      // Merge results
-      const allFound = [...directResults, ...vibeResults];
+      const allFound = await searchMovies(cleanQuery, undefined, allowRatedR);
       
-      // Deduplicate by ID
-      const seen = new Set();
-      const unique = allFound.filter(m => {
-        if (seen.has(m.id)) return false;
-        seen.add(m.id);
-        return true;
-      });
-
       const { existingTmdbIds, existingTitles } = buildExistingSets(movies);
-      const marked = markExistingResults(unique, existingTmdbIds, existingTitles);
+      const marked = markExistingResults(allFound, existingTmdbIds, existingTitles);
       const filtered = filterForSafety(marked, blockMatureThemes);
 
       if (filtered.length === 0 && allFound.length > 0) {

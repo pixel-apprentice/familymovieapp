@@ -56,53 +56,53 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <PWAStatusBar />
 
       {!isCouchMode && (
-        <header className="sticky top-0 z-40 bg-theme-base/60 backdrop-blur-xl border-b border-theme-border/50">
-          <div className="max-w-7xl mx-auto flex items-center justify-between p-3 md:p-4">
+        <header className="sticky top-0 z-40 bg-theme-base/80 backdrop-blur-xl border-b-2 border-theme-border/30">
+          <div className="max-w-7xl mx-auto flex items-center justify-between p-4 md:p-6">
             <Link to="/" className="flex items-center gap-3 group">
-              <div className={`w-8 h-8 rounded-full bg-theme-primary flex items-center justify-center text-theme-base font-black text-lg shadow-lg group-hover:scale-110 transition-transform`}>
-                F
+              <div className={`w-10 h-10 rounded-full bg-theme-primary/10 flex items-center justify-center text-xl shadow-lg group-hover:scale-110 transition-transform border border-theme-primary/20`}>
+                🍕
               </div>
-              <h1 className={`text-xl md:text-2xl font-black tracking-tighter text-theme-primary`}>
+              <h1 className={`text-xl md:text-2xl font-black tracking-tighter text-theme-primary hidden sm:block`}>
                 {getThemeText(theme, 'appTitle')}
               </h1>
             </Link>
 
-            <div className="hidden md:flex items-center mr-2">
-              <span className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${syncStatus === 'synced' ? 'bg-emerald-500/20 text-emerald-400' :
-                syncStatus === 'syncing' ? 'bg-blue-500/20 text-blue-400' :
-                  syncStatus === 'offline' ? 'bg-amber-500/20 text-amber-400' :
+            <div className="hidden lg:flex items-center mr-auto ml-8">
+              <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${syncStatus === 'synced' ? 'bg-emerald-500/10 text-emerald-400' :
+                syncStatus === 'syncing' ? 'bg-blue-500/10 text-blue-400' :
+                  syncStatus === 'offline' ? 'bg-amber-500/10 text-amber-400' :
                     'bg-theme-border/40 text-theme-muted'
                 }`}>
                 {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing' : syncStatus === 'offline' ? 'Offline' : 'Local'}
               </span>
             </div>
 
-            <nav className="flex items-center gap-1">
+            <nav className="flex items-center gap-2">
               <Link
                 to="/"
                 onClick={() => hapticFeedback.light()}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${location.pathname === '/'
-                  ? 'bg-theme-primary text-theme-base shadow-lg'
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${location.pathname === '/'
+                  ? 'bg-theme-primary text-theme-base shadow-xl scale-105'
                   : 'text-theme-muted hover:text-theme-primary hover:bg-theme-primary/10'
                   }`}
                 title="Home"
               >
-                <Home size={16} />
-                <span className="hidden sm:inline">Home</span>
+                <Home size={18} />
+                <span className="hidden md:inline">Home</span>
               </Link>
               <PizzaButton />
               <CastButton />
               <Link
                 to="/stats"
                 onClick={() => hapticFeedback.light()}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${location.pathname === '/stats'
-                  ? 'bg-theme-primary text-theme-base shadow-lg'
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${location.pathname === '/stats'
+                  ? 'bg-theme-primary text-theme-base shadow-xl scale-105'
                   : 'text-theme-muted hover:text-theme-primary hover:bg-theme-primary/10'
                   }`}
                 title="Settings"
               >
-                <Settings size={16} />
-                <span className="hidden sm:inline">Settings</span>
+                <Settings size={18} />
+                <span className="hidden md:inline">Settings</span>
               </Link>
             </nav>
           </div>
