@@ -56,10 +56,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <PWAStatusBar />
 
       {!isCouchMode && (
-        <header className="sticky top-0 z-40 bg-theme-base/80 backdrop-blur-xl border-b-2 border-theme-border/30">
+        <header className="sticky top-0 z-40 bg-theme-base/95 backdrop-blur-xl border-b-2 border-theme-border/10">
           <div className="max-w-7xl mx-auto flex items-center justify-between p-4 md:p-6">
             <Link to="/" className="flex items-center group">
-              <h1 className="text-xl md:text-2xl font-black tracking-tighter text-theme-primary transition-transform group-hover:scale-[1.02]">
+              <h1 className="text-xl md:text-2xl font-black tracking-tighter text-theme-primary transition-transform group-hover:scale-[1.01]">
                 {getThemeText(theme, 'appTitle')}
               </h1>
             </Link>
@@ -79,8 +79,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 to="/"
                 onClick={() => hapticFeedback.light()}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${location.pathname === '/'
-                  ? 'bg-theme-primary text-theme-base shadow-xl scale-105'
-                  : 'text-theme-muted hover:text-theme-primary hover:bg-theme-primary/10'
+                  ? 'bg-theme-primary text-theme-base shadow-lg shadow-theme-primary/10'
+                  : 'text-theme-muted hover:text-theme-primary hover:bg-theme-primary/5'
                   }`}
                 title="Home"
               >
@@ -93,8 +93,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 to="/stats"
                 onClick={() => hapticFeedback.light()}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${location.pathname === '/stats'
-                  ? 'bg-theme-primary text-theme-base shadow-xl scale-105'
-                  : 'text-theme-muted hover:text-theme-primary hover:bg-theme-primary/10'
+                  ? 'bg-theme-primary text-theme-base shadow-lg shadow-theme-primary/10'
+                  : 'text-theme-muted hover:text-theme-primary hover:bg-theme-primary/5'
                   }`}
                 title="Settings"
               >
