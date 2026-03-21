@@ -17,6 +17,52 @@ import { useDatabaseSeed } from './hooks/useDatabaseSeed';
 import { isCouchModeEnabled, enableCouchMode, clearCouchMode } from './utils/isCouchMode';
 import { useCouchNavigationSync } from './hooks/useCouchNavigationSync';
 
+function SecurityGateway({ children }: { children: React.ReactNode }) {
+  const [isAuthorized, setIsAuthorized] = React.useState(() => {
+    return localStorage.getItem('fmn_invite_code') === (import.meta.env.VITE_FAMILY_INVITE_CODE || 'familypizza');
+  });
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const inviteCode = params.get('invite');
+    const validCode = import.meta.env.VITE_FAMILY_INVITE_CODE || 'familypizza';
+    
+    if (inviteCode === validCode) {
+      localStorage.setItem('fmn_invite_code', inviteCode);
+      setIsAuthorized(true);
+      
+      // Clean up the URL quietly without reloading
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-theme-base font-['Outfit'] select-none">
+        <div className="flex flex-col items-center gap-8 text-center p-6">
+          <div className="relative">
+            <div className="w-24 h-24 rounded-full bg-theme-primary/5 flex items-center justify-center text-5xl border border-theme-primary/10">
+              🔒
+            </div>
+          </div>
+          <div className="flex flex-col items-center gap-2 max-w-sm">
+            <h1 className="text-2xl font-black tracking-[0.3em] uppercase text-theme-primary opacity-50">
+              Access Denied
+            </h1>
+            <p className="text-sm font-medium text-theme-muted">
+              This is a private family application. You need a magic invite link to join the movie night.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
 function AppContent() {
   useDatabaseSeed();
   const { loading: authLoading } = useAuth();
@@ -108,15 +154,17 @@ export default function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
-        <AuthProvider>
-          <ModalProvider>
-            <SettingsProvider>
-              <DataProvider>
-                <AppContent />
-              </DataProvider>
-            </SettingsProvider>
-          </ModalProvider>
-        </AuthProvider>
+        <SecurityGateway>
+          <AuthProvider>
+            <ModalProvider>
+              <SettingsProvider>
+                <DataProvider>
+                  <AppContent />
+                </DataProvider>
+              </SettingsProvider>
+            </ModalProvider>
+          </AuthProvider>
+        </SecurityGateway>
       </ThemeProvider>
     </BrowserRouter>
   );

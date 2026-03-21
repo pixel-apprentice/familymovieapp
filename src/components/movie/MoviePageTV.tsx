@@ -16,20 +16,43 @@ interface MoviePageTVProps {
   activeTrailer?: string | null;
 }
 
+// ─── TV_STYLES ────────────────────────────────────────────────────────────────
+// Rules imposed by Chromecast CAF renderer:
+//   ✓ flexbox, fixed px, absolute positioning, percentages
+//   ✗ vh/vw, calc(), sticky, grid, Tailwind responsive prefixes
 const TV_STYLES: Record<string, React.CSSProperties> = {
+  // Full-screen outer wrapper — 100vh ensures TV full bleed
   root: {
+    position: 'relative',
     display: 'flex',
     flexDirection: 'row',
     width: '100%',
-    minHeight: '100%',
-    position: 'relative',
+    height: '100vh',        // ← was '100%' which relied on parent height chain
     backgroundColor: '#09090b',
     color: '#fafafa',
     fontFamily: '"Outfit", "Inter", sans-serif',
     padding: '48px 64px',
     boxSizing: 'border-box',
+    // overflow MUST be visible so the backdrop (position:absolute sibling) can bleed
     overflow: 'hidden',
-    zIndex: 1000,
+    zIndex: 1,
+  },
+
+  // Backdrop sits as a sibling OUTSIDE the overflow:hidden root, placed absolutely
+  // via a wrapper div that covers the viewport
+  backdropWrapper: {
+    position: 'fixed',
+    inset: '0',
+    zIndex: 0,
+    pointerEvents: 'none',
+  },
+  backdropImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    opacity: 0.15,              // subtle — just a colour wash
+    filter: 'blur(80px)',
+    transform: 'scale(1.15)',   // prevent blur-edge white fringe
   },
 
   // LEFT COLUMN — poster
@@ -44,14 +67,14 @@ const TV_STYLES: Record<string, React.CSSProperties> = {
   },
   posterWrapper: {
     width: '100%',
-    position: 'relative',
   },
+  // 70vh replaced with a safe absolute pixel cap
   posterImg: {
     width: '100%',
     display: 'block',
     borderRadius: '24px',
     objectFit: 'contain',
-    maxHeight: '70vh',
+    maxHeight: '560px',         // ← was '70vh' — violates the no-vh rule
     boxShadow: '0 32px 80px rgba(0,0,0,0.8)',
     border: '1px solid rgba(255,255,255,0.1)',
   },
@@ -67,7 +90,6 @@ const TV_STYLES: Record<string, React.CSSProperties> = {
     letterSpacing: '0.05em',
     textTransform: 'uppercase',
     border: '1px solid rgba(56, 189, 248, 0.3)',
-    width: 'fit-content',
   },
 
   // RIGHT COLUMN — details
@@ -76,7 +98,6 @@ const TV_STYLES: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    paddingTop: '8px',
     overflow: 'hidden',
   },
   title: {
@@ -97,6 +118,7 @@ const TV_STYLES: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: '20px',
     marginBottom: '40px',
+    flexWrap: 'wrap',
   },
   metaPill: {
     backgroundColor: 'rgba(255,255,255,0.05)',
@@ -108,6 +130,7 @@ const TV_STYLES: Record<string, React.CSSProperties> = {
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
     border: '1px solid rgba(255,255,255,0.1)',
+    whiteSpace: 'nowrap',
   },
   ratingPill: {
     backgroundColor: 'rgba(251, 191, 36, 0.1)',
@@ -117,6 +140,7 @@ const TV_STYLES: Record<string, React.CSSProperties> = {
     fontSize: '20px',
     fontWeight: 800,
     border: '1px solid rgba(251, 191, 36, 0.3)',
+    whiteSpace: 'nowrap',
   },
   divider: {
     width: '80px',
@@ -127,28 +151,55 @@ const TV_STYLES: Record<string, React.CSSProperties> = {
     boxShadow: '0 0 20px rgba(56, 189, 248, 0.4)',
   },
   overview: {
-    fontSize: '26px',
-    lineHeight: 1.6,
+    fontSize: '24px',
+    lineHeight: 1.65,
     color: '#d4d4d8',
     margin: 0,
     display: '-webkit-box',
     WebkitLineClamp: 5,
     WebkitBoxOrient: 'vertical',
     overflow: 'hidden',
-    maxWidth: '90%',
   },
 
-  // Backdrop glow
-  backdrop: {
-    position: 'fixed' as const,
+  // ── Trailer overlay (previously MISSING — caused broken trailer display) ──
+  trailerOverlay: {
+    position: 'fixed',
     inset: 0,
-    zIndex: -1,
-    opacity: 0.4,
-    filter: 'blur(100px)',
-    transform: 'scale(1.1)',
+    zIndex: 200,
+    backgroundColor: '#000',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '40px',
+    boxSizing: 'border-box',
   },
+  trailerFrame: {
+    width: '100%',
+    height: '100%',
+    border: 'none',
+    borderRadius: '24px',
+    boxShadow: '0 0 80px rgba(56, 189, 248, 0.3)',
+  },
+  trailerIndicator: {
+    position: 'absolute',
+    bottom: '56px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    padding: '12px 32px',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    backdropFilter: 'blur(8px)',
+    borderRadius: '999px',
+    border: '1px solid rgba(255,255,255,0.2)',
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: '16px',
+    fontWeight: 900,
+    letterSpacing: '0.15em',
+    textTransform: 'uppercase',
+  },
+
+  // Bottom accent bar
   accentBar: {
-    position: 'fixed' as const,
+    position: 'fixed',
     bottom: 0,
     left: 0,
     right: 0,
@@ -178,23 +229,25 @@ export default function MoviePageTV({ movie, activeTrailer }: MoviePageTVProps) 
     return `https://image.tmdb.org/t/p/w780${url}`;
   };
 
-  // Calculate average rating
   const ratingValues = movie.ratings ? Object.values(movie.ratings).filter(v => v > 0) : [];
-  const avgRating = ratingValues.length > 0 
+  const avgRating = ratingValues.length > 0
     ? (ratingValues.reduce((a, b) => a + b, 0) / ratingValues.length).toFixed(1)
     : null;
 
   const showTrailer = activeTrailer && activeTrailer === movie.trailerKey;
 
   return (
-    <div style={{ ...TV_STYLES.root, ...fadeStyle }}>
-      {/* Dynamic Backdrop */}
+    <>
+      {/* Backdrop — lives OUTSIDE the overflow:hidden root so it isn't clipped */}
       {movie.poster_url && (
-        <img
-          src={getPosterSrc(movie.poster_url)}
-          style={TV_STYLES.backdrop}
-          aria-hidden="true"
-        />
+        <div style={TV_STYLES.backdropWrapper}>
+          <img
+            src={getPosterSrc(movie.poster_url)}
+            alt=""
+            style={TV_STYLES.backdropImg}
+            aria-hidden="true"
+          />
+        </div>
       )}
 
       {/* Trailer Overlay */}
@@ -205,57 +258,61 @@ export default function MoviePageTV({ movie, activeTrailer }: MoviePageTVProps) 
             style={TV_STYLES.trailerFrame}
             allow="autoplay; encrypted-media"
             allowFullScreen
+            title="Movie Trailer"
           />
-          <div style={TV_STYLES.trailerIndicator} className="animate-pulse">
+          <div style={TV_STYLES.trailerIndicator}>
             Playing Trailer
           </div>
         </div>
       )}
 
-      {/* LEFT: Poster */}
-      <div style={TV_STYLES.posterColumn}>
-        <div style={TV_STYLES.posterWrapper}>
-          <img
-            src={getPosterSrc(movie.poster_url)}
-            alt={movie.title}
-            style={TV_STYLES.posterImg}
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
-        </div>
-        {movie.pickedBy && (
-          <div style={TV_STYLES.addedByBadge}>
-            Picked by {movie.pickedBy}
+      {/* Main content */}
+      <div style={{ ...TV_STYLES.root, ...fadeStyle }}>
+        {/* LEFT: Poster */}
+        <div style={TV_STYLES.posterColumn}>
+          <div style={TV_STYLES.posterWrapper}>
+            <img
+              src={getPosterSrc(movie.poster_url)}
+              alt={movie.title}
+              style={TV_STYLES.posterImg}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
           </div>
-        )}
-      </div>
-
-      {/* RIGHT: Details */}
-      <div style={TV_STYLES.detailsColumn}>
-        <h1 style={TV_STYLES.title}>{movie.title}</h1>
-
-        <div style={TV_STYLES.metaRow}>
-          {movie.date && (
-            <span style={TV_STYLES.metaPill}>
-              {movie.date.length > 4 ? movie.date.split('-')[0] : movie.date}
-            </span>
-          )}
-          {movie.genres && movie.genres.length > 0 && (
-            <span style={TV_STYLES.metaPill}>{movie.genres[0]}</span>
-          )}
-          {avgRating && (
-            <span style={TV_STYLES.ratingPill}>★ {avgRating}</span>
+          {movie.pickedBy && (
+            <div style={TV_STYLES.addedByBadge}>
+              Picked by {movie.pickedBy}
+            </div>
           )}
         </div>
 
-        <div style={TV_STYLES.divider} />
+        {/* RIGHT: Details */}
+        <div style={TV_STYLES.detailsColumn}>
+          <h1 style={TV_STYLES.title}>{movie.title}</h1>
 
-        <p style={TV_STYLES.overview}>{movie.summary}</p>
+          <div style={TV_STYLES.metaRow}>
+            {movie.date && (
+              <span style={TV_STYLES.metaPill}>
+                {movie.date.length > 4 ? movie.date.split('-')[0] : movie.date}
+              </span>
+            )}
+            {movie.genres && movie.genres.length > 0 && (
+              <span style={TV_STYLES.metaPill}>{movie.genres[0]}</span>
+            )}
+            {avgRating && (
+              <span style={TV_STYLES.ratingPill}>★ {avgRating}</span>
+            )}
+          </div>
+
+          <div style={TV_STYLES.divider} />
+
+          <p style={TV_STYLES.overview}>{movie.summary}</p>
+        </div>
       </div>
 
-      {/* Bottom accent */}
+      {/* Bottom accent bar */}
       <div style={TV_STYLES.accentBar} />
-    </div>
+    </>
   );
 }

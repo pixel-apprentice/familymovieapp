@@ -2,16 +2,17 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { logger } from '../utils/logger';
+import { enableCouchMode } from '../utils/isCouchMode';
 
 export function CouchPage() {
     const navigate = useNavigate();
     const { movies, couchState } = useData();
 
     useEffect(() => {
-        // Set a flag so we know this device is a TV (Receiver)
-        // This persists so that even if we navigate to /tv/movie/:id, 
-        // the app knows it's a TV without checking the URL constantly.
-        import('../utils/isCouchMode').then(m => m.enableCouchMode());
+        // Synchronously mark this device as a TV receiver immediately on mount.
+        // Previously used a dynamic import, which meant the first render could
+        // complete before the flag was set — causing the phone nav bar to flash.
+        enableCouchMode();
     }, []);
 
     // Ambient Mode Timer: If no movie is selected after 5 minutes, cycle through top picks
