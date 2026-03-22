@@ -11,6 +11,9 @@ export function PulseNotification({ event }: { event: PulseEvent | null }) {
   const [activeEvent, setActiveEvent] = useState<PulseEvent | null>(null);
   const location = useLocation();
   const isCouchMode = isCouchModeEnabled(location.search);
+  
+  // TV mode uses its own integrated notification system to avoid layout shifts
+  if (isCouchMode) return null;
 
   useEffect(() => {
     if (event && (!activeEvent || event.timestamp !== activeEvent.timestamp)) {

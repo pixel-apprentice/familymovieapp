@@ -175,7 +175,7 @@ export function MovieDetailPage() {
     : `https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' movie trailer')}`;
 
   if (isCouchMode) {
-    return <MoviePageTV movie={movie} activeTrailer={couchState?.activeTrailer} />;
+    return <MoviePageTV movie={movie} activeTrailer={couchState?.activeTrailer} pulseEvent={useData().pulseEvent} />;
   }
 
   return (

@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { PulseEvent } from '../../types/movie';
+import { Star, CheckCircle, PlusCircle, RefreshCcw } from 'lucide-react';
+import { CouchAlert } from './CouchAlert';
 
 interface MovieProps {
   title: string;
@@ -14,6 +17,7 @@ interface MovieProps {
 interface MoviePageTVProps {
   movie: MovieProps;
   activeTrailer?: string | null;
+  pulseEvent?: PulseEvent | null;
 }
 
 // ─── TV_STYLES ────────────────────────────────────────────────────────────────
@@ -197,19 +201,12 @@ const TV_STYLES: Record<string, React.CSSProperties> = {
     textTransform: 'uppercase',
   },
 
-  // Bottom accent bar
-  accentBar: {
-    position: 'fixed',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '4px',
-    background: 'linear-gradient(90deg, transparent, #38bdf8 50%, transparent)',
-    opacity: 0.3,
+  alertIcon: {
+    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
   },
 };
 
-export default function MoviePageTV({ movie, activeTrailer }: MoviePageTVProps) {
+export default function MoviePageTV({ movie, activeTrailer, pulseEvent }: MoviePageTVProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -309,6 +306,9 @@ export default function MoviePageTV({ movie, activeTrailer }: MoviePageTVProps) 
 
           <p style={TV_STYLES.overview}>{movie.summary}</p>
         </div>
+
+        {/* TV Alert (Integrated Overlay) */}
+        <CouchAlert event={pulseEvent || null} />
       </div>
 
       {/* Bottom accent bar */}

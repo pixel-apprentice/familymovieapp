@@ -156,12 +156,13 @@ function AppContent() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Modal />
-      <Toaster position="top-center" richColors />
     </Layout>
   );
 }
 
 export default function App() {
+  const isCouchMode = isCouchModeEnabled();
+
   return (
     <BrowserRouter>
       <ThemeProvider>
@@ -171,6 +172,7 @@ export default function App() {
               <SettingsProvider>
                 <DataProvider>
                   <AppContent />
+                  {!isCouchMode && <Toaster position="top-center" richColors />}
                 </DataProvider>
               </SettingsProvider>
             </ModalProvider>

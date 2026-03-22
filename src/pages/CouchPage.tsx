@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { logger } from '../utils/logger';
 import { enableCouchMode } from '../utils/isCouchMode';
+import { CouchAlert } from '../components/movie/CouchAlert';
 
 export function CouchPage() {
     const navigate = useNavigate();
-    const { movies, couchState } = useData();
+    const { movies, couchState, pulseEvent } = useData();
 
     useEffect(() => {
         // Synchronously mark this device as a TV receiver immediately on mount.
@@ -78,6 +79,9 @@ export function CouchPage() {
                     Family Movie Night • Cinematic Receiver v2.1
                 </span>
             </div>
+
+            {/* TV Activity Alert */}
+            <CouchAlert event={pulseEvent || null} />
         </div>
     );
 }
