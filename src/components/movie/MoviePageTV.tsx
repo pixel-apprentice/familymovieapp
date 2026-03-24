@@ -204,6 +204,16 @@ const TV_STYLES: Record<string, React.CSSProperties> = {
   alertIcon: {
     filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
   },
+  accentBar: {
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '4px',
+    background: 'linear-gradient(90deg, transparent, #38bdf8, transparent)',
+    opacity: 0.3,
+    zIndex: 10,
+  },
 };
 
 export default function MoviePageTV({ movie, activeTrailer, pulseEvent }: MoviePageTVProps) {

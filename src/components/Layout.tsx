@@ -33,7 +33,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </svg>
       {/* ... existing theme backgrounds ... */}
       
-      {isCouchMode && <PulseNotification event={pulseEvent} />}
+      {!isCouchMode && <PulseNotification event={pulseEvent} />}
       {theme === 'modern-pinnacle' && (
         <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full" />
