@@ -4,6 +4,13 @@ import { GoogleGenAI, Type } from "@google/genai";
 const app = express();
 app.use(express.json());
 
+// --- Helpers ---
+function cleanJson(text: string | null | undefined): string {
+    if (!text) return "";
+    // Remove markdown code blocks (```json ... ``` or ``` ... ```)
+    return text.replace(/```json\n?|```\n?/g, "").trim();
+}
+
 // --- Health ---
 app.get("/api/health", (_req, res) => {
     res.json({ status: "ok" });
@@ -18,7 +25,7 @@ app.get("/api/gemini/test", async (_req, res) => {
     try {
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
+            model: "gemini-3.1-flash-lite-preview",
             contents: "Test connection. Reply with 'OK'.",
         });
         if (response.text) {
@@ -47,7 +54,7 @@ app.post("/api/gemini/vibe", async (req, res) => {
     try {
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
+            model: "gemini-3.1-flash-lite-preview",
             contents: `Suggest 10 movie titles that match this vibe: "${vibe}". 
       ${ratingInstruction}
       Return ONLY a JSON array of 10 movie titles.`,
@@ -59,7 +66,7 @@ app.post("/api/gemini/vibe", async (req, res) => {
                 }
             }
         });
-        const titles = JSON.parse(response.text || '[]');
+        const titles = JSON.parse(cleanJson(response.text) || '[]');
         res.json({ titles });
     } catch (error: any) {
         console.error("Gemini Vibe Search error:", error);
@@ -90,7 +97,7 @@ app.post("/api/gemini/recommend", async (req, res) => {
         }).join('\n');
 
         const response = await ai.models.generateContent({
-            model: "gemini-flash-latest",
+            model: "gemini-3.1-flash-lite-preview",
             contents: `We are a family (${profileNames.join(', ')}) having a movie night. It's ${currentUser}'s turn to pick. 
       
       Here is our watch history, including summaries and how we rated them:
@@ -117,7 +124,7 @@ app.post("/api/gemini/recommend", async (req, res) => {
                 }
             }
         });
-        const recommendations = JSON.parse(response.text || '[]');
+        const recommendations = JSON.parse(cleanJson(response.text) || '[]');
         res.json({ recommendations });
     } catch (error: any) {
         console.error("Gemini Recommender error:", error);
@@ -161,7 +168,7 @@ app.post("/api/gemini/party", async (req, res) => {
                 }
             }
         });
-        const partyPack = JSON.parse(response.text || '{}');
+        const partyPack = JSON.parse(cleanJson(response.text) || '{}');
         res.json(partyPack);
     } catch (error: any) {
         console.error("Gemini Party Pack error:", error);
