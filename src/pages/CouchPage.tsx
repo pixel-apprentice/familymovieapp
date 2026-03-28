@@ -37,7 +37,10 @@ export function CouchPage() {
     }, [couchState?.timestamp, movies, navigate]);
 
     return (
-        <div className="min-h-screen bg-[#050505] flex items-center justify-center relative overflow-hidden font-['Outfit']">
+        <div 
+            className="bg-[#050505] flex items-center justify-center relative overflow-hidden font-['Outfit']"
+            style={{ width: '100%', height: '100%', minHeight: '720px' }}
+        >
             {/* Cinematic Background Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.05)_0%,transparent_70%)]" />

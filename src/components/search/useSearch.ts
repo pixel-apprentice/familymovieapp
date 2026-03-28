@@ -54,7 +54,7 @@ export function useSearch() {
   const [loadingMessage, setLoadingMessage] = useState('Processing...');
   const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
 
-  const { currentTurnIndex, movies, profiles, addMovie, couchState, pushCouchState } = useData();
+  const { currentTurnIndex, movies, profiles, addMovie, couchState, pushCouchState, pushPulseEvent } = useData();
   const location = useLocation();
   const { allowRatedR, recommendationMode, blockMatureThemes } = useSettings();
 
@@ -193,6 +193,7 @@ export function useSearch() {
     try {
       hapticFeedback.success();
       const currentUserProfile = profiles[currentTurnIndex]?.id || 'Family';
+      const currentUserName = profiles[currentTurnIndex]?.name || 'Family';
 
       const movieToAdd = {
         tmdbId: String(movie.id),
@@ -206,6 +207,13 @@ export function useSearch() {
       };
 
       await addMovie(movieToAdd);
+      
+      // Notify TV about the new addition
+      await pushPulseEvent({
+        type: 'added',
+        userName: currentUserName,
+        movieTitle: movie.title,
+      });
       setResults(prev => prev.filter(r => r.id !== movie.id));
       toast.success(`"${movie.title}" added to wishlist!`);
     } catch (e) {

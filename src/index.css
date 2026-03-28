@@ -6,6 +6,17 @@
   display: none !important;
 }
 
+/* TV height chain: ensures height: 100% reaches CouchPage/MoviePageTV */
+html, body, #root {
+  height: 100%;
+}
+
+/* Overscan padding for TV hardware (referenced in Layout.tsx) */
+.overscan-safe {
+  padding: 24px;
+  box-sizing: border-box;
+}
+
 /* --- [2] Theme Tokens (CSS Variables) --- */
 :root {
   --theme-base: #000000;

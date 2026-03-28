@@ -8,7 +8,7 @@ interface MovieActionsProps {
   trailerUrl: string;
   isSending: boolean;
   handlePlexRequest: () => void;
-  markWatched: (id: string) => void;
+  markWatched: () => void;
   handleDelete: () => void;
   couchState?: any;
   pushCouchState: (updates: any) => Promise<void>;
@@ -70,7 +70,7 @@ export function MovieActions({
 
       {movie.status === 'wishlist' && (
         <button 
-          onClick={() => markWatched(movie.id)}
+          onClick={() => markWatched()}
           className="w-full py-4 bg-theme-primary text-theme-base rounded-2xl font-black uppercase text-xs tracking-widest hover:opacity-90 transition-all shadow-lg"
         >
           {getThemeText('markAsWatched')}

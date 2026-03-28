@@ -6,7 +6,7 @@ import { sendRequestEmail } from '../../services/emailService';
 import { toast } from 'sonner';
 
 export function useAddMovieForm(movie: TMDBMovie | null, onClose: () => void, onAdded: () => void) {
-  const { addMovie, profiles, currentTurnIndex, movies } = useData();
+  const { addMovie, profiles, currentTurnIndex, movies, pushPulseEvent } = useData();
   const [status, setStatus] = useState<'wishlist' | 'watched'>('wishlist');
   const [picker, setPicker] = useState<string>('');
   const [isFamilyPick, setIsFamilyPick] = useState(false);
@@ -80,6 +80,15 @@ export function useAddMovieForm(movie: TMDBMovie | null, onClose: () => void, on
       });
 
       toast.success(`Added ${movie.title}`);
+      
+      // Notify TV about the new addition
+      const pickerProfile = profiles.find(p => p.id === finalPicker);
+      await pushPulseEvent({
+        type: 'added',
+        userName: pickerProfile?.name || finalPicker,
+        movieTitle: movie.title,
+      });
+      
       onAdded();
       onClose();
     } catch (error) {

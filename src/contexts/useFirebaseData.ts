@@ -96,6 +96,18 @@ export function useFirebaseData() {
       }, (error) => {
         logger.error('Firestore config sync failed:', error);
       });
+    } else if (isCouchModeEnabled()) {
+      // TV (unauthenticated couch mode) still needs live movie data so that
+      // rating updates (avg ★ pill) reflect immediately when a family member
+      // rates a movie from their phone.
+      unsubscribeMovies = onSnapshot(collection(db, 'movies'), (snapshot) => {
+        const moviesData = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Movie));
+        setMovies(moviesData);
+        setIsInitializing(false);
+      }, (error) => {
+        logger.error('Firestore movies sync (couch) failed:', error);
+        setIsInitializing(false);
+      });
     }
 
     // Couch and Pulse listeners are ALWAYS active in Couch Mode or for logged in users

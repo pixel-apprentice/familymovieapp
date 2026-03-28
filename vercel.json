@@ -2,7 +2,7 @@
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "/api"
+            "destination": "https://us-central1-family-movie-night-a0ee5.cloudfunctions.net/api/$1"
         }
     ],
     "headers": [

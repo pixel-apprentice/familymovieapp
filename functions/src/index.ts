@@ -4,10 +4,14 @@ import cors from "cors";
 import { GoogleGenAI, Type } from "@google/genai";
 
 const app = express();
-
-// Automatically allow cross-origin requests
 app.use(cors({ origin: true }));
 app.use(express.json());
+
+// --- Helpers ---
+function cleanJson(text: string | null | undefined): string {
+    if (!text) return "";
+    return text.replace(/```json\n?|```\n?/g, "").trim();
+}
 
 // --- Health ---
 app.get("/health", (_req, res) => {
@@ -15,6 +19,28 @@ app.get("/health", (_req, res) => {
 });
 
 // --- Gemini Routes ---
+app.get("/gemini/test", async (_req, res) => {
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+    if (!GEMINI_API_KEY) {
+        return res.status(500).json({ error: "GEMINI_API_KEY not configured on server" });
+    }
+    try {
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+        const response = await ai.models.generateContent({
+            model: "gemini-3.1-flash-lite-preview",
+            contents: "Test connection. Reply with 'OK'.",
+        });
+        if (response.text) {
+            res.json({ success: true, message: "Gemini is connected and responding!" });
+        } else {
+            res.status(500).json({ error: "Gemini connected but returned no text." });
+        }
+    } catch (error: any) {
+        console.error("Gemini Test Error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.post("/gemini/vibe", async (req, res) => {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
     if (!GEMINI_API_KEY) {
@@ -25,29 +51,28 @@ app.post("/gemini/vibe", async (req, res) => {
         return res.status(400).json({ error: "Vibe parameter is required" });
     }
     const ratingInstruction = allowR
-        ? ""
-        : "Do NOT include any R-rated, TV-MA, or NC-17 movies. Only return family-friendly, G, PG, or PG-13 movies.";
+        ? ''
+        : 'Do NOT include any R-rated, TV-MA, or NC-17 movies. Only return family-friendly, G, PG, or PG-13 movies.';
     try {
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
-            model: "gemini-1.5-flash",
-            contents: `Suggest 10 movie titles that match this vibe: "${vibe}".
-${ratingInstruction}
-Return ONLY a JSON array of 10 movie titles.`,
+            model: "gemini-3.1-flash-lite-preview",
+            contents: `Suggest 10 movie titles that match this vibe: "${vibe}". 
+      ${ratingInstruction}
+      Return ONLY a JSON array of 10 movie titles.`,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: {
                     type: Type.ARRAY,
-                    items: { type: Type.STRING },
-                },
-            },
+                    items: { type: Type.STRING }
+                }
+            }
         });
-
-        const titles = JSON.parse(response.text || "[]");
+        const titles = JSON.parse(cleanJson(response.text) || '[]');
         res.json({ titles });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Gemini Vibe Search error:", error);
-        res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error" });
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -61,32 +86,31 @@ app.post("/gemini/recommend", async (req, res) => {
         return res.status(400).json({ error: "Missing required parameters" });
     }
     const ratingInstruction = allowR
-        ? ""
-        : "Do NOT include any R-rated, TV-MA, or NC-17 movies. Only return family-friendly, G, PG, or PG-13 movies.";
+        ? ''
+        : 'Do NOT include any R-rated, TV-MA, or NC-17 movies. Only return family-friendly, G, PG, or PG-13 movies.';
     try {
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-
-        const historyText = (history as Array<{ title: string; pickedBy: string; ratings?: Record<string, number>; summary?: string }>).map((h) => {
+        const historyText = history.map((h: any) => {
             const ratings = Object.entries(h.ratings || {})
                 .filter(([_, r]) => (r as number) > 0)
                 .map(([name, r]) => `${name}: ${r}/5`)
-                .join(", ");
-            return `- ${h.title} (Picked by: ${h.pickedBy}, Ratings: ${ratings || "No ratings"}${h.summary ? `, Summary: ${h.summary}` : ""})`;
-        }).join("\n");
+                .join(', ');
+            return `- ${h.title} (Picked by: ${h.pickedBy}, Ratings: ${ratings || 'No ratings'}${h.summary ? `, Summary: ${h.summary}` : ''})`;
+        }).join('\n');
+
         const response = await ai.models.generateContent({
-            model: "gemini-1.5-flash",
-            contents: `We are a family (${profileNames.join(", ")}) having a movie night. It's ${currentUser}'s turn to pick.
-
-Here is our watch history, including summaries and how we rated them:
-${historyText}
-
-Suggest 10 new movies that ${currentUser} would specifically love. Since it is ${currentUser}'s turn, their personal tastes (based on movies they picked or rated highly) should be the PRIMARY driver for these suggestions.
-Also consider the rest of the family's general taste to ensure everyone will enjoy it, but ${currentUser}'s preference is the tie-breaker.
-Heavily prioritize genres and styles that received high ratings (4/5 or 5/5) from ${currentUser} and the family, and strictly avoid those that were rated poorly.
-${ratingInstruction}
-
-For each movie, provide a 1-sentence reason why it fits ${currentUser}'s taste specifically.
-Return ONLY a JSON array of objects with "title" and "reason" properties.`,
+            model: "gemini-3.1-flash-lite-preview",
+            contents: `We are a family (${profileNames.join(', ')}) having a movie night. It's ${currentUser}'s turn to pick. 
+      
+      Here is our watch history, including summaries and how we rated them:
+      ${historyText}
+      
+      Suggest 10 new movies that ${currentUser} would like, but also consider the family's general taste based on their ratings. 
+      Heavily prioritize genres and styles that received high ratings (4/5 or 5/5) and avoid those that were rated poorly.
+      ${ratingInstruction}
+      
+      For each movie, provide a 1-sentence reason why it was recommended.
+      Return ONLY a JSON array of objects with "title" and "reason" properties.`,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -95,19 +119,18 @@ Return ONLY a JSON array of objects with "title" and "reason" properties.`,
                         type: Type.OBJECT,
                         properties: {
                             title: { type: Type.STRING },
-                            reason: { type: Type.STRING },
+                            reason: { type: Type.STRING }
                         },
-                        required: ["title", "reason"],
-                    },
-                },
-            },
+                        required: ["title", "reason"]
+                    }
+                }
+            }
         });
-
-        const recommendations = JSON.parse(response.text || "[]");
+        const recommendations = JSON.parse(cleanJson(response.text) || '[]');
         res.json({ recommendations });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Gemini Recommender error:", error);
-        res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error" });
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -122,18 +145,21 @@ app.post("/gemini/party", async (req, res) => {
     }
     try {
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-        const promptText = `Create a "Watch Party Pack" for the movie "${title}"${genres ? ` (Genres: ${genres.join(", ")})` : ""}.${summary ? ` Summary: ${summary}` : ""}
-
-Generate context-relevant, themed ideas for:
-1. A unique snack or drink idea.
-2. A simple themed activity or game.
-3. A thoughtful discussion question.
-
-Return ONLY a JSON object with properties: "snack", "activity", "prompt". Keep each response to 1 concise sentence.`;
+        const genresContext = genres && genres.length > 0 ? ` (Genres: ${genres.join(', ')})` : '';
+        const summaryContext = summary ? ` Summary: ${summary}` : '';
+        
+        const prompt = `Create a matching "Watch Party Pack" for the movie "${title}"${genresContext}.${summaryContext}
+      
+      Generate context-relevant, family-friendly themed ideas for:
+      1. A unique themed snack or drink idea.
+      2. A simple themed activity or game to play before or after.
+      3. A thoughtful conversation starter or discussion question.
+      
+      Return ONLY a raw JSON object (NO markdown formatting, NO backticks) with exact properties: "snack", "activity", "prompt". Keep each response to 1 concise sentence.`;
 
         const response = await ai.models.generateContent({
-            model: "gemini-1.5-flash-latest",
-            contents: promptText,
+            model: "gemini-3.1-flash-lite-preview",
+            contents: prompt,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -141,18 +167,44 @@ Return ONLY a JSON object with properties: "snack", "activity", "prompt". Keep e
                     properties: {
                         snack: { type: Type.STRING },
                         activity: { type: Type.STRING },
-                        prompt: { type: Type.STRING },
+                        prompt: { type: Type.STRING }
                     },
-                    required: ["snack", "activity", "prompt"],
-                },
-            },
+                    required: ["snack", "activity", "prompt"]
+                }
+            }
         });
-
-        const partyPack = JSON.parse(response.text || "{}");
+        
+        // Ensure we strip any accidental markdown that gemini might still inject
+        let cleanText = cleanJson(response.text);
+        
+        // Failsafe JSON parsing
+        let partyPack;
+        try {
+            partyPack = JSON.parse(cleanText || '{}');
+            
+            // Validate payload structure
+            if (!partyPack.snack || !partyPack.activity || !partyPack.prompt) {
+                console.warn("[Gemini Party] Model returned incomplete schema, applying fallbacks", partyPack);
+                partyPack = {
+                    snack: partyPack.snack || "Popcorn with M&Ms!",
+                    activity: partyPack.activity || "See who can quote the best line.",
+                    prompt: partyPack.prompt || "What was your favorite part of the movie?"
+                };
+            }
+        } catch (parseError) {
+            console.error("[Gemini Party] JSON Parse execution failed on:", cleanText);
+             // Return safe fallback instead of hard-crashing the feature
+             partyPack = {
+                 snack: "Classic pizza and popcorn night!",
+                 activity: "Try to guess what happens next during the boring parts.",
+                 prompt: "If you were in this movie, what would you do differently?"
+             };
+        }
+        
         res.json(partyPack);
-    } catch (error: unknown) {
-        console.error("Gemini Party Pack error:", error);
-        res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error" });
+    } catch (error: any) {
+        console.error("Gemini Party Pack top-level error:", error);
+        res.status(500).json({ error: error.message || "Failed to generate party pack" });
     }
 });
 
@@ -162,47 +214,50 @@ app.get("/tmdb/search", async (req, res) => {
     if (!TMDB_API_KEY) {
         return res.status(500).json({ error: "TMDB_API_KEY not configured on server" });
     }
-    const { query, year, allowR } = req.query as { query?: string; year?: string; allowR?: string };
+    const { query, year, allowR } = req.query;
     if (!query) {
         return res.status(400).json({ error: "Query parameter is required" });
     }
-    const shouldFilterRated = allowR !== "true";
+    const shouldFilterRated = allowR !== 'true';
     try {
         const BASE_URL = "https://api.themoviedb.org/3";
-        let url = `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&include_adult=false`;
+        let url = `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query as string)}&include_adult=false`;
         if (year) {
             url += `&primary_release_year=${year}`;
         }
-
+        
         const [res1, res2] = await Promise.all([
             fetch(url),
-            fetch(`${url}&page=2`).catch(() => null),
+            fetch(`${url}&page=2`)
         ]);
 
         if (!res1.ok) throw new Error(`TMDB API error: ${res1.status}`);
 
         const data1 = await res1.json();
-        const data2 = res2 && res2.ok ? await res2.json() : { results: [] };
+        const data2 = res2.ok ? await res2.json() : { results: [] };
 
-        let allResults: any[] = [...(data1.results || []), ...(data2.results || [])];
+        let allResults = [...(data1.results || []), ...(data2.results || [])];
 
         const seen = new Set();
-        allResults = allResults.filter((m) => {
+        allResults = allResults.filter(m => {
             if (seen.has(m.id)) return false;
             seen.add(m.id);
             return true;
         });
 
-        const normalize = (t: string) => (t || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-        const normalizedQuery = normalize(query);
+        const normalize = (t: string) => t.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const normalizedQuery = normalize(query as string);
 
         allResults.sort((a, b) => {
             const normA = normalize(a.title);
             const normB = normalize(b.title);
+
             const isExactA = normA === normalizedQuery;
             const isExactB = normB === normalizedQuery;
+
             if (isExactA && !isExactB) return -1;
             if (!isExactA && isExactB) return 1;
+
             return 0;
         });
 
@@ -212,43 +267,49 @@ app.get("/tmdb/search", async (req, res) => {
         }
 
         const filteredResults: any[] = [];
+
         for (let i = 0; i < allResults.length && filteredResults.length < 15; i += 5) {
             const chunk = allResults.slice(i, i + 5);
-            await Promise.all(
-                chunk.map(async (movie) => {
-                    try {
-                        const releaseDatesRes = await fetch(`${BASE_URL}/movie/${movie.id}/release_dates?api_key=${TMDB_API_KEY}`);
-                        const releaseDatesData = await releaseDatesRes.json();
-                        if (!releaseDatesData.results) {
-                            filteredResults.push(movie);
-                            return;
-                        }
-                        const usRelease = releaseDatesData.results.find((r: any) => r.iso_3166_1 === "US");
-                        if (!usRelease || !usRelease.release_dates || usRelease.release_dates.length === 0) {
-                            filteredResults.push(movie);
-                            return;
-                        }
-                        const isRatedR = usRelease.release_dates.some(
-                            (rd: any) => rd.certification === "R" || rd.certification === "NC-17"
-                        );
-                        if (!isRatedR) filteredResults.push(movie);
-                    } catch (e) {
+            await Promise.all(chunk.map(async (movie: any) => {
+                try {
+                    const releaseDatesRes = await fetch(`${BASE_URL}/movie/${movie.id}/release_dates?api_key=${TMDB_API_KEY}`);
+                    const releaseDatesData = await releaseDatesRes.json();
+
+                    if (!releaseDatesData.results) {
+                        filteredResults.push(movie);
+                        return;
+                    }
+
+                    const usRelease = releaseDatesData.results.find((r: any) => r.iso_3166_1 === 'US');
+
+                    if (!usRelease || !usRelease.release_dates || usRelease.release_dates.length === 0) {
+                        filteredResults.push(movie);
+                        return;
+                    }
+
+                    const isRatedR = usRelease.release_dates.some((rd: any) =>
+                        rd.certification === 'R' || rd.certification === 'NC-17'
+                    );
+
+                    if (!isRatedR) {
                         filteredResults.push(movie);
                     }
-                })
-            );
+                } catch (e) {
+                    filteredResults.push(movie);
+                }
+            }));
         }
 
         filteredResults.sort((a, b) => {
-            const indexA = allResults.findIndex((r) => r.id === a.id);
-            const indexB = allResults.findIndex((r) => r.id === b.id);
+            const indexA = allResults.findIndex((r: any) => r.id === a.id);
+            const indexB = allResults.findIndex((r: any) => r.id === b.id);
             return indexA - indexB;
         });
 
         res.json({ results: filteredResults.slice(0, 15) });
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("TMDB search error:", error);
-        res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error" });
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -263,20 +324,15 @@ app.get("/tmdb/details/:id", async (req, res) => {
         if (!response.ok) throw new Error(`TMDB API error: ${response.status}`);
         const data = await response.json();
         res.json(data);
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("TMDB details error:", error);
-        res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error" });
+        res.status(500).json({ error: error.message });
     }
 });
 
 // --- EmailJS Route ---
 app.post("/email/send", async (req, res) => {
-    const { type, details, subject } = req.query as { type?: string; details?: string; subject?: string };
-    const { type: typeB, details: detailsB, subject: subjectB } = req.body;
-
-    const finalType = typeB || type;
-    const finalDetails = detailsB || details;
-    const finalSubject = (subjectB || subject) || `New ${finalType} request`;
+    const { type, details, subject } = req.body;
 
     const SERVICE_ID = process.env.EMAILJS_SERVICE_ID || process.env.VITE_EMAILJS_SERVICE_ID;
     const TEMPLATE_ID = process.env.EMAILJS_TEMPLATE_ID || process.env.VITE_EMAILJS_TEMPLATE_ID;
@@ -284,7 +340,7 @@ app.post("/email/send", async (req, res) => {
     const PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY || process.env.VITE_EMAILJS_PRIVATE_KEY;
 
     if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY || !PRIVATE_KEY) {
-        return res.status(500).json({ error: "EmailJS credentials not configured on server" });
+        return res.status(500).json({ error: "EmailJS credentials not fully configured on server" });
     }
 
     try {
@@ -294,10 +350,10 @@ app.post("/email/send", async (req, res) => {
             user_id: PUBLIC_KEY,
             accessToken: PRIVATE_KEY,
             template_params: {
-                subject: finalSubject,
-                message: finalDetails,
-                type: finalType,
-            },
+                subject: subject || `New ${type} request`,
+                message: details,
+                type: type,
+            }
         };
 
         const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
@@ -310,12 +366,15 @@ app.post("/email/send", async (req, res) => {
             res.json({ success: true });
         } else {
             const text = await response.text();
+            console.error("EmailJS API Error:", text);
             res.status(response.status).json({ error: text });
         }
-    } catch (error: unknown) {
-        res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error" });
+    } catch (error: any) {
+        console.error("EmailJS send error:", error);
+        res.status(500).json({ error: error.message });
     }
 });
 
-// Export the "api" function
-export const api = onRequest({ region: "us-central1" }, app);
+// Use secrets array directly for Firebase deployment if they use Secret Manager.
+// But we fallback to env variables since that's what's currently configured.
+export const api = onRequest({ region: "us-central1", invoker: "public" }, app);

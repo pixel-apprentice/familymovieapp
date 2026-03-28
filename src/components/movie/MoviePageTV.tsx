@@ -25,19 +25,20 @@ interface MoviePageTVProps {
 //   ✓ flexbox, fixed px, absolute positioning, percentages
 //   ✗ vh/vw, calc(), sticky, grid, Tailwind responsive prefixes
 const TV_STYLES: Record<string, React.CSSProperties> = {
-  // Full-screen outer wrapper — 100vh ensures TV full bleed
+  // Full-screen outer wrapper
+  // 100% + min-height in fixed px avoids Android TV system bar miscalculating vh units
   root: {
     position: 'relative',
     display: 'flex',
     flexDirection: 'row',
     width: '100%',
-    height: '100vh',        // ← was '100%' which relied on parent height chain
+    height: '100%',
+    minHeight: '720px',
     backgroundColor: '#09090b',
     color: '#fafafa',
     fontFamily: '"Outfit", "Inter", sans-serif',
     padding: '48px 64px',
     boxSizing: 'border-box',
-    // overflow MUST be visible so the backdrop (position:absolute sibling) can bleed
     overflow: 'hidden',
     zIndex: 1,
   },
@@ -54,9 +55,9 @@ const TV_STYLES: Record<string, React.CSSProperties> = {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
-    opacity: 0.15,              // subtle — just a colour wash
-    filter: 'blur(80px)',
-    transform: 'scale(1.15)',   // prevent blur-edge white fringe
+    opacity: 0.15,
+    filter: 'blur(40px)',         // 40px is the safe max for Onn 4K MediaTek GPU
+    transform: 'scale(1.1)',     // slight scale to prevent blur-edge white fringe
   },
 
   // LEFT COLUMN — poster

@@ -23,7 +23,7 @@ export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { movies, updateMovie, markWatched, removeMovie, profiles, pushCouchState, couchState, pushPulseEvent } = useData();
+  const { movies, updateMovie, markWatched, removeMovie, profiles, pushCouchState, couchState, pushPulseEvent, pulseEvent } = useData();
   const { showModal } = useModal();
 
   const isCouchMode = isCouchModeEnabled();
@@ -89,6 +89,21 @@ export function MovieDetailPage() {
       handleError(err, "Failed to generate party ideas");
     } finally {
       setIsGeneratingPack(false);
+    }
+  };
+
+  const handleMarkWatched = async () => {
+    if (!movie) return;
+    try {
+      await markWatched(movie.id);
+      const profile = profiles.find(p => p.id === movie.pickedBy);
+      await pushPulseEvent({
+        type: 'watched',
+        userName: profile?.name || movie.pickedBy || 'Someone',
+        movieTitle: movie.title,
+      });
+    } catch (error) {
+      handleError(error, "Failed to mark watched");
     }
   };
 
@@ -175,7 +190,7 @@ export function MovieDetailPage() {
     : `https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' movie trailer')}`;
 
   if (isCouchMode) {
-    return <MoviePageTV movie={movie} activeTrailer={couchState?.activeTrailer} pulseEvent={useData().pulseEvent} />;
+    return <MoviePageTV movie={movie} activeTrailer={couchState?.activeTrailer} pulseEvent={pulseEvent} />;
   }
 
   return (
@@ -236,7 +251,7 @@ export function MovieDetailPage() {
       />
 
       <div className="pt-2">
-        <MovieActions movie={movie} trailerUrl={trailerUrl} isSending={isSending} handlePlexRequest={handlePlexRequest} markWatched={markWatched} handleDelete={handleDelete} couchState={couchState} pushCouchState={pushCouchState} />
+        <MovieActions movie={movie} trailerUrl={trailerUrl} isSending={isSending} handlePlexRequest={handlePlexRequest} markWatched={handleMarkWatched} handleDelete={handleDelete} couchState={couchState} pushCouchState={pushCouchState} />
       </div>
     </div>
   );
