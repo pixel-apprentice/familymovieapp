@@ -19,6 +19,7 @@ interface MovieCardInnerProps {
 
 const MovieCardInner = React.memo(({ movie, markWatched, removeMovie, profiles, theme, getThemeText, isCouchMode }: MovieCardInnerProps) => {
   const [imageError, setImageError] = React.useState(false);
+  const [loaded, setLoaded] = React.useState(false);
 
   const trailerUrl = movie.trailerKey
     ? `https://www.youtube.com/watch?v=${movie.trailerKey}`
@@ -50,12 +51,17 @@ const MovieCardInner = React.memo(({ movie, markWatched, removeMovie, profiles, 
     >
       <Link to={`/movie/${movie.id}`} className="block relative group/poster">
         {movie.poster_url && movie.poster_url.trim() !== '' && !imageError ? (
-          <div className="relative aspect-[2/3] w-full overflow-hidden bg-theme-base">
+          <div className="relative aspect-[2/3] w-full overflow-hidden bg-theme-surface">
+            {/* Shimmer skeleton — always reserves space, fades out when image loads */}
+            {!loaded && (
+              <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-theme-surface via-theme-border/20 to-theme-surface" />
+            )}
             <img
               src={movie.poster_url.startsWith('http') ? movie.poster_url : `https://image.tmdb.org/t/p/w500${movie.poster_url}`}
               alt={movie.title}
-              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+              className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${loaded ? 'opacity-100' : 'opacity-0'}`}
               referrerPolicy="no-referrer"
+              onLoad={() => setLoaded(true)}
               onError={() => setImageError(true)}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
@@ -92,7 +98,7 @@ const MovieCardInner = React.memo(({ movie, markWatched, removeMovie, profiles, 
             </div>
           </div>
         ) : (
-          <div className="aspect-[2/3] w-full bg-theme-base flex items-center justify-center relative">
+          <div className="aspect-[2/3] w-full bg-gradient-to-br from-theme-surface to-theme-base flex items-center justify-center relative animate-pulse">
             <span className="text-theme-muted font-black text-[10px] opacity-30 uppercase tracking-widest px-4 text-center">
               {movie.title}
             </span>
@@ -123,7 +129,7 @@ const MovieCardInner = React.memo(({ movie, markWatched, removeMovie, profiles, 
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => { hapticFeedback.success(); markWatched(movie.id); }}
-              className="w-full py-1.5 rounded-lg bg-theme-primary text-theme-base font-black uppercase tracking-widest text-[8px] transition-all hover:shadow-lg relative overflow-hidden group/btn"
+              className="w-full py-1.5 rounded-lg bg-theme-primary text-theme-base font-black uppercase tracking-widest text-[8px] transition-all hover:shadow-lg relative overflow-hidden group/btn touch-manipulation"
             >
               <span className="relative z-10">{getThemeText('watched')}</span>
               <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-500 skew-x-12" />

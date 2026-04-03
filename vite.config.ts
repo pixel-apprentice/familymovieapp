@@ -49,6 +49,23 @@ export default defineConfig(({ mode }) => {
               purpose: 'maskable',
             },
           ],
+          // Long-press app icon on Android/iOS to reveal these shortcuts
+          shortcuts: [
+            {
+              name: 'Pick a Random Movie',
+              short_name: 'Random 🎲',
+              description: 'Let fate decide the movie tonight',
+              url: '/?action=random',
+              icons: [{ src: '/pwa-192.png', sizes: '192x192', type: 'image/png' }],
+            },
+            {
+              name: 'Add a Movie',
+              short_name: 'Add Movie ➕',
+              description: 'Search and add a new movie to the list',
+              url: '/?action=add',
+              icons: [{ src: '/pwa-192.png', sizes: '192x192', type: 'image/png' }],
+            },
+          ],
         },
         workbox: {
           // Cache all static assets (JS, CSS, HTML, SVG, fonts)

@@ -85,6 +85,7 @@ export function useAddMovieForm(movie: TMDBMovie | null, onClose: () => void, on
       const pickerProfile = profiles.find(p => p.id === finalPicker);
       await pushPulseEvent({
         type: 'added',
+        target: 'tv',
         userName: pickerProfile?.name || finalPicker,
         movieTitle: movie.title,
       });

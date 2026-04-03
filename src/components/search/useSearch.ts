@@ -211,6 +211,7 @@ export function useSearch() {
       // Notify TV about the new addition
       await pushPulseEvent({
         type: 'added',
+        target: 'tv',
         userName: currentUserName,
         movieTitle: movie.title,
       });

@@ -35,6 +35,8 @@ export function MovieDetailPage() {
   const [isGeneratingPack, setIsGeneratingPack] = useState(false);
   const [watchPartyPack, setWatchPartyPack] = useState<{ snack: string; activity: string; prompt: string } | null>(null);
   const [editForm, setEditForm] = useState({ date: '', status: 'wishlist' as const, pickedBy: '' });
+  // Optimistic UI: local copy of ratings that updates instantly on tap
+  const [localRatings, setLocalRatings] = useState<Record<string, number>>({});
 
   // Navigation Logic
   const { filteredWishlist, filteredWatched } = useMovieFilters();
@@ -53,6 +55,14 @@ export function MovieDetailPage() {
       });
     }
   }, [movie, isEditing]);
+
+  // Sync localRatings when Firestore data arrives (but don't overwrite while user is actively rating)
+  const isRatingRef = React.useRef(false);
+  useEffect(() => {
+    if (!isRatingRef.current && movie?.ratings) {
+      setLocalRatings(movie.ratings);
+    }
+  }, [movie?.ratings]);
 
   useEffect(() => {
     if (id && !isCouchMode) {
@@ -99,6 +109,7 @@ export function MovieDetailPage() {
       const profile = profiles.find(p => p.id === movie.pickedBy);
       await pushPulseEvent({
         type: 'watched',
+        target: 'tv',
         userName: profile?.name || movie.pickedBy || 'Someone',
         movieTitle: movie.title,
       });
@@ -108,26 +119,37 @@ export function MovieDetailPage() {
   };
 
   const handleRatingToggle = async (profileId: string, star: number) => {
-    const currentRating = movie?.ratings[profileId] || 0;
+    const currentRating = localRatings[profileId] || 0;
     const newRating = movieService.calculateNewRating(currentRating, star);
 
+    // 1. Optimistic update — instant feedback
+    const previousRatings = { ...localRatings };
+    const newRatings = { ...localRatings, [profileId]: newRating };
+    isRatingRef.current = true;
+    setLocalRatings(newRatings);
+    if (newRating % 1 !== 0) hapticFeedback.light();
+    else hapticFeedback.medium();
+
     try {
-      const newRatings = { ...movie!.ratings, [profileId]: newRating };
+      // 2. Silent async sync to Firestore
       await updateMovie(movie!.id, { ratings: newRatings });
       
       const profile = profiles.find(p => p.id === profileId);
       if (profile && newRating > 0) {
         await pushPulseEvent({
           type: 'rating',
+          target: 'tv',
           userName: profile.name,
           movieTitle: movie!.title,
           value: newRating
         });
       }
-      if (newRating % 1 !== 0) hapticFeedback.light();
-      else hapticFeedback.medium();
     } catch (error) {
+      // 3. Rollback on failure
+      setLocalRatings(previousRatings);
       handleError(error, "Failed to update rating");
+    } finally {
+      isRatingRef.current = false;
     }
   };
 
@@ -241,6 +263,7 @@ export function MovieDetailPage() {
       <MovieDetailRankings
         movie={movie}
         profiles={profiles}
+        localRatings={localRatings}
         handleRatingToggle={handleRatingToggle}
       />
 

@@ -6,6 +6,7 @@ import { AboutPanel } from '../components/stats/AboutPanel';
 import { SearchPreferencesPanel } from '../components/stats/SearchPreferencesPanel';
 import { DataManagementPanel } from '../components/stats/DataManagementPanel';
 import { DataStatusPanel } from '../components/stats/DataStatusPanel';
+import { WrappedPanel } from '../components/stats/WrappedPanel';
 import { AlertCircle, Terminal, Copy, Trash2, Check } from 'lucide-react';
 import { ErrorLog } from '../utils/logger';
 import { toast } from 'sonner';
@@ -16,7 +17,8 @@ export function StatsPage() {
   return (
     <div className="flex flex-col gap-12 w-full max-w-7xl mx-auto px-4 py-8">
 
-
+      {/* Family Movie Wrapped — hero placement */}
+      <WrappedPanel />
 
       {/* Theme Picker Section */}
       <section className="space-y-6">

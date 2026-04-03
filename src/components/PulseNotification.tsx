@@ -11,11 +11,21 @@ export function PulseNotification({ event }: { event: PulseEvent | null }) {
   const [activeEvent, setActiveEvent] = useState<PulseEvent | null>(null);
   const location = useLocation();
   const isCouchMode = isCouchModeEnabled(location.search);
-  
-  // TV mode uses its own integrated notification system to avoid layout shifts
-  if (isCouchMode) return null;
+
+  // --- Routing logic: show on the right device only ---
+  // Events without a target default to 'tv' (legacy Firestore docs)
+  const target = event?.target ?? 'tv';
+  const shouldShowOnThisDevice =
+    target === 'all' ||
+    (target === 'tv' && isCouchMode) ||
+    (target === 'mobile' && !isCouchMode);
+
+  // TV mode has its own integrated panel in CouchAlert — skip the floating overlay there
+  // UNLESS we're explicitly targeting 'all' (e.g. system status updates)
+  if (isCouchMode && target !== 'all') return null;
 
   useEffect(() => {
+    if (!shouldShowOnThisDevice) return;
     if (event && (!activeEvent || event.timestamp !== activeEvent.timestamp)) {
       setActiveEvent(event);
       setIsVisible(true);
@@ -24,6 +34,7 @@ export function PulseNotification({ event }: { event: PulseEvent | null }) {
       const duration = event.type === 'status' && event.onAction ? 10000 : 5000;
       const timer = setTimeout(() => setIsVisible(false), duration);
       return () => clearTimeout(timer);
+
     }
   }, [event, activeEvent]);
 

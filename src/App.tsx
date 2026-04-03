@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
+import { AnimatePresence, motion } from 'motion/react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { DataProvider, useData } from './contexts/DataContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -104,6 +105,7 @@ function AppContent() {
     const handleUpdate = () => {
       pushPulseEvent({
         type: 'status',
+        target: 'all',
         title: 'System Update',
         message: 'A new version of Family Movie Night is ready. Click to update!',
         onAction: () => {
@@ -143,18 +145,49 @@ function AppContent() {
 
   return (
     <Layout>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/stats" element={<StatsPage />} />
-        <Route path="/movie/:id" element={<MovieDetailPage />} />
-        
-        {/* TV Routes */}
-        <Route path="/tv" element={<CouchPage />} />
-        <Route path="/tv/movie/:id" element={<MovieDetailPage />} />
-        
-        {/* Fallback Catch-All Route (Edge Case Handling) */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AnimatePresence mode="wait" initial={false}>
+        <div key={location.pathname} style={{ display: 'contents' }}>
+        <Routes location={location}>
+          <Route path="/" element={
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
+            >
+              <HomePage />
+            </motion.div>
+          } />
+          <Route path="/stats" element={
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.22, ease: 'easeInOut' }}
+            >
+              <StatsPage />
+            </motion.div>
+          } />
+          <Route path="/movie/:id" element={
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 40 }}
+              transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+            >
+              <MovieDetailPage />
+            </motion.div>
+          } />
+
+          {/* TV Routes — no transitions on TV to avoid layout shift */}
+          <Route path="/tv" element={<CouchPage />} />
+          <Route path="/tv/movie/:id" element={<MovieDetailPage />} />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        </div>
+      </AnimatePresence>
       <Modal />
     </Layout>
   );

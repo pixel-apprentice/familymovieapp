@@ -21,6 +21,13 @@ export function MovieList() {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const mobileFilterPanelRef = useRef<HTMLDivElement>(null);
 
+  // PWA shortcut: /?action=random triggers this via custom event
+  useEffect(() => {
+    const handleShortcutRandom = () => pickRandom();
+    window.addEventListener('fmn:shortcut-random', handleShortcutRandom);
+    return () => window.removeEventListener('fmn:shortcut-random', handleShortcutRandom);
+  }, [pickRandom]);
+
   useEffect(() => {
     const handleScroll = () => setShowBackToTop((window.scrollY ?? 0) > 500);
     window.addEventListener('scroll', handleScroll, { passive: true });

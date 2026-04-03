@@ -31,6 +31,13 @@ export interface CouchState {
 
 export interface PulseEvent {
   type: 'rating' | 'watched' | 'added' | 'status';
+  /** Controls which device surfaces the notification.
+   * 'tv'     → only shown on the Chromecast/TV CouchPage receiver
+   * 'mobile' → only shown on non-TV devices (future use)
+   * 'all'    → shown everywhere (e.g. PWA update alerts)
+   * Defaults to 'tv' if omitted for backwards compatibility.
+   */
+  target?: 'tv' | 'mobile' | 'all';
   userName?: string;
   movieTitle?: string;
   message?: string;

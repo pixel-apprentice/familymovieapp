@@ -375,6 +375,103 @@ app.post("/email/send", async (req, res) => {
     }
 });
 
+// --- Family Movie Wrapped ---
+// POST /gemini/wrapped
+// Accepts watch history, returns AI-generated year-in-review personality & roast
+app.post("/gemini/wrapped", async (req, res) => {
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+    if (!GEMINI_API_KEY) {
+        return res.status(500).json({ error: "GEMINI_API_KEY not configured on server" });
+    }
+
+    const { movies, profiles, year } = req.body;
+    if (!movies || !Array.isArray(movies) || movies.length === 0) {
+        return res.status(400).json({ error: "movies array is required" });
+    }
+
+    // --- Compute data-driven stats server-side ---
+    const watchedMovies = movies.filter((m: any) => m.status === "watched");
+    if (watchedMovies.length === 0) {
+        return res.status(400).json({ error: "No watched movies found" });
+    }
+
+    // Top picker by count
+    const pickerCounts: Record<string, number> = {};
+    watchedMovies.forEach((m: any) => {
+        if (m.pickedBy) pickerCounts[m.pickedBy] = (pickerCounts[m.pickedBy] || 0) + 1;
+    });
+    const topPickerId = Object.entries(pickerCounts).sort(([, a], [, b]) => b - a)[0]?.[0] || "Unknown";
+    const topPickerProfile = profiles?.find((p: any) => p.id === topPickerId);
+    const topPickerName = topPickerProfile?.name || topPickerId;
+    const topPickerCount = pickerCounts[topPickerId] || 0;
+
+    // Movie of the year (highest avg rating)
+    let movieOfTheYear = watchedMovies[0];
+    let highestAvg = 0;
+    watchedMovies.forEach((m: any) => {
+        const vals = Object.values(m.ratings || {}).filter((v): v is number => typeof v === "number" && v > 0);
+        if (vals.length === 0) return;
+        const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+        if (avg > highestAvg) { highestAvg = avg; movieOfTheYear = m; }
+    });
+
+    // Top genres by frequency in watched list
+    const genreCounts: Record<string, number> = {};
+    watchedMovies.forEach((m: any) => {
+        (m.genres || []).forEach((g: string) => { genreCounts[g] = (genreCounts[g] || 0) + 1; });
+    });
+    const topGenres = Object.entries(genreCounts).sort(([, a], [, b]) => b - a).slice(0, 3).map(([g]) => g);
+
+    // Titles list for AI context
+    const movieTitles = watchedMovies.map((m: any) => m.title).join(", ");
+
+    try {
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+        const prompt = `You are a witty, warm family movie night narrator. A family watched ${watchedMovies.length} movies${year ? ` in ${year}` : ""}. 
+
+Movies watched: ${movieTitles}
+Top genres: ${topGenres.join(", ")}
+Most picks by: ${topPickerName} (${topPickerCount} movies)
+Movie of the year: ${movieOfTheYear.title} (rated ${highestAvg.toFixed(1)}/5)
+
+Return ONLY a JSON object (no markdown) with these exact fields:
+{
+  "personalityLabel": "A fun 2-4 word label for this family's movie taste (e.g. 'The Cozy Adventurers', 'Drama Royalty')",
+  "genreVibe": "One sentence describing their genre vibe based on what they watched (warm, not clinical)",
+  "topPickerSummary": "One sentence celebrating ${topPickerName} as the top movie picker this year (funny and affectionate)",
+  "movieOfYearInsight": "One sentence about why ${movieOfTheYear.title} was probably the crowd favorite (speculative, fun)",
+  "familyRoast": "One affectionate, funny sentence roasting the family's overall taste based on all their movies — think gentle, like a family member teasing them"
+}`;
+
+        const response = await ai.models.generateContent({
+            model: "gemini-flash-lite-latest",
+            contents: prompt,
+        });
+
+        const raw = cleanJson(response.text);
+        const aiData = JSON.parse(raw);
+
+        res.json({
+            // Data-driven fields (reliable)
+            totalWatched: watchedMovies.length,
+            topPickerName,
+            topPickerCount,
+            topGenres,
+            movieOfTheYear: {
+                title: movieOfTheYear.title,
+                poster_url: movieOfTheYear.poster_url || "",
+                avgRating: highestAvg.toFixed(1),
+            },
+            year: year || new Date().getFullYear(),
+            // AI fields
+            ...aiData,
+        });
+    } catch (error: any) {
+        console.error("Wrapped generation error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Use secrets array directly for Firebase deployment if they use Secret Manager.
 // But we fallback to env variables since that's what's currently configured.
 export const api = onRequest({ region: "us-central1", invoker: "public" }, app);
