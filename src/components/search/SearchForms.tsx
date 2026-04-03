@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { hapticFeedback } from '../../utils/haptics';
@@ -12,6 +12,7 @@ interface SearchFormsProps {
   handleSearch: (e: React.FormEvent) => void;
   handleVibeSearch: (e: React.FormEvent) => void;
   handleRecommend: () => void;
+  onFocusShortcut?: () => void;
 }
 
 export function SearchForms({
@@ -22,12 +23,26 @@ export function SearchForms({
   handleRecommend
 }: Omit<SearchFormsProps, 'vibe' | 'setVibe' | 'handleVibeSearch'>) {
   const { theme } = useTheme();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus shortcut listener: /?action=add triggers this via custom event
+  useEffect(() => {
+    const handleShortcutAdd = () => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    };
+    window.addEventListener('fmn:shortcut-add', handleShortcutAdd);
+    return () => window.removeEventListener('fmn:shortcut-add', handleShortcutAdd);
+  }, []);
 
   return (
     <div className="flex flex-row items-stretch gap-2 w-full">
       <form onSubmit={handleSearch} className="flex-[3] flex gap-2">
         <div className="flex-1 relative">
           <input
+            ref={inputRef}
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
