@@ -27,7 +27,7 @@ app.get("/gemini/test", async (_req, res) => {
     try {
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
-            model: "gemini-3.1-flash-lite-preview",
+            model: "gemini-flash-lite-latest",
             contents: "Test connection. Reply with 'OK'.",
         });
         if (response.text) {
@@ -56,7 +56,7 @@ app.post("/gemini/vibe", async (req, res) => {
     try {
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
-            model: "gemini-3.1-flash-lite-preview",
+            model: "gemini-flash-lite-latest",
             contents: `Suggest 10 movie titles that match this vibe: "${vibe}". 
       ${ratingInstruction}
       Return ONLY a JSON array of 10 movie titles.`,
@@ -99,7 +99,7 @@ app.post("/gemini/recommend", async (req, res) => {
         }).join('\n');
 
         const response = await ai.models.generateContent({
-            model: "gemini-3.1-flash-lite-preview",
+            model: "gemini-flash-lite-latest",
             contents: `We are a family (${profileNames.join(', ')}) having a movie night. It's ${currentUser}'s turn to pick. 
       
       Here is our watch history, including summaries and how we rated them:
@@ -158,7 +158,7 @@ app.post("/gemini/party", async (req, res) => {
       Return ONLY a raw JSON object (NO markdown formatting, NO backticks) with exact properties: "snack", "activity", "prompt". Keep each response to 1 concise sentence.`;
 
         const response = await ai.models.generateContent({
-            model: "gemini-3.1-flash-lite-preview",
+            model: "gemini-flash-lite-latest",
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
