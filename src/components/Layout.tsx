@@ -14,7 +14,7 @@ import { PulseNotification } from './PulseNotification';
 import { getThemeText } from '../utils/themeDictionary';
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { isLocalMode, syncStatus, pulseEvent } = useData();
+  const { isLocalMode, syncStatus, pulseEvent, authError } = useData();
   const { theme } = useTheme();
   const location = useLocation();
 
@@ -49,7 +49,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {isLocalMode && (
         <div className="bg-red-500 text-white text-[10px] font-black uppercase tracking-[0.2em] text-center py-2 px-4 shadow-xl z-50 relative animate-pulse">
-          <span>⚠️ Local Mode: Check Firebase Keys & Enable Anonymous Auth</span>
+          <span>⚠️ Local Mode: {authError ? authError.message : 'Check Firebase Keys & Enable Anonymous Auth'}</span>
         </div>
       )}
 

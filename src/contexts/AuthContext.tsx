@@ -32,8 +32,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Sign in anonymously if not already signed in
     signInAnonymously(auth).catch((err) => {
-      console.warn("Firebase Auth not configured or failed. Falling back to local mode without auth.");
-      // We don't set error because we can work without auth in local mode
+      console.warn("Firebase Auth not configured or failed. Falling back to local mode without auth.", err);
+      setError(err);
       setLoading(false);
     });
 

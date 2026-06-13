@@ -11,7 +11,7 @@ import { logger } from '../utils/logger';
 import { isCouchModeEnabled } from '../utils/isCouchMode';
 
 export function useFirebaseData() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, error: authError } = useAuth();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
   
@@ -360,6 +360,7 @@ export function useFirebaseData() {
     pushCouchState,
     pushPulseEvent,
     clearData,
-    isInitializing
+    isInitializing,
+    authError
   };
 }
