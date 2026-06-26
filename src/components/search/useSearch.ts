@@ -140,8 +140,6 @@ export function useSearch() {
         allowRatedR || recommendationMode !== 'safe'
       );
 
-      toast.info(`Generating personalized picks for ${currentUser}...`);
-
       const settled = await Promise.allSettled(
         recommendations.map(rec => searchMovies(rec.title, undefined, allowRatedR).then(res => {
           if (res[0]) { res[0].reason = rec.reason; }
@@ -170,7 +168,6 @@ export function useSearch() {
         toast.info('No recommendations matched your current mode/preferences.');
       } else {
         setResults(found);
-        toast.success(`${found.length} ${recommendationMode} recommendations for ${currentUser}!`);
       }
     } catch (error: any) {
       console.error('Recommend error:', error);
