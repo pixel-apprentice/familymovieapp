@@ -15,9 +15,10 @@ export function usePWAStatus() {
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(() =>
     typeof window !== 'undefined'
-      ? (window.matchMedia?.('(display-mode: standalone)')?.matches ?? false)
+      ? (window.matchMedia?.('(display-mode: standalone)')?.matches ?? false) || (window.navigator as any).standalone
       : false
   );
+  const [isIOS, setIsIOS] = useState(false);
   const [hasUpdate, setHasUpdate] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [updateAction, setUpdateAction] = useState<UpdateSWFn | null>(null);
@@ -61,6 +62,15 @@ export function usePWAStatus() {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      const isIOSDevice = /iphone|ipad|ipod/.test(userAgent) || 
+                          (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+      setIsIOS(isIOSDevice);
+    }
+  }, []);
+
   const promptInstall = useCallback(async () => {
     if (!installPrompt) return false;
 
@@ -87,5 +97,6 @@ export function usePWAStatus() {
     hasUpdate,
     promptInstall,
     applyUpdate,
+    isIOS
   };
 }

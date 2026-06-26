@@ -12,6 +12,7 @@ import { PWAStatusBar } from './PWAStatusBar';
 import { isCouchModeEnabled } from '../utils/isCouchMode';
 import { PulseNotification } from './PulseNotification';
 import { getThemeText } from '../utils/themeDictionary';
+import { IOSInstallPrompt } from './IOSInstallPrompt';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { isLocalMode, syncStatus, pulseEvent, authError } = useData();
@@ -137,6 +138,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </Link>
       )}
+      {!isCouchMode && <IOSInstallPrompt />}
     </div>
   );
 }
