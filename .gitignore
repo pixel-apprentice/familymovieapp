@@ -13,3 +13,6 @@ coverage/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Local Scratchpad/Bins
+scratch/
